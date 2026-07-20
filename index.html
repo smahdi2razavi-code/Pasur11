@@ -889,8 +889,8 @@ body.custom-back .card.back::after{content:"";}
      'ratio'   = کارت هم‌نسبتِ عکس تو می‌شود (پیشنهادی)
      'stretch' = عکس روی اندازهٔ استاندارد کارت کشیده می‌شود
    ================================================================ */
-const CARD_IMG_W   = 3072;
-const CARD_IMG_H   = 3072;
+const CARD_IMG_W   = 10000;
+const CARD_IMG_H   = 10000;
 const CARD_IMG_FIT = 'ratio';
 if(CARD_IMG_FIT==='ratio' && CARD_IMG_W>0 && CARD_IMG_H>0){
   document.documentElement.style.setProperty('--card-ar', CARD_IMG_W+' / '+CARD_IMG_H);
