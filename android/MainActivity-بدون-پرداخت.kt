@@ -1,11 +1,12 @@
 /* ============================================================================
- *  MainActivity.kt  —  نسخهٔ ساده (فقط حل مشکل آپدیت)
- *  این نسخه هیچ کد پرداختی ندارد و بدون هیچ فایل اضافه‌ای کامپایل می‌شود.
- *  فقط یک تفاوت با فایل فعلی تو دارد: بازی را از داخل خود اپ باز می‌کند،
- *  نه از گیت‌هاب. → تغییرات گیت‌هاب دیگر روی اپ نصب‌شده اثر ندارند.
+ *  MainActivity.kt  —  نسخهٔ ساده (فقط حل مشکل آپدیت) — روش WebViewAssetLoader
+ *  این نسخه هیچ کد پرداختی ندارد و فایل‌های بازی را با روش رسمی گوگل از داخل
+ *  اپ سرو می‌کند (مثل یک سایت محلیِ امن). خطای ERR_FILE_NOT_FOUND در گوشی‌های
+ *  سامسونگ و سایر گوشی‌ها با این روش دیگر پیش نمی‌آید.
  *
- *  بعد از اینکه با این نسخه یک APK سالم گرفتی، برای فعال‌کردن پرداخت،
- *  فایل «MainActivity.kt» کامل را جایگزین کن (طبق راهنما).
+ *  ⚠ پیش‌نیاز: در build.gradle.kts این خط را در بخش dependencies اضافه کن:
+ *        implementation("androidx.webkit:webkit:1.11.0")
+ *     و بعد روی «Sync Now» بزن.
  * ========================================================================== */
 
 package com.yourname.pasur11
@@ -17,6 +18,8 @@ import android.view.ViewGroup
 import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -24,6 +27,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.webkit.WebViewAssetLoader
 
 class MainActivity : AppCompatActivity() {
 
@@ -59,7 +63,19 @@ class MainActivity : AppCompatActivity() {
             cacheMode = WebSettings.LOAD_DEFAULT
         }
 
-        webView.webViewClient = WebViewClient()
+        // روش رسمی گوگل: فایل‌های داخل assets را مثل یک سایت محلی امن سرو می‌کند
+        val assetLoader = WebViewAssetLoader.Builder()
+            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
+            .build()
+
+        webView.webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(
+                view: WebView,
+                request: WebResourceRequest
+            ): WebResourceResponse? {
+                return assetLoader.shouldInterceptRequest(request.url)
+            }
+        }
 
         webView.webChromeClient = object : WebChromeClient() {
             override fun onShowFileChooser(
@@ -88,8 +104,8 @@ class MainActivity : AppCompatActivity() {
             fun exit() { runOnUiThread { finish() } }
         }, "AndroidApp")
 
-        // ✅ تنها تغییر مهم: بازی از داخل خود اپ باز می‌شود (نه از اینترنت)
-        webView.loadUrl("file:///android_asset/index.html")
+        // ✅ بازی از داخل خود اپ سرو می‌شود (آدرس محلیِ امن، نه اینترنت)
+        webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {

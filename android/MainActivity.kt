@@ -1,20 +1,18 @@
 /* ============================================================================
- *  MainActivity.kt  —  نسخهٔ کامل پاسور ۱۱ (کاتلین)
+ *  MainActivity.kt  —  نسخهٔ کامل پاسور ۱۱ (کاتلین) — روش WebViewAssetLoader
  *  این فایل دو کار را انجام می‌دهد:
- *    ۱) بازی را از داخل خود اپ باز می‌کند (نه از اینترنت) → آپدیت فقط از اندروید استودیو
+ *    ۱) بازی را از داخل خود اپ سرو می‌کند (روش رسمی گوگل) → آپدیت فقط از اندروید استودیو
  *    ۲) درگاه پرداخت مایکت را وصل می‌کند (خرید سکه و VIP)
  *
- *  ⚠ قبل از استفاده از بخش پرداخت، این سه کار باید انجام شده باشد
- *    (اگر انجام نشده، فعلاً از نسخهٔ «بدون پرداخت» در راهنما استفاده کن):
- *      الف) فایل‌های صورت‌حساب مایکت (IabHelper و فایل‌های AIDL) از نمونهٔ رسمی
- *           مایکت به پروژه اضافه شده باشد.
- *      ب) در AndroidManifest.xml دسترسی «ir.mservices.market.BILLING» اضافه شده باشد.
- *      ج) در build.gradle.kts خط «aidl = true» اضافه شده باشد.
- *  بعد از اضافه‌کردن فایل‌های مایکت، اندروید استودیو زیر import ها خط قرمز می‌کشد؛
- *  روی هرکدام Alt+Enter بزن تا خودش import درست را بیاورد.
+ *  ⚠ پیش‌نیازها:
+ *    - در build.gradle.kts در بخش dependencies این خط باشد:
+ *          implementation("androidx.webkit:webkit:1.11.0")
+ *    - برای بخش پرداخت: فایل‌های صورت‌حساب مایکت (IabHelper و AIDL) اضافه شده،
+ *      دسترسی «ir.mservices.market.BILLING» در مانیفست، و «aidl = true» در گریدل.
+ *  بعد از افزودن فایل‌های مایکت، روی import های قرمز Alt+Enter بزن.
  * ========================================================================== */
 
-package com.yourname.pasur11   // ← اگر applicationId را عوض کردی، این را دست نزن
+package com.yourname.pasur11
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -24,6 +22,8 @@ import android.view.ViewGroup
 import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -31,6 +31,7 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.webkit.WebViewAssetLoader
 // ↓↓↓ این دو import از فایل‌های نمونهٔ مایکت می‌آیند (با Alt+Enter کامل می‌شود) ↓↓↓
 import ir.myket.billingclient.util.IabHelper
 import ir.myket.billingclient.util.Purchase
@@ -39,7 +40,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var webView: WebView
 
-    // برای اینکه «انتخاب عکس» (آواتار پروفایل) داخل اپ کار کند
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
     private lateinit var fileChooser: ActivityResultLauncher<Intent>
 
@@ -65,20 +65,32 @@ class MainActivity : AppCompatActivity() {
         }
 
         webView = findViewById(R.id.webview)
-        webView.setBackgroundColor(0xFF0A0A0C.toInt()) // رفع فلش سفید هنگام باز شدن
+        webView.setBackgroundColor(0xFF0A0A0C.toInt())
 
         webView.settings.apply {
-            javaScriptEnabled = true              // اجرای بازی
-            domStorageEnabled = true              // ذخیرهٔ بازی، سکه‌ها و پروفایل کاربر
+            javaScriptEnabled = true
+            domStorageEnabled = true
             databaseEnabled = true
             allowFileAccess = true
             allowContentAccess = true
-            useWideViewPort = true                // ابعاد درست در همهٔ گوشی‌ها
+            useWideViewPort = true
             loadWithOverviewMode = true
             cacheMode = WebSettings.LOAD_DEFAULT
         }
 
-        webView.webViewClient = WebViewClient()
+        // روش رسمی گوگل: فایل‌های داخل assets را مثل یک سایت محلی امن سرو می‌کند
+        val assetLoader = WebViewAssetLoader.Builder()
+            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
+            .build()
+
+        webView.webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(
+                view: WebView,
+                request: WebResourceRequest
+            ): WebResourceResponse? {
+                return assetLoader.shouldInterceptRequest(request.url)
+            }
+        }
 
         webView.webChromeClient = object : WebChromeClient() {
             override fun onShowFileChooser(
@@ -98,31 +110,29 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onPermissionRequest(request: PermissionRequest) {
-                request.grant(request.resources)  // برای بازی دو نفره روی وای‌فای
+                request.grant(request.resources)
             }
         }
 
-        // پل خروج: دکمهٔ «خروج» داخل بازی از این استفاده می‌کند
+        // پل خروج
         webView.addJavascriptInterface(object {
             @android.webkit.JavascriptInterface
             fun exit() { runOnUiThread { finish() } }
         }, "AndroidApp")
 
-        // پل پرداخت: وقتی کاربر روی «خرید» می‌زند، بازی buy(...) را صدا می‌زند
+        // پل پرداخت: بازی buy(...) را صدا می‌زند
         webView.addJavascriptInterface(object {
             @android.webkit.JavascriptInterface
             fun buy(sku: String) { runOnUiThread { startPurchase(sku) } }
         }, "AndroidBilling")
 
-        // ✅ بازی را از داخل خود اپ باز کن (نه از اینترنت)
-        //    → دیگر تغییرات گیت‌هاب روی اپ نصب‌شده اثر ندارند؛ آپدیت فقط از اندروید استودیو
-        webView.loadUrl("file:///android_asset/index.html")
+        // ✅ بازی از داخل خود اپ سرو می‌شود (آدرس محلیِ امن، نه اینترنت)
+        webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
 
         // آماده‌سازی درگاه مایکت
         iab = IabHelper(this, RSA_KEY)
         iab?.startSetup { result -> iabReady = result.isSuccess }
 
-        // دکمهٔ برگشت گوشی: به خود بازی می‌گوییم؛ بازی اول از کاربر تأیید می‌گیرد
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 webView.evaluateJavascript("window.appBack ? window.appBack() : 'exit'") { v ->
@@ -132,7 +142,7 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    /** شروع خرید یک بسته (coins_500 / coins_1500 / coins_4000 / vip_subscription) */
+    /** شروع خرید (coins_500 / coins_1500 / coins_4000 / vip_subscription) */
     private fun startPurchase(sku: String) {
         val helper = iab ?: return
         if (!iabReady) return
@@ -140,14 +150,13 @@ class MainActivity : AppCompatActivity() {
             if (result.isFailure || purchase == null) return@launchPurchaseFlow
             if (purchase.sku != sku) return@launchPurchaseFlow
             if (sku == "vip_subscription") {
-                grantVipJs()                                   // VIP: مصرف نمی‌شود
+                grantVipJs()
             } else {
-                helper.consumeAsync(purchase) { _, _ -> grantPurchaseJs(sku) } // سکه‌ها مصرف می‌شوند
+                helper.consumeAsync(purchase) { _, _ -> grantPurchaseJs(sku) }
             }
         }, "")
     }
 
-    /** بعد از خرید موفق، به بازی خبر می‌دهیم تا سکه‌ها را اضافه کند */
     private fun grantPurchaseJs(sku: String) {
         webView.post { webView.evaluateJavascript("window.grantPurchase('$sku')", null) }
     }
@@ -156,7 +165,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        // اجازه بده مایکت اول نتیجهٔ خرید را بررسی کند
         if (iab?.handleActivityResult(requestCode, resultCode, data) == true) return
         super.onActivityResult(requestCode, resultCode, data)
     }
