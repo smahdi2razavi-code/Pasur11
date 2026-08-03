@@ -1104,22 +1104,35 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 (function(){
 
 /* ================================================================
-   ⚙⚙⚙  تنظیم دستی عکس کارت‌ها — این اعداد را خودت عوض کن  ⚙⚙⚙
+   ⚙⚙⚙  اندازهٔ عکس کارت‌ها  ⚙⚙⚙
    ----------------------------------------------------------------
-   CARD_IMG_W و CARD_IMG_H = ابعاد عکس‌های تو (عرض و ارتفاع به پیکسل)
-   مثال: عکس مربعی 512×512  →  W=512  H=512
-   مثال: عکس مستطیلی 500×726 →  W=500  H=726
-   کارت‌ها در بازی دقیقاً با همین نسبت نمایش داده می‌شوند و عکس نه کشیده
-   می‌شود نه بریده.
+   ✅ حالت پیشنهادی (CARD_IMG_AUTO = true):
+      لازم نیست هیچ عددی وارد کنی. بازی خودش ابعاد واقعی عکس‌های داخل
+      پوشهٔ cards را می‌خواند و کارت را دقیقاً با همان نسبت نشان می‌دهد؛
+      عکس نه کشیده می‌شود و نه بریده. عکس مربع (512×512) یا مستطیل
+      (500×726) — هر کدام که باشد، درست نمایش داده می‌شود.
+
+   اگر خواستی دستی تنظیم کنی: CARD_IMG_AUTO را false کن و ابعاد واقعی
+   عکس‌هایت را در CARD_IMG_W (عرض) و CARD_IMG_H (ارتفاع) بنویس.
+
    CARD_IMG_FIT:
      'ratio'   = کارت هم‌نسبتِ عکس تو می‌شود (پیشنهادی)
      'stretch' = عکس روی اندازهٔ استاندارد کارت کشیده می‌شود
    ================================================================ */
-const CARD_IMG_W   = 512;
-const CARD_IMG_H   = 512;
-const CARD_IMG_FIT = 'ratio';
-if(CARD_IMG_FIT==='ratio' && CARD_IMG_W>0 && CARD_IMG_H>0){
+const CARD_IMG_AUTO = true;   // ✅ تشخیص خودکار ابعاد عکس‌ها (بدون تنظیم دستی)
+const CARD_IMG_W    = 512;    // فقط وقتی CARD_IMG_AUTO = false باشد استفاده می‌شود
+const CARD_IMG_H    = 726;
+const CARD_IMG_FIT  = 'ratio';
+if(CARD_IMG_FIT==='ratio' && !CARD_IMG_AUTO && CARD_IMG_W>0 && CARD_IMG_H>0){
   document.documentElement.style.setProperty('--card-ar', CARD_IMG_W+' / '+CARD_IMG_H);
+}
+// نگهدارندهٔ وضعیت تشخیص خودکار نسبت کارت
+let _cardArDetected = false;
+function autoDetectCardAR(w,h){
+  if(!CARD_IMG_AUTO || CARD_IMG_FIT!=='ratio') return;
+  if(_cardArDetected || !w || !h) return;
+  document.documentElement.style.setProperty('--card-ar', w+' / '+h);
+  _cardArDetected = true;
 }
 /* ================================================================ */
 /* ================= ابزارها ================= */
@@ -2066,14 +2079,14 @@ function repoBase(c){
 function probeSrc(base,i,done){
   if(i>=REPO_EXTS.length){done(null);return;}
   const im=new Image();
-  im.onload=()=>done(base+'.'+REPO_EXTS[i]);
+  im.onload=()=>done(base+'.'+REPO_EXTS[i], im.naturalWidth, im.naturalHeight);
   im.onerror=()=>probeSrc(base,i+1,done);
   im.src=base+'.'+REPO_EXTS[i];
 }
 function probeRepoCards(){
-  probeSrc('cards/back',0,src=>{ if(src){REPO_CARDS.back=src; if(G)render();} });
+  probeSrc('cards/back',0,(src,w,h)=>{ if(src){REPO_CARDS.back=src; autoDetectCardAR(w,h); if(G)render();} });
   makeDeck().forEach(c=>{
-    probeSrc(repoBase(c),0,src=>{ if(src){REPO_CARDS.src.set(c.id,src); if(G)render();} });
+    probeSrc(repoBase(c),0,(src,w,h)=>{ if(src){REPO_CARDS.src.set(c.id,src); autoDetectCardAR(w,h); if(G)render();} });
   });
 }
 
