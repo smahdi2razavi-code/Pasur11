@@ -3263,8 +3263,22 @@ function init(){
   document.addEventListener('pointerdown',unlockAudio);
   document.addEventListener('click',unlockAudio);
 
-  // ثبت سرویس‌ورکر برای اجرای آفلاین (فقط روی HTTPS/localhost کار می‌کند؛ روی فایل محلی بی‌سروصدا رد می‌شود)
-  if('serviceWorker' in navigator&&location.protocol.startsWith('http')){
+  // آیا داخل اپ اندروید (نسخهٔ نصب‌شده) اجرا می‌شویم؟
+  //  - پل AndroidApp را خود اپ تزریق می‌کند
+  //  - WebViewAssetLoader صفحه را از دامنهٔ appassets.androidplatform.net سرو می‌کند
+  const INSIDE_APP = (typeof window.AndroidApp!=='undefined') ||
+                     location.hostname==='appassets.androidplatform.net';
+
+  if(INSIDE_APP){
+    // داخل اپ به سرویس‌ورکر نیازی نیست (فایل‌ها از داخل خود اپ می‌آیند).
+    // اگر از قبل ثبت شده، پاکش می‌کنیم تا با WebViewAssetLoader تداخل نکند (رفع ERR_INVALID_RESPONSE).
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.getRegistrations()
+        .then(rs=>rs.forEach(r=>r.unregister())).catch(()=>{});
+      if(window.caches&&caches.keys){ caches.keys().then(ks=>ks.forEach(k=>caches.delete(k))).catch(()=>{}); }
+    }
+  } else if('serviceWorker' in navigator&&location.protocol.startsWith('http')){
+    // ثبت سرویس‌ورکر فقط در نسخهٔ وب/PWA (نه داخل اپ)
     window.addEventListener('load',()=>{
       navigator.serviceWorker.register('sw.js').then(reg=>{
         document.addEventListener('visibilitychange',()=>{
