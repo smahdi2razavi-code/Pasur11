@@ -24,9 +24,9 @@
   --ivory:#f8f2e2;      /* رنگ کارت */
   --ink:#232733;
   --crimson:#b3273b;
-  --cw:clamp(52px, 16.5vw, 86px);          /* عرض کارت دست */
+  --cw:clamp(60px, 18.5vw, 96px);          /* عرض کارت دست */
   --ch:calc(var(--cw)*1.4);   /* نسبت واقعی ورق بازی */
-  --tw:clamp(44px, 13.5vw, 74px);          /* عرض کارت روی میز */
+  --tw:clamp(54px, 16vw, 86px);            /* عرض کارت روی میز */
   --th:calc(var(--tw)*1.4);
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
@@ -269,10 +269,19 @@ body.is-vip .vip-cta{background:linear-gradient(180deg,#2f7d5a,#1f5c40); color:#
 .preview-wrap{display:flex; justify-content:center; margin:10px 0 4px;}
 
 /* ===================== صفحهٔ بازی ===================== */
+/* میز بازی: هم‌رنگِ صفحهٔ اصلی (لاجوردی) با نقشِ هندسیِ زعفرانیِ اصیل ایرانی */
 #game{background:
-  radial-gradient(140% 90% at 50% 45%, var(--felt1), var(--felt2) 75%);
+  radial-gradient(1200px 760px at 50% -8%, var(--bg2), var(--bg1) 68%, #0b1330 100%);
 }
-#game::before{content:""; position:absolute; inset:10px; border:2px solid rgba(230,182,76,.28); border-radius:22px; pointer-events:none;}
+#game::after{content:""; position:absolute; inset:0; pointer-events:none; z-index:0; opacity:.07;
+  background-image:
+    radial-gradient(circle at 50% 40%, rgba(230,182,76,.35), transparent 58%),
+    repeating-linear-gradient(45deg, var(--gold) 0 1px, transparent 1px 30px),
+    repeating-linear-gradient(-45deg, var(--gold) 0 1px, transparent 1px 30px);
+  background-size:100% 100%, 44px 44px, 44px 44px;
+}
+#game::before{content:""; position:absolute; inset:10px; border:2px solid rgba(230,182,76,.34); border-radius:22px; pointer-events:none; z-index:0;
+  box-shadow:inset 0 0 48px rgba(0,0,0,.42);}
 .hud{
   flex:0 0 auto; display:flex; align-items:center; justify-content:space-between;
   padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 6px; gap:8px; z-index:5;
@@ -321,8 +330,9 @@ body.is-vip .vip-cta{background:linear-gradient(180deg,#2f7d5a,#1f5c40); color:#
 #handRow .card.playable:active{transform:translateY(-14px);}
 .card.selected{box-shadow:0 0 0 3px var(--gold), 0 0 22px rgba(230,182,76,.75) !important; transform:translateY(-8px);}
 #tableArea .card.selected{transform:translateY(-6px) scale(1.05);}
-.card.deal-in{animation:dealIn .4s ease both;}
-@keyframes dealIn{from{opacity:0; transform:translateY(18px) scale(.9);}}
+.card.deal-in{animation:dealIn .45s cubic-bezier(.2,.85,.25,1) both;}
+@keyframes dealIn{from{opacity:0; transform:translateY(28px) scale(.82) rotate(-5deg);}
+  60%{opacity:1;} to{opacity:1; transform:none;}}
 
 /* ===================== کارت‌ها ===================== */
 .card{
@@ -367,12 +377,14 @@ body.custom-back .card.back{
   background-position:var(--custom-back-pos,center);
 }
 body.custom-back .card.back::after{content:"";}
-.card.capturing{box-shadow:0 0 0 3px var(--gold), 0 0 26px rgba(230,182,76,.85); z-index:3;}
+.card.capturing{box-shadow:0 0 0 3px var(--gold), 0 0 30px rgba(230,182,76,.9); z-index:3;
+  animation:capturePulse .55s cubic-bezier(.3,.9,.35,1.05);}
+@keyframes capturePulse{0%{transform:scale(1);} 45%{transform:scale(1.14);} 100%{transform:scale(1);}}
 .card.ghost{visibility:hidden;}
 .fly{position:fixed; margin:0; z-index:60; pointer-events:none;
   transition:transform .48s cubic-bezier(.3,.9,.35,1.05), opacity .48s;}
 @media (prefers-reduced-motion:reduce){
-  .fly{transition-duration:.01s;} .mini-card{animation:none;} .card.deal-in{animation:none;}
+  .fly{transition-duration:.01s;} .mini-card{animation:none;} .card.deal-in{animation:none;} .card.capturing{animation:none;}
   .screen.active,.modal-wrap.show,.modal-wrap.show .modal{animation:none;}
   .btn,.gbtn,.small-btn,.chat-quick button{transition:none;}
 }
@@ -427,19 +439,19 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 
 /* ===================== سازگاری با ابعاد همهٔ گوشی‌ها (اندروید و آیفون) ===================== */
 @media (max-height:660px){
-  :root{--cw:clamp(44px,14vw,70px); --tw:clamp(38px,11.5vw,60px);}
+  :root{--cw:clamp(52px,16vw,80px); --tw:clamp(46px,13.5vw,70px);}
   .logo h1{font-size:clamp(34px,10vw,52px);}
   .menu-cards{margin-bottom:12px;}
   .ornament{margin:8px auto 12px;}
 }
 @media (max-height:560px){
-  :root{--cw:clamp(38px,12vw,58px); --tw:clamp(32px,10vw,50px);}
+  :root{--cw:clamp(44px,13.5vw,66px); --tw:clamp(38px,11.5vw,56px);}
   .menu-btns{gap:8px;}
   .btn{padding:10px 16px; font-size:15px;}
   .deckinfo,#surIndicator{font-size:10.5px;}
 }
 @media (min-width:760px){
-  :root{--cw:92px; --tw:78px;}
+  :root{--cw:104px; --tw:90px;}
   .menu-btns,.profile-chip{width:360px;}
 }
 
