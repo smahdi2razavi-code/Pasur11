@@ -12,13 +12,13 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.webkit.WebViewAssetLoader
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
 
     private lateinit var webView: WebView
 
@@ -28,8 +28,6 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        supportActionBar?.hide()
-        setContentView(R.layout.activity_main)
 
         fileChooser = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -39,7 +37,9 @@ class MainActivity : AppCompatActivity() {
             filePathCallback = null
         }
 
-        webView = findViewById(R.id.webview)
+        // WebView را مستقیم در کد می‌سازیم؛ نیازی به فایل layout نیست
+        webView = WebView(this)
+        setContentView(webView)
         webView.setBackgroundColor(0xFF0A0A0C.toInt())
 
         webView.settings.apply {
