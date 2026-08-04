@@ -980,6 +980,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
       <div class="vip-perk"><span>🚫</span><div><b>بدون تبلیغات</b><br><span class="hint">تجربهٔ کاملاً بدون مزاحمت (در نسخه‌های آینده)</span></div></div>
       <div class="vip-perk"><span>🂠</span><div><b>طرح‌های پشت کارت ویژه</b><br><span class="hint">همهٔ طرح‌های فروشگاه برای تو باز می‌شود</span></div></div>
       <div class="vip-perk"><span>👑</span><div><b>نشان و آواتار طلایی VIP</b><br><span class="hint">نام تو با نشان VIP کنار پروفایلت می‌درخشد</span></div></div>
+      <div class="vip-perk"><span>🎁</span><div><b>هدیهٔ خوش‌آمد ۲۰۰۰ سکه</b><br><span class="hint">با اولین فعال‌سازی VIP، ۲۰۰۰ سکه هدیه می‌گیری</span></div></div>
     </div>
     <div class="card-box">
       <button class="btn primary" id="btnBuyVip" style="width:100%">👑 فعال‌سازی VIP</button>
@@ -1884,7 +1885,9 @@ function bindLongPressPlace(el,card){
 function maybeBotTurn(){
   if(!G||G.turn!=='b'||anim)return;
   if(mpActive())return; // در بازی دو نفره، جای ربات را بازیکن واقعی گرفته؛ منتظر پیام شبکه می‌مانیم
-  setTimeout(botTurn,900);
+  // زمان «فکرکردن» ربات متناسب با سطح سختی (حس طبیعی‌تر)
+  const think={beginner:1150,easy:1000,normal:850,hard:780,impossible:720};
+  setTimeout(botTurn, think[SET.diff]||900);
 }
 function botTurn(){
   if(!G||G.turn!=='b'||anim||mpActive())return;
@@ -3113,8 +3116,12 @@ function grantVip(){
   PROG.vip=true;
   // باز کردن همهٔ طرح‌های پشت کارت برای VIP
   BACK_SKINS.forEach(s=>{ if(!PROG.owned.includes(s.id))PROG.owned.push(s.id); });
+  // هدیهٔ خوش‌آمد VIP — فقط یک‌بار
+  const welcome = !PROG.vipWelcome;
+  if(welcome) PROG.vipWelcome=true;
   progSave(); applyVipUI(); openVip(); renderProgChip();
-  toast('👑 اشتراک VIP فعال شد! از امتیازها لذت ببر',true);
+  if(welcome) addCoins(2000);
+  toast(welcome?'👑 VIP فعال شد! هدیهٔ خوش‌آمد: ۲۰۰۰ سکه 🎁':'👑 اشتراک VIP فعال شد! از امتیازها لذت ببر',true);
 }
 window.grantVip=grantVip; // پل خرید اندروید (مایکت/گوگل‌پلی) بعد از پرداخت موفق
 $('#btnVip').onclick=()=>{ openVip(); show('vip'); };
