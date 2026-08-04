@@ -24,6 +24,7 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
@@ -136,11 +137,19 @@ class MainActivity : ComponentActivity() {
 
     /** شروع خرید (coins_500 / coins_1500 / coins_4000 / vip_subscription) */
     private fun startPurchase(sku: String) {
-        val helper = iab ?: return
-        if (!iabReady) return
+        val helper = iab
+        if (helper == null || !iabReady) {
+            Toast.makeText(this,
+                "درگاه پرداخت آماده نیست. مطمئن شو مایکت روی گوشی نصب است و این نسخهٔ اپ از مایکت نصب شده و محصول‌ها در پنل مایکت ساخته شده‌اند.",
+                Toast.LENGTH_LONG).show()
+            return
+        }
         helper.launchPurchaseFlow(this, sku,
             IabHelper.OnIabPurchaseFinishedListener { result, purchase ->
-                if (result.isFailure || purchase == null) return@OnIabPurchaseFinishedListener
+                if (result.isFailure || purchase == null) {
+                    Toast.makeText(this, "خرید انجام نشد: " + result.message, Toast.LENGTH_LONG).show()
+                    return@OnIabPurchaseFinishedListener
+                }
                 if (purchase.sku != sku) return@OnIabPurchaseFinishedListener
                 if (sku == "vip_subscription") {
                     grantVipJs()                                  // VIP: مصرف نمی‌شود
