@@ -24,13 +24,18 @@ let DB = { sessions:{}, leaderboard:{}, usernames:{}, users:{}, control:{} };
 try { if (fs.existsSync(DATA_FILE)) DB = Object.assign(DB, JSON.parse(fs.readFileSync(DATA_FILE,'utf8'))); }
 catch (e) { console.error('خواندن داده‌ها ناموفق بود:', e.message); }
 
+// اگر پوشهٔ فایل داده وجود ندارد، ساخته می‌شود (برای میزبان‌های مختلف)
+try { fs.mkdirSync(path.dirname(DATA_FILE), { recursive: true }); } catch (e) {}
+
 let saveTimer = null;
 function saveDB() {                      // ذخیرهٔ کم‌هزینه (حداکثر هر ۲ ثانیه یک‌بار)
   if (saveTimer) return;
   saveTimer = setTimeout(() => {
     saveTimer = null;
-    try { fs.writeFileSync(DATA_FILE, JSON.stringify(DB)); }
-    catch (e) { console.error('ذخیرهٔ داده‌ها ناموفق بود:', e.message); }
+    try {
+      fs.writeFileSync(DATA_FILE + '.tmp', JSON.stringify(DB));   // نوشتن امن
+      fs.renameSync(DATA_FILE + '.tmp', DATA_FILE);
+    } catch (e) { console.error('ذخیرهٔ داده‌ها ناموفق بود:', e.message); }
   }, 2000);
 }
 
