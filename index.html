@@ -455,9 +455,13 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 @keyframes drop{to{transform:translateY(110vh) rotate(720deg); opacity:.2;}}
 
 /* ===================== بازی دو نفره ===================== */
-.mp-code{direction:ltr; text-align:left; font-family:monospace; font-size:12px; min-height:74px; word-break:break-all;}
-.mp-status{font-size:13.5px; color:#ffe9ad; min-height:22px; line-height:1.9;}
-.shortcode{font-size:34px; letter-spacing:6px; text-align:center; color:var(--gold-soft); font-weight:800; direction:ltr;}
+.mp-code{direction:ltr; text-align:left; font-family:'Courier New',monospace; font-size:12px; min-height:74px; word-break:break-all;
+  width:100%; padding:10px 12px; border-radius:12px; border:1px solid #3a4f8e; background:#0e1730; color:#cfe0ff; resize:none; line-height:1.6;}
+.mp-code:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 2px rgba(230,182,76,.25);}
+.mp-status{font-size:13.5px; color:#ffe9ad; min-height:22px; line-height:1.9; text-align:center;}
+.shortcode{font-size:36px; letter-spacing:8px; text-align:center; color:var(--gold-soft); font-weight:800; direction:ltr;
+  background:linear-gradient(180deg,#131e40,#0e1730); border:1.5px dashed var(--gold); border-radius:14px;
+  padding:14px 10px; margin:6px 0; box-shadow:inset 0 0 24px rgba(230,182,76,.08);}
 
 /* ===================== کارت‌های تصویری از پوشهٔ cards (گیت‌هاب) =====================
    عکس‌ها (حتی مربع ۵۱۲×۵۱۲) به‌صورت کامل و بدون کش‌آمدگی، وسط کارت نمایش داده می‌شوند */
@@ -790,6 +794,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
       <input type="text" id="profUserInput" maxlength="20" placeholder="مثلاً: ali_gamer" style="direction:ltr;text-align:left">
     </div>
     <div class="set-item">
+      <label class="title">شناسهٔ کاربری شما</label>
+      <div class="invite-code" id="profUserId" style="font-size:20px">۱۱-------</div>
+      <div class="hint">شناسهٔ یکتای حساب شما (برای پشتیبانی و کنترل حساب).</div>
+    </div>
+    <div class="set-item">
       <label class="title">ورود با گوگل</label>
       <div id="googleSigninStatus" class="hint"></div>
       <div id="googleBtnHolder"></div>
@@ -1011,12 +1020,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
     </div>
     <div class="card-box">
       <h3>امتیازهای VIP</h3>
-      <div class="vip-perk"><span>✨</span><div><b>ضریب تجربهٔ دوبرابر</b><br><span class="hint">هر XP که می‌گیری ×۲ حساب می‌شود و سریع‌تر سطح بالا می‌روی</span></div></div>
+      <div class="vip-perk"><span>✨</span><div><b>۲۰٪ تجربهٔ بیشتر</b><br><span class="hint">هر XP که می‌گیری ۲۰٪ بیشتر حساب می‌شود</span></div></div>
       <div class="vip-perk"><span>🪙</span><div><b>جایزهٔ ورود روزانهٔ دوبرابر</b><br><span class="hint">سکه‌های ورود روزانه دو برابر واریز می‌شود</span></div></div>
-      <div class="vip-perk"><span>🎡</span><div><b>چرخ شانس رایگان نامحدود</b><br><span class="hint">هر بار چرخاندن رایگان است، بدون هزینهٔ سکه</span></div></div>
+      <div class="vip-perk"><span>🎡</span><div><b>چرخ شانس رایگان روزی ۳ بار</b><br><span class="hint">هر روز ۳ چرخش رایگان داری (به‌جای ۱ بار)</span></div></div>
       <div class="vip-perk"><span>🎁</span><div><b>پاداش پایان مسابقهٔ بیشتر</b><br><span class="hint">سکه و XP پایان هر مسابقه ۵۰٪ بیشتر</span></div></div>
       <div class="vip-perk"><span>🚫</span><div><b>بدون تبلیغات</b><br><span class="hint">تجربهٔ کاملاً بدون مزاحمت (در نسخه‌های آینده)</span></div></div>
-      <div class="vip-perk"><span>🂠</span><div><b>طرح‌های پشت کارت ویژه</b><br><span class="hint">همهٔ طرح‌های فروشگاه برای تو باز می‌شود</span></div></div>
       <div class="vip-perk"><span>👑</span><div><b>نشان و آواتار طلایی VIP</b><br><span class="hint">نام تو با نشان VIP کنار پروفایلت می‌درخشد</span></div></div>
       <div class="vip-perk"><span>🎁</span><div><b>هدیهٔ خوش‌آمد ۲۰۰۰ سکه</b><br><span class="hint">با اولین فعال‌سازی VIP، ۲۰۰۰ سکه هدیه می‌گیری</span></div></div>
     </div>
@@ -1367,6 +1375,7 @@ function fitMenu(){ return; /* منوی جدید با flex خودکار جا م�
 
 /* ================= پروفایل ================= */
 function refreshProfileWidget(){
+  try{ ensureUserId(); }catch(e){}
   const nm=$('#menuProfName'); if(nm)nm.textContent=SET.profileSet?(SET.pName||'شما'):'مهمان';
   const us=document.getElementById('menuProfUser'); if(us)us.textContent=SET.profileUsername?('@'+SET.profileUsername):'پروفایل خودت را بساز';
   const av=$('#menuAvatar');
@@ -1377,6 +1386,7 @@ function refreshProfileWidget(){
 function openProfileForm(){
   $('#profNameInput').value=SET.pName==='شما'?'':(SET.pName||'');
   $('#profUserInput').value=SET.profileUsername||'';
+  const uid=$('#profUserId'); if(uid)uid.textContent=fa(ensureUserId());
   $('#profNameError').style.display='none';
   const av=$('#profAvatarEdit');
   delete av.dataset.pending;
@@ -2711,6 +2721,7 @@ $('#btnMpStartGame').onclick=()=>{
    ================================================================ */
 const PROG=Object.assign({
   coins:100, xp:0, level:1, streak:0, lastLogin:'', lastSpin:'', trophies:0,
+  spinDay:'', spinCount:0, userId:'',
   games:0, wins:0, losses:0, highScore:0, surTotal:0, jackSweeps:0,
   missions:{date:'',list:[]}, achClaimed:[], owned:['back-default'], activeBack:'back-default', iap:[],
   vip:false, invitedBy:'', inviteRedeemed:false, tickets:0
@@ -2723,7 +2734,7 @@ function esc(s){ return String(s==null?'':s).replace(/[<>&"]/g,ch=>({'<':'&lt;',
 function xpNeed(l){ return l*100; }
 function addXP(n){
   if(!n)return;
-  if(PROG.vip)n*=2;            // امتیاز VIP: تجربهٔ دوبرابر
+  if(PROG.vip)n=Math.round(n*1.2);   // امتیاز VIP: ۲۰٪ تجربهٔ بیشتر
   PROG.xp+=n;
   let up=false;
   while(PROG.xp>=xpNeed(PROG.level)){ PROG.xp-=xpNeed(PROG.level); PROG.level++; up=true; }
@@ -2795,6 +2806,11 @@ const MISSION_POOL=[
   {id:'m_jack', t:'۲ بار با سرباز جارو کن',   goal:2,  c:25, x:15},
   {id:'m_collect', t:'۴۰ کارت جمع کن',        goal:40, c:30, x:20},
   {id:'m_round', t:'۳ دور بازی کن',           goal:3,  c:25, x:15},
+  {id:'m_win2',  t:'۲ مسابقه ببر',            goal:2,  c:60, x:40},
+  {id:'m_play4', t:'۴ مسابقهٔ کامل انجام بده', goal:4,  c:50, x:30},
+  {id:'m_collect80', t:'۸۰ کارت جمع کن',      goal:80, c:50, x:30},
+  {id:'m_round5', t:'۵ دور بازی کن',          goal:5,  c:40, x:25},
+  {id:'m_sur2',  t:'۲ سور بزن',               goal:2,  c:50, x:30},
 ];
 function missionDef(id){ return MISSION_POOL.find(m=>m.id===id); }
 function seedShuffle(arr,seed){
@@ -2817,7 +2833,7 @@ function progMission(id,inc){
   progSave();
 }
 function progEvent(kind){
-  if(kind==='sur'){ PROG.surTotal++; progMission('m_sur',1); }
+  if(kind==='sur'){ PROG.surTotal++; progMission('m_sur',1); progMission('m_sur2',1); }
   if(kind==='jack'){ PROG.jackSweeps++; progMission('m_jack',1); }
   progSave();
 }
@@ -2828,8 +2844,8 @@ function progRoundRewards(done){
   if(!G)return html;
   if(G.rewardTag!==G.round){
     G.rewardTag=G.round;
-    progMission('m_round',1);
-    progMission('m_collect',(G.pPile||[]).length);
+    progMission('m_round',1); progMission('m_round5',1);
+    progMission('m_collect',(G.pPile||[]).length); progMission('m_collect80',(G.pPile||[]).length);
     addCoins(5); addXP(10);
     html+='<div class="srow"><span>جایزهٔ دور</span><span>🪙 '+fa(5)+' | ✨ '+fa(10)+' XP</span></div>';
   }
@@ -2840,7 +2856,8 @@ function progRoundRewards(done){
     if(G.pScore>PROG.highScore)PROG.highScore=G.pScore;
     const dT=win?20:-10;
     PROG.trophies=Math.max(0,PROG.trophies+dT);
-    progMission('m_play',1); if(win)progMission('m_win',1);
+    progMission('m_play',1); progMission('m_play4',1);
+    if(win){ progMission('m_win',1); progMission('m_win2',1); }
     let c=win?40:10, x=win?60:20;
     if(PROG.vip){ c=Math.round(c*1.5); x=Math.round(x*1.5); }  // امتیاز VIP: پاداش بیشتر
     addCoins(c); addXP(x); boardSubmit();
@@ -2862,6 +2879,16 @@ const ACHS=[
   {id:'a_lvl10', t:'حرفه‌ای',        d:'به سطح ۱۰ برس',                     c:200, x:0,   f:()=>PROG.level>=10},
   {id:'a_hi80',  t:'رکوردشکن',       d:'در یک مسابقه ۸۰ امتیاز جمع کن',     c:150, x:80,  f:()=>PROG.highScore>=80},
   {id:'a_tro500',t:'ستارهٔ لیگ',     d:'به ۵۰۰ جام برس',                    c:300, x:150, f:()=>PROG.trophies>=500},
+  {id:'a_win3',  t:'سه‌گانه',        d:'۳ مسابقه ببر',                      c:70,  x:40,  f:()=>PROG.wins>=3},
+  {id:'a_g10',   t:'تازه‌کار',       d:'۱۰ مسابقه بازی کن',                 c:60,  x:40,  f:()=>PROG.games>=10},
+  {id:'a_g100',  t:'کهنه‌کار',       d:'۱۰۰ مسابقه بازی کن',                c:400, x:200, f:()=>PROG.games>=100},
+  {id:'a_lvl20', t:'کارکشته',        d:'به سطح ۲۰ برس',                     c:350, x:0,   f:()=>PROG.level>=20},
+  {id:'a_lvl30', t:'افسانه',         d:'به سطح ۳۰ برس',                     c:600, x:0,   f:()=>PROG.level>=30},
+  {id:'a_sur50', t:'سلطان سور',      d:'در مجموع ۵۰ سور بزن',               c:400, x:200, f:()=>PROG.surTotal>=50},
+  {id:'a_streak7',t:'وفادار',        d:'۷ روز پیاپی وارد بازی شو',          c:200, x:100, f:()=>PROG.streak>=7},
+  {id:'a_hi100', t:'صد امتیازی',     d:'در یک مسابقه ۱۰۰ امتیاز جمع کن',    c:300, x:150, f:()=>PROG.highScore>=100},
+  {id:'a_tro1000',t:'استاد بزرگ',    d:'به ۱۰۰۰ جام برس',                   c:700, x:300, f:()=>PROG.trophies>=1000},
+  {id:'a_rich',  t:'ثروتمند',        d:'۵۰۰۰ سکه داشته باش',                c:100, x:50,  f:()=>PROG.coins>=5000},
 ];
 
 /* ----- لیگ ----- */
@@ -2952,16 +2979,20 @@ function buildWheel(){
     w.appendChild(l);
   });
 }
+function ensureSpinDay(){ if(PROG.spinDay!==todayStr()){ PROG.spinDay=todayStr(); PROG.spinCount=0; } }
+function spinFreeLeft(){ ensureSpinDay(); return Math.max(0,(PROG.vip?3:1)-(PROG.spinCount||0)); }
 function refreshWheelBtn(){
-  const free=PROG.vip||PROG.lastSpin!==todayStr();
+  const left=spinFreeLeft();
   const b=$('#wheelBtn'); if(!b)return;
-  b.textContent=free?'🎡 چرخاندن رایگان امروز':'چرخاندن دوباره (🪙 ۴۰)';
-  $('#wheelHint').textContent=free?'هر روز یک چرخش رایگان داری!':'چرخش رایگان بعدی: فردا';
+  b.textContent=left>0?('🎡 چرخش رایگان ('+fa(left)+' مانده)'):'چرخاندن دوباره (🪙 ۴۰)';
+  $('#wheelHint').textContent=left>0
+    ?('امروز '+fa(left)+' چرخش رایگان داری'+(PROG.vip?' (VIP: روزی ۳ بار)':''))
+    :(PROG.vip?'چرخش‌های رایگان امروز تمام شد؛ فردا دوباره':'چرخش رایگان بعدی: فردا');
 }
 $('#wheelBtn').onclick=()=>{
   if(wheelSpinning)return;
-  const free=PROG.vip||PROG.lastSpin!==todayStr();  // VIP: همیشه رایگان
-  if(free){ if(!PROG.vip)PROG.lastSpin=todayStr(); progSave(); }
+  const free=spinFreeLeft()>0;
+  if(free){ ensureSpinDay(); PROG.spinCount=(PROG.spinCount||0)+1; progSave(); }
   else{
     if(PROG.coins<40){ toast('سکهٔ کافی نداری (۴۰ سکه لازم است)'); return; }
     addCoins(-40);
@@ -3045,7 +3076,7 @@ function openShop(){
     vipBox.innerHTML='';
     const vrow=document.createElement('div'); vrow.className='mission-row';
     vrow.innerHTML='<div class="mi"><div class="mt">👑 اشتراک ویژه VIP</div>'
-      +'<div class="hint">XP و سکهٔ دوبرابر، چرخ رایگان نامحدود، بدون تبلیغ، طرح‌های ویژه و هدیهٔ خوش‌آمد</div></div>';
+      +'<div class="hint">۲۰٪ XP بیشتر، سکهٔ ورود دوبرابر، ۳ چرخش رایگان روزانه، بدون تبلیغ و هدیهٔ خوش‌آمد ۲۰۰۰ سکه</div></div>';
     const vb=document.createElement('button'); vb.className='small-btn claim-ready'; vb.style.margin='0';
     if(PROG.vip){ vb.textContent='فعال ✔'; vb.disabled=true; }
     else{
@@ -3102,6 +3133,15 @@ function deviceId(){
   let d=loadJSON('pasur11_dev');
   if(!d){ d='d'+Math.random().toString(36).slice(2)+Date.now().toString(36); saveJSONSafe('pasur11_dev',d); }
   return d;
+}
+/* شناسهٔ یکتای کاربر (یک‌بار ساخته می‌شود و ثابت می‌ماند) — برای پروفایل و پشتیبانی */
+function ensureUserId(){
+  if(!PROG.userId){
+    let s=''; for(let i=0;i<6;i++)s+=Math.floor(Math.random()*10);
+    PROG.userId='11-'+s;
+    progSave();
+  }
+  return PROG.userId;
 }
 async function claimUsername(u){
   if(!u)return{ok:false,msg:'نام‌کاربری خالی است'};
