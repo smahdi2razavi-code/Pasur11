@@ -450,8 +450,50 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 .srow.total{font-weight:800; color:var(--gold-soft); border-bottom:none; font-size:16px; margin-top:4px;}
 .modal .btn{width:100%; margin-top:14px;}
 .modal p{font-size:14.5px; line-height:2; color:#dfe6f8;}
-.collected-grid{display:flex; flex-wrap:wrap; gap:8px; justify-content:center;}
-.collected-grid .card{width:calc(var(--tw)*.8); height:calc(var(--th)*.8);}
+/* ===== 🎨 طرح‌های میز بازی (شخصی‌سازی) ===== */
+body.table-emerald #game{background:radial-gradient(1200px 760px at 50% -8%,#125a4a,#08382e 68%,#052620 100%);}
+body.table-crimson #game{background:radial-gradient(1200px 760px at 50% -8%,#5e1526,#3a0d19 68%,#240810 100%);}
+body.table-royal   #game{background:radial-gradient(1200px 760px at 50% -8%,#3d2a6b,#241848 68%,#160f2e 100%);}
+body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#22262e,#141519 68%,#0a0a0c 100%);}
+/* پیش‌نمایش طرح میز در فروشگاه */
+.table-prev{width:76px; height:52px; border-radius:12px; border:1.5px solid rgba(230,182,76,.5); flex:0 0 auto;
+  box-shadow:inset 0 0 18px rgba(0,0,0,.45);}
+.tp-classic{background:radial-gradient(70% 90% at 50% 10%,#1c2a55,#101a33);}
+.tp-emerald{background:radial-gradient(70% 90% at 50% 10%,#125a4a,#08382e);}
+.tp-crimson{background:radial-gradient(70% 90% at 50% 10%,#5e1526,#3a0d19);}
+.tp-royal{background:radial-gradient(70% 90% at 50% 10%,#3d2a6b,#241848);}
+.tp-night{background:radial-gradient(70% 90% at 50% 10%,#22262e,#141519);}
+/* ===== 👤 قاب آواتار ===== */
+.avatar.fr-gold{border-color:#ffd75e !important; box-shadow:0 0 0 2px #7a5a14, 0 0 16px rgba(255,215,94,.55);}
+.avatar.fr-emerald{border-color:#7fe0b4 !important; box-shadow:0 0 0 2px #1f5c40, 0 0 16px rgba(127,224,180,.5);}
+.avatar.fr-ruby{border-color:#ff8095 !important; box-shadow:0 0 0 2px #7a1428, 0 0 16px rgba(255,128,149,.5);}
+.avatar.fr-royal{border-color:#b6a2ff !important; box-shadow:0 0 0 2px #2f2360, 0 0 16px rgba(182,162,255,.5);}
+/* ===== 👤 عنوان ویژه ===== */
+.user-title{font-size:10.5px; font-weight:800; color:#3a2a06; letter-spacing:.3px;
+  background:linear-gradient(180deg,#f6dd9a,#c8952e); border-radius:6px; padding:1px 7px; margin-right:5px;
+  display:inline-block; vertical-align:middle;}
+/* ===== 🏆 نشان فصل ===== */
+.season-badge{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:14px;
+  background:linear-gradient(180deg,rgba(230,182,76,.14),rgba(230,182,76,.05));
+  border:1px solid rgba(230,182,76,.4); margin-bottom:10px;}
+.season-badge .sb-ic{font-size:30px;}
+.season-badge b{color:var(--gold-soft); font-size:14.5px;}
+/* صفحهٔ انتخاب ترکیب برداشت */
+.pick-opt{display:flex; align-items:center; gap:10px; cursor:pointer;
+  background:rgba(255,255,255,.05); border:1px solid #2c3d72; border-radius:14px;
+  padding:10px 12px; margin-bottom:9px; transition:transform .15s, border-color .2s, background .2s;}
+.pick-opt:active{transform:scale(.98);}
+@media (hover:hover){ .pick-opt:hover{border-color:var(--gold); background:rgba(230,182,76,.1);} }
+.pick-cards{display:flex; gap:5px; flex-wrap:wrap; flex:0 0 auto;}
+.pick-cards .card{width:calc(var(--tw)*.52); height:calc(var(--th)*.52);}
+.pick-info{flex:1 1 auto; display:flex; flex-direction:column; gap:2px; text-align:right; min-width:0;}
+.pick-info b{font-size:14px; color:var(--gold-soft);}
+.pick-place{justify-content:center; border-style:dashed;}
+.collected-grid{display:flex; flex-direction:column; gap:4px;}
+.collected-grid .card{width:calc(var(--tw)*.62); height:calc(var(--th)*.62);}
+.collected-head{font-size:12.5px; font-weight:800; color:var(--gold-soft); text-align:right;
+  margin-top:10px; padding-bottom:4px; border-bottom:1px dashed #34477f;}
+.collected-row{display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-start; padding:6px 0 2px;}
 .confetti{position:fixed; top:-12px; z-index:95; font-size:20px; animation:drop linear forwards; pointer-events:none;}
 @keyframes drop{to{transform:translateY(110vh) rotate(720deg); opacity:.2;}}
 
@@ -670,7 +712,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
   <div class="main-actions">
     <button class="big-btn ba-play" id="btnContinue"><span class="ba-ic">🂡</span><span class="ba-tx">ادامه بازی قبلی</span></button>
     <button class="big-btn ba-new" id="btnNew"><span class="ba-ic">✦</span><span class="ba-tx">بازی جدید</span></button>
-    <button class="big-btn ba-mp" id="btnMp"><span class="ba-ic">📶</span><span class="ba-tx">بازی دو نفره (وای‌فای)</span></button>
+    <button class="big-btn ba-mp" id="btnMp"><span class="ba-ic">📶</span><span class="ba-tx">بازی دو نفره (آنلاین)</span></button>
   </div>
 
   <!-- چهار دکمهٔ گرد -->
@@ -742,8 +784,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
       <p>• هر آس: <span class="tag">۱ امتیاز</span> — هر سرباز: <span class="tag">۱ امتیاز</span> — هر سور: <span class="tag">۵ امتیاز</span></p>
       <p>دورها ادامه پیدا می‌کند تا یکی از بازیکنان به امتیاز نهایی برسد و برنده شود.</p>
     </div>
-    <div class="card-box"><h3>📶 بازی دو نفره روی وای‌فای</h3>
-      <p>می‌توانید با یک دوست، روی <span class="tag">یک وای‌فای مشترک</span> و بدون نیاز به اینترنت واقعی یا سرور بازی کنید:</p>
+    <div class="card-box"><h3>📶 بازی دو نفره آنلاین</h3>
+      <p>می‌توانید با یک دوست بازی کنید — چه با <span class="tag">اینترنت خودتان</span> از هر جای ایران، و چه روی <span class="tag">یک وای‌فای مشترک</span> بدون اینترنت:</p>
       <p>۱. یک نفر «میزبانی بازی» را می‌زند؛ یک کد ساخته می‌شود.</p>
       <p>۲. کد را (مثلاً از راه پیام‌رسان یا بلوتوث) برای دوستتان بفرستید.</p>
       <p>۳. دوستتان کد را در بخش «پیوستن به بازی» می‌چسباند؛ کدِ پاسخ خودکار ساخته و کپی می‌شود.</p>
@@ -767,7 +809,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
     <div class="card-box">
       <h3>پاسور ۱۱ 🎴</h3>
       <p>این برنامه ادای احترامی است به یکی از قدیمی‌ترین سرگرمی‌های خانه‌های ایرانی؛ همان شب‌هایی که دور هم جمع می‌شدیم و صدای بُر خوردن کارت‌ها با چای تازه‌دم قاطی می‌شد.</p>
-      <p>پاسور ۱۱ کاملاً <span class="tag">آفلاین</span> است، به هیچ سروری وصل نمی‌شود، تبلیغ ندارد و همهٔ بازی در همین یک فایل کوچک جا شده است. حریف شما یک هوش مصنوعی با پنج سطح مهارت است؛ از یک تازه‌کار مهربان تا استادی که تقریباً شکست‌ناپذیر است — یا یک دوست واقعی روی همان وای‌فای!</p>
+      <p>پاسور ۱۱ بدون تبلیغ است و بازی تک‌نفره کاملاً <span class="tag">آفلاین</span> کار می‌کند. حریف شما یک هوش مصنوعی با پنج سطح مهارت است؛ از یک تازه‌کار مهربان تا استادی که تقریباً شکست‌ناپذیر است — یا یک دوست واقعی، با اینترنت خودتان از هر جای ایران!</p>
       <p>پیشرفت بازی به‌صورت خودکار ذخیره می‌شود؛ هر وقت خارج شدید، از همان‌جا ادامه دهید. از تنظیمات می‌توانید صدا، موزیک، لرزش و انیمیشن را مدیریت کنید و عکس کارت‌های دلخواهتان را در پوشهٔ cards قرار دهید تا خودکار نمایش داده شوند.</p>
       <p style="text-align:center; margin-top:16px; font-size:16px; font-weight:800; color:var(--gold-soft)">ساخته شده توسط تیم { SMRx }</p>
       <p style="text-align:center; color:#96a5cf; margin-top:4px">نسخهٔ ۲٫۱ — با ❤ برای عاشقان پاسور</p>
@@ -819,7 +861,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 
 <!-- ============ تنظیمات ============ -->
 <div class="screen" id="settings">
-  <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>تنظیمات</h2></div>
+  <div class="topbar"><button class="back" id="btnSettingsBack">→ بازگشت</button><h2>تنظیمات</h2></div>
   <div class="scroll">
     <div class="set-item">
       <label class="title">نام شما در بازی</label>
@@ -884,10 +926,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 
 <!-- ============ مرکز بازی دو نفره ============ -->
 <div class="screen" id="mpHub">
-  <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>بازی دو نفره (وای‌فای)</h2></div>
+  <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>بازی دو نفره (آنلاین)</h2></div>
   <div class="scroll">
     <div class="card-box">
-      <p>با یک دوست روی <span class="tag">یک وای‌فای مشترک</span> بازی کنید — بدون سرور و بدون نیاز به اینترنت واقعی. یک نفر میزبان می‌شود و دیگری با کد به او می‌پیوندد.</p>
+      <p>با یک دوست بازی کنید: با <span class="tag">اینترنت خودتان</span> از هر جا، یا روی <span class="tag">وای‌فای مشترک</span> بدون اینترنت. یک نفر میزبان می‌شود و دیگری با کد کوتاه به او می‌پیوندد.</p>
     </div>
     <button class="btn primary" id="btnMpHost" style="width:100%"><span class="ic">🏠</span> میزبانی بازی</button>
     <div style="height:12px"></div>
@@ -987,6 +1029,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
       <button class="btn primary" id="wheelBtn" style="width:100%">چرخاندن</button>
       <div class="hint" id="wheelHint" style="text-align:center;margin-top:8px"></div>
     </div>
+    <div class="card-box"><h3>🎖 عنوان ویژهٔ شما</h3><div id="titleList"></div>
+      <div class="hint">عنوان‌ها با بالا رفتن سطح، برد و جام باز می‌شوند.</div></div>
     <div class="card-box"><h3>🏆 لیگ شما</h3><div id="leagueBox"></div></div>
     <div class="card-box"><h3>📈 آمار بازی</h3><div id="statsBox"></div></div>
     <div class="card-box"><h3>🏅 دستاوردها</h3><div id="achList"></div></div>
@@ -1000,6 +1044,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
     <div class="card-box" id="shopTop"></div>
     <div class="card-box"><h3>💎 بستهٔ سکه</h3><div id="shopPacks"></div></div>
     <div class="card-box" id="shopVipBox"><h3>👑 اشتراک ویژه VIP</h3><div id="shopVip"></div></div>
+    <div class="card-box"><h3>🎫 بلیت مسابقات ویژه</h3><div id="shopTickets"></div></div>
+    <div class="card-box"><h3>🎨 طرح میز بازی</h3><div id="shopTables"></div></div>
+    <div class="card-box"><h3>🖼 قاب آواتار</h3><div id="shopFrames"></div></div>
   </div>
 </div>
 
@@ -1097,6 +1144,15 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 <!-- ============ مودال عمومی (پایان دور / برنده / تایید) ============ -->
 <div class="modal-wrap" id="modalWrap">
   <div class="modal" id="modalBox"></div>
+</div>
+
+<!-- ============ مودال انتخاب ترکیب برداشت ============ -->
+<div class="modal-wrap" id="pickWrap">
+  <div class="modal">
+    <h3>کدام ترکیب را برداری؟</h3>
+    <div id="pickBody"></div>
+    <button class="btn" id="pickCancel">انصراف</button>
+  </div>
 </div>
 
 <!-- ============ مودال کارت‌های جمع‌شده ============ -->
@@ -1378,7 +1434,12 @@ function fitMenu(){ return; /* منوی جدید با flex خودکار جا م�
 /* ================= پروفایل ================= */
 function refreshProfileWidget(){
   try{ ensureUserId(); }catch(e){}
-  const nm=$('#menuProfName'); if(nm)nm.textContent=SET.profileSet?(SET.pName||'شما'):'مهمان';
+  const nm=$('#menuProfName');
+  if(nm){
+    const base=SET.profileSet?(SET.pName||'شما'):'مهمان';
+    let t=null; try{ t=currentTitle(); }catch(e){}
+    nm.innerHTML=(t&&t.id!=='t_none'?'<span class="user-title">'+esc(t.n)+'</span>':'')+esc(base);
+  }
   const us=document.getElementById('menuProfUser'); if(us)us.textContent=SET.profileUsername?('@'+SET.profileUsername):'پروفایل خودت را بساز';
   const av=$('#menuAvatar');
   if(SET.profileAvatar){ av.style.backgroundImage='url("'+SET.profileAvatar+'")'; av.textContent=''; }
@@ -1579,7 +1640,9 @@ $('#btnGoogleSignout').onclick=()=>{
 };
 
 /* ================= فرم تنظیمات ================= */
+let settingsDirty=false;   // آیا کاربر در این بازدید تغییری داده است؟
 function openSettingsForm(){
+  settingsDirty=false;
   $('#setPName').value=SET.pName; $('#setBName').value=SET.bName;
   $('#setTarget').value=SET.target; $('#setDiff').value=SET.diff;
   $('#setSurLastHand').checked=SET.surLastHand;
@@ -1590,6 +1653,7 @@ function openSettingsForm(){
   $('#setAutoSort').checked=SET.autoSort;
 }
 function updSettings(){
+  settingsDirty=true;
   SET.pName=$('#setPName').value.trim()||DEFS.pName;
   SET.bName=$('#setBName').value.trim()||DEFS.bName;
   SET.target=Math.max(11,Math.min(500,parseInt($('#setTarget').value)||62));
@@ -1610,6 +1674,28 @@ function updSettings(){
 ['setPName','setBName','setTarget','setDiff','setSurLastHand','setSurLastCard','setSurReturn',
  'setSound','setMusic','setHaptic','setAnims','setAutoSort'
 ].forEach(id=>document.getElementById(id).addEventListener('change',updSettings));
+/* خروج از تنظیمات: اگر تغییری داده شده، تأیید بگیر */
+function leaveSettings(){
+  if(!settingsDirty){ show('menu'); return; }
+  $('#modalBox').innerHTML='<h3>ذخیرهٔ تغییرات</h3>'
+    +'<p style="text-align:center">تغییرات تنظیمات ذخیره شد. از تغییراتی که دادی مطمئنی؟</p>'
+    +'<button class="btn primary" id="setOk">بله، ادامه بده</button>'
+    +'<button class="btn" id="setUndo">نه، به حالت قبل برگردان</button>';
+  $('#modalWrap').classList.add('show');
+  $('#setOk').onclick=()=>{ $('#modalWrap').classList.remove('show'); settingsDirty=false; show('menu'); };
+  $('#setUndo').onclick=()=>{
+    $('#modalWrap').classList.remove('show');
+    // فقط تنظیمات بازی به پیش‌فرض برمی‌گردد؛ پروفایل و نام‌کاربری دست‌نخورده می‌ماند
+    ['pName','bName','target','diff','surLastHand','surLastCard','surReturn',
+     'sound','music','haptic','anims','autoSort'].forEach(k=>{ SET[k]=DEFS[k]; });
+    persistSettings(); openSettingsForm();
+    try{ SoundEngine.toggleMusic(SET.music); }catch(e){}
+    if(G)render();
+    toast('تنظیمات بازی به حالت پیش‌فرض برگشت');
+  };
+}
+{ const _sb=document.getElementById('btnSettingsBack');
+  if(_sb)_sb.onclick=leaveSettings; }
 $('#btnSaveSettings').onclick=()=>{ updSettings(); toast('تنظیمات ذخیره شد ✔'); };
 
 /* ================= منطق کارت ================= */
@@ -1920,7 +2006,43 @@ function onHandCardClick(card){
   const captures=options.filter(o=>o.type!=='place');
   if(captures.length===0){ selectedHandCard=null; selectedTableIds.clear(); playAs(card,[],'place'); return; }
   if(captures.length===1){ selectedHandCard=null; selectedTableIds.clear(); playAs(card,captures[0].cards,captures[0].type); return; }
+  // چند ترکیب ممکن: صفحهٔ انتخاب دسته‌بندی‌شده نشان داده می‌شود
   selectedHandCard=card; selectedTableIds.clear(); render();
+  openPickModal(card,captures);
+}
+/* صفحهٔ انتخاب ترکیب: همهٔ حالت‌های ممکن را مرتب و قابل‌لمس نشان می‌دهد */
+function openPickModal(card,captures){
+  const body=$('#pickBody'); if(!body)return;
+  body.innerHTML='';
+  // مرتب‌سازی: باارزش‌ترین ترکیب اول
+  const sorted=captures.slice().sort((a,b)=>setValue(b.cards)-setValue(a.cards));
+  sorted.forEach(op=>{
+    const row=document.createElement('div'); row.className='pick-opt';
+    const info=document.createElement('div'); info.className='pick-info';
+    const pts=op.cards.reduce((a,c)=>a+cardPoints(c),0);
+    const label=op.type==='jack'?'جارو با سرباز':(op.type==='face'?'جفت‌کردن':'مجموع ۱۱');
+    info.innerHTML='<b>'+label+'</b><span class="hint">'+fa(op.cards.length)+' برگ'
+      +(pts>0?' • '+fa(Math.round(pts))+' امتیاز':'')+'</span>';
+    const mini=document.createElement('div'); mini.className='pick-cards';
+    op.cards.forEach(c=>mini.appendChild(cardEl(c,false)));
+    row.appendChild(mini); row.appendChild(info);
+    row.onclick=()=>{
+      $('#pickWrap').classList.remove('show');
+      const cd=card; selectedHandCard=null; selectedTableIds.clear();
+      playAs(cd,op.cards,op.type);
+    };
+    body.appendChild(row);
+  });
+  // گزینهٔ گذاشتن ساده روی زمین
+  const place=document.createElement('div'); place.className='pick-opt pick-place';
+  place.innerHTML='<div class="pick-info"><b>گذاشتن روی زمین</b><span class="hint">بدون برداشت</span></div>';
+  place.onclick=()=>{
+    $('#pickWrap').classList.remove('show');
+    const cd=card; selectedHandCard=null; selectedTableIds.clear();
+    playAs(cd,[],'place');
+  };
+  body.appendChild(place);
+  $('#pickWrap').classList.add('show');
 }
 function onTableCardClick(c){
   if(anim||!G||G.turn!=='p'||!selectedHandCard)return;
@@ -2267,12 +2389,36 @@ function openCollectedModal(who){
   const body=$('#collectedBody'); body.innerHTML='';
   if(list.length===0){
     body.innerHTML='<p style="opacity:.6;font-size:14px">هنوز هیچ کارتی جمع نشده است.</p>';
-  } else list.forEach(c=>body.appendChild(cardEl(c,false)));
+  } else {
+    // دسته‌بندی بر اساس ارزش امتیازی تا کاربر سریع تشخیص بدهد
+    const clubs=list.filter(c=>c.s===3);
+    const groups=[
+      {t:'💎 کارت‌های امتیازی',  cards:list.filter(c=>(c.r===10&&c.s===2)||(c.r===2&&c.s===3))},
+      {t:'🃏 آس و سرباز (هرکدام ۱ امتیاز)', cards:list.filter(c=>c.r===1||c.r===11)},
+      {t:'♣ خاج‌ها ('+fa(clubs.length)+' برگ — ۷ تا بیشتر یعنی ۷ امتیاز)',
+       cards:clubs.filter(c=>!(c.r===2)&&c.r!==1&&c.r!==11)},
+      {t:'🂠 بقیهٔ کارت‌ها', cards:list.filter(c=>
+          !((c.r===10&&c.s===2)||(c.r===2&&c.s===3)) && c.r!==1 && c.r!==11 && c.s!==3)},
+    ];
+    groups.forEach(g=>{
+      if(!g.cards.length)return;
+      const h=document.createElement('div'); h.className='collected-head';
+      h.textContent=g.t+' — '+fa(g.cards.length)+' برگ';
+      body.appendChild(h);
+      const row=document.createElement('div'); row.className='collected-row';
+      g.cards.forEach(c=>row.appendChild(cardEl(c,false)));
+      body.appendChild(row);
+    });
+  }
   $('#collectedWrap').classList.add('show');
 }
 $('#hudPPile').addEventListener('click',()=>openCollectedModal('p'));
 $('#hudBPile').addEventListener('click',()=>openCollectedModal('b'));
 $('#collectedClose').onclick=()=>$('#collectedWrap').classList.remove('show');
+$('#pickCancel').onclick=()=>{
+  $('#pickWrap').classList.remove('show');
+  selectedHandCard=null; selectedTableIds.clear(); try{render();}catch(e){}
+};
 
 /* ================= خروج از بازی و ریست اضطراری ================= */
 $('#btnQuitGame').onclick=()=>{ showBackConfirm('game'); };
@@ -2311,6 +2457,7 @@ function handleBack(){
   if(id==='menu'){ showBackConfirm('app'); return; }
   if(id==='mpHost'||id==='mpJoin'){ mpTeardown(); show('mpHub'); return; }
   if(id==='mpHub'||id==='exit'){ show('menu'); return; }
+  if(id==='settings'){ leaveSettings(); return; }   // تنظیمات: تأیید تغییرات
   if(id==='vip'||id==='hall'||id==='invite'||id==='friends'){ show('menu'); return; }
   show('menu');
 }
@@ -2374,7 +2521,7 @@ $('#btnContinue').onclick=()=>{
 };
 
 /* ================================================================
-   بازی دو نفره روی وای‌فای مشترک (بدون سرور، بدون اینترنت واقعی)
+   بازی دو نفره: با اینترنت خود کاربران (WebRTC) یا روی وای‌فای مشترک
    معماری: میزبان «مرجع اصلی» است و همان موتور تک‌نفره را اجرا می‌کند؛
    جای ربات را بازیکن دوم واقعی می‌گیرد. هر حرکت بازیکن دوم به‌صورت
    پیام به میزبان می‌رسد، میزبان اعتبارسنجی و اجرا می‌کند و وضعیت
@@ -2447,7 +2594,7 @@ function mpCreatePeer(){
   const pc=new RTCPeerConnection({iceServers:[]});
   pc.oniceconnectionstatechange=()=>{
     if(pc.iceConnectionState==='failed'||pc.iceConnectionState==='disconnected'){
-      mpSetStatus('اتصال قطع شد. مطمئن شوید هر دو گوشی روی یک وای‌فای هستند و دوباره تلاش کنید.');
+      mpSetStatus('اتصال قطع شد. اینترنت هر دو گوشی را بررسی کنید و دوباره تلاش کنید.');
     }
   };
   return pc;
@@ -2576,7 +2723,7 @@ async function mpJoinFirebase(){
     await waitIceComplete(MP.pc);
     await fetch(FIREBASE_DB_URL+'/sessions/'+code+'/answer.json',{method:'PUT',body:JSON.stringify(MP.pc.localDescription)});
     statusEl.textContent='در حال اتصال به میزبان…';
-    setTimeout(()=>{ if(!MP.connected)statusEl.textContent='هنوز وصل نشدی. مطمئن شو هر دو روی یک وای‌فای هستید.'; },15000);
+    setTimeout(()=>{ if(!MP.connected)statusEl.textContent='هنوز وصل نشدی. اینترنت هر دو گوشی را بررسی کن و کد را دوباره بزن.'; },15000);
   }catch(e){ statusEl.textContent='اتصال با خطا مواجه شد. دوباره امتحان کن.'; }
 }
 async function mpStartHost(){
@@ -2609,7 +2756,7 @@ async function mpHostConnect(){
     mpSetStatus('در حال اتصال…');
     const answer=await codeToSdp(raw);
     await MP.pc.setRemoteDescription(answer);
-    setTimeout(()=>{ if(MP.role==='host'&&!MP.connected)mpSetStatus('اتصال برقرار نشد. مطمئن شو هر دو گوشی روی یک وای‌فای هستند.'); },15000);
+    setTimeout(()=>{ if(MP.role==='host'&&!MP.connected)mpSetStatus('اتصال برقرار نشد. اینترنت هر دو گوشی را بررسی کن و دوباره تلاش کن.'); },15000);
   }catch(e){ mpSetStatus('کد وارد شده معتبر نبود. دوباره کد را از بازیکن دوم بگیر.'); }
 }
 async function mpJoinMakeAnswer(){
@@ -2632,7 +2779,7 @@ async function mpJoinMakeAnswer(){
     $('#mpJoinStep2').style.display='block';
     copyText($('#mpJoinAnswer').value); // کپی خودکار برای ارسال سریع
     mpSetStatus('کد پاسخ ساخته و کپی شد ✔ — آن را برای میزبان بفرست و منتظر بمان…');
-    setTimeout(()=>{ if(MP.role==='joiner'&&!MP.connected)mpSetStatus('هنوز وصل نشدی. مطمئن شو میزبان کد پاسخ را وارد کرده و هر دو روی یک وای‌فای هستید.'); },15000);
+    setTimeout(()=>{ if(MP.role==='joiner'&&!MP.connected)mpSetStatus('هنوز وصل نشدی. مطمئن شو میزبان کد پاسخ را وارد کرده و اینترنت هر دو وصل است.'); },15000);
   }catch(e){ toast('کد میزبان معتبر نبود، دوباره امتحان کن'); mpTeardown(); }
 }
 /* آینه‌کردن وضعیت بازی برای بازیکن دوم (جابه‌جایی «شما» و «حریف») */
@@ -2787,7 +2934,8 @@ const PROG=Object.assign({
   coins:100, xp:0, level:1, streak:0, lastLogin:'', lastSpin:'', trophies:0,
   spinDay:'', spinCount:0, userId:'',
   games:0, wins:0, losses:0, highScore:0, surTotal:0, jackSweeps:0,
-  missions:{date:'',list:[]}, achClaimed:[], owned:['back-default'], activeBack:'back-default', iap:[],
+  missions:{date:'',list:[]}, achClaimed:[], owned:['back-default','tbl-classic','fr-none'],
+  activeBack:'back-default', activeTable:'tbl-classic', activeFrame:'fr-none', activeTitle:'t_none', iap:[],
   vip:false, invitedBy:'', inviteRedeemed:false, tickets:0
 }, loadJSON('pasur11_prog')||{});
 function progSave(){ saveJSONSafe('pasur11_prog',PROG); }
@@ -2995,6 +3143,22 @@ function openHub(){
     row.appendChild(b); ml.appendChild(row);
   });
   buildWheel(); refreshWheelBtn();
+  // 🎖 عنوان‌های ویژه
+  const tl=$('#titleList');
+  if(tl){
+    tl.innerHTML='';
+    const cur=currentTitle();
+    TITLES.forEach(t=>{
+      let open=false; try{ open=t.f(); }catch(e){}
+      const row=document.createElement('div'); row.className='mission-row';
+      row.innerHTML='<div class="mi"><div class="mt">'+(open?'🎖':'🔒')+' '+esc(t.n)+'</div></div>';
+      const b=document.createElement('button'); b.className='small-btn'+(open&&cur.id!==t.id?' claim-ready':''); b.style.margin='0';
+      b.textContent=cur.id===t.id?'فعال ✔':(open?'انتخاب':'قفل');
+      b.disabled=!open||cur.id===t.id;
+      b.onclick=()=>{ PROG.activeTitle=t.id; progSave(); refreshProfileWidget(); openHub(); toast('عنوان «'+t.n+'» فعال شد ✔'); };
+      row.appendChild(b); tl.appendChild(row);
+    });
+  }
   // لیگ
   const L=curLeague(), idx=LEAGUES.indexOf(L), next=LEAGUES[idx+1];
   $('#leagueBox').innerHTML=
@@ -3088,10 +3252,51 @@ const IAP_PACKS=[
   {sku:'coins_1500', n:'۱٬۵۰۰ سکه',  c:1500},
   {sku:'coins_4000', n:'۴٬۰۰۰ سکه',  c:4000},
 ];
+/* 🎨 طرح‌های میز بازی */
+const TABLE_SKINS=[
+  {id:'tbl-classic', n:'لاجورد کلاسیک', price:0,   cls:'',              prev:'tp-classic'},
+  {id:'tbl-emerald', n:'زمرد',          price:200, cls:'table-emerald', prev:'tp-emerald'},
+  {id:'tbl-crimson', n:'یاقوت',         price:200, cls:'table-crimson', prev:'tp-crimson'},
+  {id:'tbl-royal',   n:'شاهانه',        price:350, cls:'table-royal',   prev:'tp-royal'},
+  {id:'tbl-night',   n:'شب',            price:450, cls:'table-night',   prev:'tp-night'},
+];
+/* 👤 قاب‌های آواتار */
+const AVA_FRAMES=[
+  {id:'fr-none',    n:'بدون قاب', price:0,   cls:''},
+  {id:'fr-gold',    n:'طلایی',    price:250, cls:'fr-gold'},
+  {id:'fr-emerald', n:'زمردی',    price:250, cls:'fr-emerald'},
+  {id:'fr-ruby',    n:'یاقوتی',   price:300, cls:'fr-ruby'},
+  {id:'fr-royal',   n:'شاهانه',   price:400, cls:'fr-royal'},
+];
+/* 👤 عنوان‌های ویژه (با پیشرفت باز می‌شوند) */
+const TITLES=[
+  {id:'t_none', n:'بدون عنوان', f:()=>true},
+  {id:'t_pro',  n:'حرفه‌ای',    f:()=>PROG.level>=10||PROG.wins>=10},
+  {id:'t_master',n:'استاد پاسور',f:()=>PROG.level>=20||PROG.wins>=50},
+  {id:'t_legend',n:'افسانه‌ای',  f:()=>PROG.trophies>=1000||PROG.level>=30},
+];
 function applySkin(){
   ['skin-emerald','skin-crimson','skin-royal','skin-night'].forEach(c=>document.body.classList.remove(c));
   const s=BACK_SKINS.find(x=>x.id===PROG.activeBack);
   if(s&&s.cls)document.body.classList.add(s.cls.replace('sk-','skin-'));
+  // طرح میز
+  TABLE_SKINS.forEach(t=>{ if(t.cls)document.body.classList.remove(t.cls); });
+  const tb=TABLE_SKINS.find(x=>x.id===PROG.activeTable);
+  if(tb&&tb.cls)document.body.classList.add(tb.cls);
+  // قاب آواتار
+  const av=document.getElementById('menuAvatar');
+  if(av){
+    AVA_FRAMES.forEach(f=>{ if(f.cls)av.classList.remove(f.cls); });
+    const fr=AVA_FRAMES.find(x=>x.id===PROG.activeFrame);
+    if(fr&&fr.cls)av.classList.add(fr.cls);
+  }
+}
+/* عنوان فعلی کاربر (بالاترین عنوانِ باز‌شده، مگر اینکه دستی انتخاب کرده باشد) */
+function currentTitle(){
+  const unlocked=TITLES.filter(t=>{ try{return t.f();}catch(e){return false;} });
+  const chosen=TITLES.find(t=>t.id===PROG.activeTitle);
+  if(chosen&&unlocked.includes(chosen))return chosen;
+  return unlocked[unlocked.length-1]||TITLES[0];
 }
 function openShop(){
   $('#shopTop').innerHTML='<div style="display:flex;justify-content:space-between;align-items:center">'
@@ -3153,6 +3358,61 @@ function openShop(){
     }
     vrow.appendChild(vb); vipBox.appendChild(vrow);
   }
+  // 🎫 بلیت مسابقات (با سکه)
+  const tkBox=$('#shopTickets');
+  if(tkBox){
+    tkBox.innerHTML='';
+    [{n:'۱ بلیت',q:1,p:300},{n:'۳ بلیت',q:3,p:800},{n:'۱۰ بلیت',q:10,p:2500}].forEach(t=>{
+      const row=document.createElement('div'); row.className='mission-row';
+      row.innerHTML='<div class="mi"><div class="mt">🎫 '+t.n+'</div>'
+        +'<div class="hint">ورود به مسابقات ویژه با جایزهٔ بیشتر</div></div>';
+      const b=document.createElement('button'); b.className='small-btn'; b.style.margin='0';
+      b.textContent='🪙 '+fa(t.p);
+      b.onclick=()=>{
+        if(PROG.coins<t.p){ toast('سکهٔ کافی نداری؛ '+fa(t.p-PROG.coins)+' سکهٔ دیگر لازم است'); return; }
+        addCoins(-t.p); PROG.tickets=(PROG.tickets||0)+t.q; progSave(); renderProgChip(); openShop();
+        toast('🎫 '+fa(t.q)+' بلیت اضافه شد',true);
+      };
+      row.appendChild(b); tkBox.appendChild(row);
+    });
+  }
+  // 🎨 طرح میز بازی
+  renderShopSkinList($('#shopTables'),TABLE_SKINS,'activeTable',s=>{
+    const d=document.createElement('div'); d.className='table-prev '+(s.prev||''); return d;
+  });
+  // 🖼 قاب آواتار
+  renderShopSkinList($('#shopFrames'),AVA_FRAMES,'activeFrame',s=>{
+    const d=document.createElement('div'); d.className='avatar '+(s.cls||'');
+    d.style.width='44px'; d.style.height='44px'; d.style.fontSize='20px'; d.textContent='👤'; return d;
+  });
+}
+/* رندر مشترک فهرست‌های خریدنی فروشگاه (طرح میز / قاب آواتار) */
+function renderShopSkinList(box,list,activeKey,makePreview){
+  if(!box)return;
+  box.innerHTML='';
+  list.forEach(s=>{
+    const owned=PROG.owned.includes(s.id)||s.price===0;
+    const active=PROG[activeKey]===s.id;
+    const row=document.createElement('div'); row.className='mission-row';
+    const left=document.createElement('div'); left.style.display='flex'; left.style.alignItems='center'; left.style.gap='10px';
+    left.appendChild(makePreview(s));
+    const nm=document.createElement('div'); nm.className='mt'; nm.textContent=s.n;
+    left.appendChild(nm);
+    const b=document.createElement('button'); b.className='small-btn'+(active?'':' claim-ready'); b.style.margin='0';
+    b.textContent=active?'فعال ✔':(owned?'انتخاب':'🪙 '+fa(s.price));
+    b.disabled=active;
+    b.onclick=()=>{
+      if(active)return;
+      if(!owned){
+        if(PROG.coins<s.price){ toast('سکهٔ کافی نداری؛ '+fa(s.price-PROG.coins)+' سکهٔ دیگر لازم است'); return; }
+        addCoins(-s.price);
+        if(!PROG.owned.includes(s.id))PROG.owned.push(s.id);
+        toast('«'+s.n+'» خریداری و فعال شد 🎉',true);
+      } else toast('«'+s.n+'» فعال شد ✔');
+      PROG[activeKey]=s.id; progSave(); applySkin(); refreshProfileWidget(); openShop();
+    };
+    row.appendChild(left); row.appendChild(b); box.appendChild(row);
+  });
 }
 /* پل خرید: نسخهٔ اندرویدی بعد از خرید موفق این تابع را صدا می‌زند */
 window.grantPurchase=function(sku){
@@ -3339,11 +3599,21 @@ $('#btnBuyVip').onclick=()=>{
 $('#btnCancelVip').onclick=()=>{ PROG.vip=false; progSave(); applyVipUI(); openVip(); renderProgChip(); toast('اشتراک VIP لغو شد'); };
 
 /* ================= تالار افتخارات (دستاوردها و جام‌های خودم) ================= */
+/* 🏆 نشان فصل: هر فصل (۳ماهه) یک نشان بر اساس بالاترین لیگ آن فصل */
+function seasonInfo(){
+  const d=new Date(), q=Math.floor(d.getMonth()/3)+1;
+  const names=['بهار','تابستان','پاییز','زمستان'];
+  return {q, name:names[q-1]+' '+fa(d.getFullYear()), ic:['🌱','☀️','🍂','❄️'][q-1]};
+}
 function openHall(){
   const L=curLeague();
   const unlocked=ACHS.filter(a=>a.f()).length;
+  const S=seasonInfo();
   $('#hallTop').innerHTML=
-    '<div style="text-align:center">'
+    '<div class="season-badge"><span class="sb-ic">'+S.ic+'</span>'
+    +'<div><b>نشان فصل — '+S.name+'</b><br><span class="hint">لیگ فعلی: '+L.n+' '+L.ic
+    +' • '+fa(unlocked)+' مدال باز شده</span></div></div>'
+    +'<div style="text-align:center">'
     +'<div style="font-size:50px">'+L.ic+'</div>'
     +'<div style="font-weight:800;color:var(--gold-soft);font-size:19px">لیگ '+L.n+'</div>'
     +'<div class="hint">🏆 '+fa(PROG.trophies)+' جام</div></div>'
