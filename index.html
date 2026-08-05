@@ -124,6 +124,14 @@ body.is-vip .hud-vip-badge{background:linear-gradient(180deg,#7fe0b4,#2f7d5a); c
 .dock-btn:active .dk-circle{transform:scale(.92);}
 .dk-tx{font-size:11.5px; font-weight:700; color:var(--gold-soft);}
 @media (hover:hover){ .dock-btn:hover .dk-circle{filter:brightness(1.12);} }
+/* نشان اطلاع‌رسانیِ پیشرفت (وقتی مأموریت/دستاوردی آمادهٔ دریافت است) */
+.dk-circle{position:relative;}
+.dock-badge{position:absolute; top:-5px; right:-5px; min-width:19px; height:19px; padding:0 5px;
+  border-radius:10px; background:linear-gradient(180deg,#ff5a63,#e0333f); color:#fff;
+  font-size:11px; font-weight:800; line-height:1; display:none; align-items:center; justify-content:center;
+  box-shadow:0 2px 7px rgba(224,51,63,.7); border:1.5px solid #1b2650; z-index:4;}
+.dock-badge.show{display:flex; animation:badgePop .32s cubic-bezier(.2,.9,.3,1.35);}
+@keyframes badgePop{from{transform:scale(0);} 70%{transform:scale(1.25);} to{transform:scale(1);}}
 /* وقتی محتوا جا شود وسط‌چین می‌ماند؛ وقتی بلندتر از صفحه باشد، از بالا شروع و کامل اسکرول می‌شود */
 #menu>*:first-child{margin-top:auto;}
 #menu>*:last-child{margin-bottom:auto;}
@@ -648,7 +656,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
   <!-- کادر پایین -->
   <div class="dock">
     <button class="dock-btn" id="btnShop"><span class="dk-circle">🛒</span><span class="dk-tx">فروشگاه</span></button>
-    <button class="dock-btn" id="btnHub"><span class="dk-circle">🏅</span><span class="dk-tx">پیشرفت</span></button>
+    <button class="dock-btn" id="btnHub"><span class="dk-circle">🏅<span class="dock-badge" id="hubBadge"></span></span><span class="dk-tx">پیشرفت</span></button>
     <button class="dock-btn" id="btnGuide"><span class="dk-circle">📖</span><span class="dk-tx">راهنما</span></button>
     <button class="dock-btn" id="btnAbout"><span class="dk-circle">ℹ️</span><span class="dk-tx">درباره</span></button>
   </div>
@@ -2688,6 +2696,33 @@ function renderProgChip(){
   const xp=document.getElementById('hudXp'); if(xp)xp.style.width=pct+'%';
   const co=document.getElementById('hudCoins'); if(co)co.textContent=fa(PROG.coins);
   const tk=document.getElementById('hudTickets'); if(tk)tk.textContent=fa(PROG.tickets||0);
+  updateHubBadge();
+}
+/* ----- نشان اطلاع‌رسانیِ پیشرفت: تعداد مأموریت/دستاوردِ آمادهٔ دریافت ----- */
+function progClaimableCount(){
+  let n=0;
+  try{
+    ensureMissions();
+    (PROG.missions.list||[]).forEach(m=>{
+      const d=missionDef(m.id);
+      if(d&&!m.claimed&&m.cur>=d.goal)n++;
+    });
+    ACHS.forEach(a=>{ if(a.f()&&!PROG.achClaimed.includes(a.id))n++; });
+  }catch(e){}
+  return n;
+}
+let _hubBadgePrev=-1;
+function updateHubBadge(){
+  const el=document.getElementById('hubBadge'); if(!el)return;
+  const n=progClaimableCount();
+  if(n>0){
+    el.textContent=fa(n);
+    if(n!==_hubBadgePrev){ el.classList.remove('show'); void el.offsetWidth; } // ری‌استارت انیمیشن
+    el.classList.add('show');
+  } else {
+    el.classList.remove('show'); el.textContent='';
+  }
+  _hubBadgePrev=n;
 }
 
 /* ----- جایزهٔ ورود روزانه ----- */
