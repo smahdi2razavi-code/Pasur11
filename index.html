@@ -457,6 +457,18 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 .srow.total{font-weight:800; color:var(--gold-soft); border-bottom:none; font-size:16px; margin-top:4px;}
 .modal .btn{width:100%; margin-top:14px;}
 .modal p{font-size:14.5px; line-height:2; color:#dfe6f8;}
+/* ===== 🎁 بنر پیشنهاد ویژه ===== */
+.offer-banner{display:flex; align-items:center; gap:11px; padding:11px 13px; border-radius:16px; margin-bottom:12px;
+  background:linear-gradient(135deg,rgba(230,182,76,.22),rgba(230,182,76,.06));
+  border:1.5px solid var(--gold); position:relative; overflow:hidden;}
+.offer-banner::after{content:""; position:absolute; top:0; left:-60%; width:40%; height:100%;
+  background:linear-gradient(100deg,transparent,rgba(255,235,170,.32),transparent);
+  transform:skewX(-18deg); animation:vipShine 4.2s ease-in-out infinite;}
+.offer-banner .ob-ic{font-size:26px; flex:0 0 auto; z-index:1;}
+.offer-banner .ob-tx{flex:1 1 auto; display:flex; flex-direction:column; gap:2px; min-width:0; z-index:1;}
+.offer-banner .ob-tx b{color:var(--gold-soft); font-size:14px;}
+.offer-banner .ob-tag{flex:0 0 auto; font-size:12px; font-weight:800; color:#3a2a06; z-index:1;
+  background:linear-gradient(180deg,#f6dd9a,#c8952e); border-radius:8px; padding:3px 9px;}
 /* ===== تب‌های دسته‌بندی فروشگاه ===== */
 .shop-tabs{display:flex; gap:7px; margin-bottom:12px;}
 .shop-tab{flex:1 1 0; font-family:inherit; font-size:12.5px; font-weight:800; cursor:pointer;
@@ -666,6 +678,13 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
 .shop-item .pr{font-size:12px; color:#cfe8dd; background:rgba(0,0,0,.3); border:1px solid rgba(230,182,76,.35); border-radius:12px; padding:2px 10px;}
 .preset-row{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-top:10px;}
 .preset-row .avatar{width:44px; height:44px; cursor:pointer;}
+/* آواتارهای ویژه (خریدنی) */
+.av-premium{position:relative; border-color:#e6b64c !important;}
+.av-premium.locked{filter:grayscale(.55) brightness(.75);}
+.av-price{position:absolute; bottom:-4px; left:50%; transform:translateX(-50%);
+  font-size:9px; font-weight:800; color:#3a2a06; background:linear-gradient(180deg,#f6dd9a,#c8952e);
+  border-radius:6px; padding:0 5px; white-space:nowrap; box-shadow:0 1px 3px rgba(0,0,0,.5);}
+.av-price::before{content:"🪙 ";}
 .card.back.sk-emerald, body.skin-emerald .card.back{
   background:repeating-linear-gradient(45deg,rgba(140,230,190,.16) 0 6px,transparent 6px 12px),
     repeating-linear-gradient(-45deg,rgba(140,230,190,.16) 0 6px,transparent 6px 12px),
@@ -1093,6 +1112,12 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
       <button class="shop-tab" data-tab="style">🎨 شخصی‌سازی</button>
     </div>
     <div class="shop-sec" data-sec="coins">
+      <div class="offer-banner" id="firstBuyOffer" style="display:none">
+        <span class="ob-ic">🎁</span>
+        <div class="ob-tx"><b>پیشنهاد ویژهٔ اولین خرید</b>
+          <span class="hint">با اولین خرید، ۵۰٪ سکهٔ بیشتر هدیه می‌گیری!</span></div>
+        <span class="ob-tag">۵۰٪+</span>
+      </div>
       <div class="card-box"><h3>💎 بسته‌های سکه</h3><div id="shopPacks"></div></div>
     </div>
     <div class="shop-sec" data-sec="vip" style="display:none">
@@ -3051,9 +3076,19 @@ function maybeDailyLogin(){
     +'<p style="text-align:center">روز '+fa(PROG.streak)+' ورود پیاپی! 🔥</p>'
     +'<div style="text-align:center;font-size:32px;margin:10px 0">🪙 '+fa(coins)+' <span style="font-size:15px;color:#96a5cf">+ '+fa(10)+' XP</span></div>'
     +'<div class="hint" style="text-align:center">هر روز که بیایی جایزه بزرگ‌تر می‌شود (تا روز ۷)</div>'
-    +'<button class="btn primary" id="dailyClaim">دریافت جایزه 🎉</button>';
+    +'<button class="btn primary" id="dailyClaim">دریافت جایزه 🎉</button>'
+    +'<button class="btn" id="dailyDouble" style="background:linear-gradient(180deg,#f3d489,#c8952e);color:#3a2a06;border-color:#f4d78c">'
+    +'✨ دوبرابر کن (🪙 '+fa(Math.round(coins/2))+')</button>';
   $('#dailyWrap').classList.add('show');
   $('#dailyClaim').onclick=()=>{ addCoins(coins); addXP(10); $('#dailyWrap').classList.remove('show'); };
+  // 🎁 دوبل جایزهٔ روزانه: با پرداخت نصف مبلغ، جایزه دو برابر می‌شود
+  $('#dailyDouble').onclick=()=>{
+    const cost=Math.round(coins/2);
+    if(PROG.coins<cost){ toast('سکهٔ کافی نداری؛ '+fa(cost-PROG.coins)+' سکهٔ دیگر لازم است'); return; }
+    addCoins(-cost); addCoins(coins*2); addXP(20);
+    $('#dailyWrap').classList.remove('show');
+    toast('🎉 جایزهٔ دوبرابر گرفتی: '+fa(coins*2)+' سکه!',true);
+  };
 }
 
 /* ----- مأموریت‌های روزانه ----- */
@@ -3372,6 +3407,9 @@ function openShop(){
     };
     g.appendChild(item);
   }); }
+  // 🎁 بنر پیشنهاد اولین خرید (فقط تا وقتی هیچ خریدی نکرده)
+  const ofb=$('#firstBuyOffer');
+  if(ofb)ofb.style.display=(PROG.iap&&PROG.iap.length)?'none':'flex';
   const pk=$('#shopPacks'); pk.innerHTML='';
   IAP_PACKS.forEach(x=>{
     const row=document.createElement('div'); row.className='mission-row';
@@ -3453,9 +3491,13 @@ function renderShopSkinList(box,list,activeKey,makePreview){
 /* پل خرید: نسخهٔ اندرویدی بعد از خرید موفق این تابع را صدا می‌زند */
 window.grantPurchase=function(sku){
   const p=IAP_PACKS.find(x=>x.sku===sku); if(!p)return;
+  const isFirst=!(PROG.iap&&PROG.iap.length);      // 🎁 پیشنهاد اولین خرید: ۵۰٪ سکهٔ بیشتر
   PROG.iap.push({sku:sku,ts:Date.now()});
-  addCoins(p.c); progSave();
-  toast('خرید موفق! '+p.n+' اضافه شد 🎉',true);
+  const amount=isFirst?Math.round(p.c*1.5):p.c;
+  addCoins(amount); progSave();
+  toast(isFirst
+    ?('🎁 اولین خرید! '+fa(amount)+' سکه (۵۰٪ بیشتر) اضافه شد')
+    :('خرید موفق! '+p.n+' اضافه شد 🎉'),true);
   try{ if($('#shop').classList.contains('active'))openShop(); }catch(e){}
 };
 
@@ -3557,7 +3599,9 @@ $('#btnChat').onclick=()=>{ $('#chatPanel').classList.add('show'); $('#chatDot')
 $('#chatClose').onclick=()=>$('#chatPanel').classList.remove('show');
 $('#chatSend').onclick=()=>{ chatSendMsg($('#chatInput').value); $('#chatInput').value=''; };
 $('#chatInput').addEventListener('keydown',e=>{ if(e.key==='Enter'){ chatSendMsg(e.target.value); e.target.value=''; } });
-['😀','😂','😎','🔥','👏','🤝'].forEach(em=>{
+/* ایموجی و استیکرهای سریع چت */
+['😀','😂','😎','🔥','👏','🤝','😮','😭','🤔','🎴','🏆','💪','🙏','👋','🍀','⚡']
+.forEach(em=>{
   const b=document.createElement('button'); b.textContent=em;
   b.onclick=()=>chatSendMsg(em);
   $('#chatQuick').appendChild(b);
@@ -3573,6 +3617,7 @@ function presetSVG(bg1,bg2,glyph,gcolor){
     +'<text x="64" y="86" font-size="58" text-anchor="middle" fill="'+gcolor+'" font-family="Georgia,serif" font-weight="bold">'+glyph+'</text></svg>';
   return 'data:image/svg+xml;utf8,'+encodeURIComponent(svg);
 }
+/* آواتارهای رایگان */
 const AV_PRESETS=[
   presetSVG('#1c2b52','#0f1a38','♠','#e6b64c'),
   presetSVG('#4a1220','#2a0a12','♥','#f3d489'),
@@ -3582,6 +3627,19 @@ const AV_PRESETS=[
   presetSVG('#26386b','#131e40','♛','#f3d489'),
   presetSVG('#402a52','#221232','★','#e6b64c'),
   presetSVG('#0f5148','#0a3a34','✦','#f3d489'),
+  presetSVG('#1d3b5c','#0c1f33','☾','#f3d489'),
+  presetSVG('#4a3410','#241906','☀','#ffe9ad'),
+  presetSVG('#2d1a3d','#160c20','❋','#e6b64c'),
+  presetSVG('#123326','#081a13','❖','#f3d489'),
+];
+/* آواتارهای ویژه (با سکه باز می‌شوند) */
+const AV_PREMIUM=[
+  {id:'av_crown',  n:'تاج',      price:300, uri:presetSVG('#5c4406','#2e2103','♚','#ffe9ad')},
+  {id:'av_lion',   n:'شیر',      price:350, uri:presetSVG('#5c2f06','#2e1703','🦁','#ffe9ad')},
+  {id:'av_phoenix',n:'ققنوس',    price:400, uri:presetSVG('#5c1206','#2e0903','🔥','#ffd9a0')},
+  {id:'av_gem',    n:'گوهر',     price:450, uri:presetSVG('#063c5c','#031e2e','💎','#bff0ff')},
+  {id:'av_star',   n:'ستارهٔ طلا',price:500, uri:presetSVG('#3a2a06','#1f1502','🌟','#ffe9ad')},
+  {id:'av_legend', n:'افسانه',   price:800, uri:presetSVG('#2a063c','#15031e','👑','#f3d489')},
 ];
 function renderPresets(containerId,apply){
   const box=document.getElementById(containerId);
@@ -3591,6 +3649,25 @@ function renderPresets(containerId,apply){
     a.className='avatar';
     a.style.backgroundImage='url("'+uri+'")';
     a.onclick=()=>apply(uri);
+    box.appendChild(a);
+  });
+  // آواتارهای ویژه (قفل‌دار)
+  AV_PREMIUM.forEach(p=>{
+    const a=document.createElement('div');
+    a.className='avatar av-premium'+(PROG.owned.includes(p.id)?'':' locked');
+    a.style.backgroundImage='url("'+p.uri+'")';
+    a.title=p.n;
+    if(!PROG.owned.includes(p.id)){
+      const tag=document.createElement('span'); tag.className='av-price'; tag.textContent=fa(p.price);
+      a.appendChild(tag);
+    }
+    a.onclick=()=>{
+      if(PROG.owned.includes(p.id)){ apply(p.uri); return; }
+      if(PROG.coins<p.price){ toast('سکهٔ کافی نداری؛ '+fa(p.price-PROG.coins)+' سکهٔ دیگر لازم است'); return; }
+      addCoins(-p.price); PROG.owned.push(p.id); progSave();
+      a.classList.remove('locked'); const t=a.querySelector('.av-price'); if(t)t.remove();
+      apply(p.uri); toast('آواتار «'+p.n+'» خریداری شد 🎉',true);
+    };
     box.appendChild(a);
   });
 }
