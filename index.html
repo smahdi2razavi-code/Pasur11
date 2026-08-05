@@ -58,18 +58,25 @@ body{
 .hud-profile{flex:1 1 auto; display:flex; align-items:center; gap:9px; cursor:pointer;
   background:linear-gradient(180deg,rgba(38,56,107,.9),rgba(19,30,64,.9)); border:1px solid var(--gold);
   border-radius:14px; padding:6px 10px; min-width:0;}
-.hud-pinfo{flex:1 1 auto; min-width:0; text-align:right;}
-.hud-levelrow{display:flex; align-items:center; gap:6px; margin-top:4px;}
+.hud-pinfo{flex:1 1 auto; min-width:0; text-align:right; display:flex; flex-direction:column; gap:6px;}
+.hud-levelrow{display:flex; align-items:center; gap:8px; margin-top:0;}
 .hud-star{font-size:11px; font-weight:800; color:#3a2a06; background:linear-gradient(180deg,#f3d489,#c8952e);
-  border-radius:6px; padding:1px 7px; white-space:nowrap;}
+  border-radius:6px; padding:2px 8px; white-space:nowrap;}
 .hud-xpbar{flex:1 1 auto; height:7px; min-width:30px;}
-.hud-vip{flex:0 0 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
-  width:46px; cursor:pointer; background:none; border:none; font-family:inherit;}
-.hud-vip-badge{font-size:11px; font-weight:800; color:#3a2a06; letter-spacing:.5px;
-  background:linear-gradient(180deg,#f6dd9a,#c8952e); border-radius:6px; padding:2px 8px;
-  box-shadow:0 1px 4px rgba(200,149,46,.5);}
-.hud-vip-txt{font-size:9px; color:var(--gold-soft); font-weight:700;}
-body.is-vip .hud-vip-badge{background:linear-gradient(180deg,#7fe0b4,#2f7d5a); color:#062e21;}
+/* لوگوی اشتراک VIP در کادر پروفایل */
+.hud-vip{flex:0 0 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+  width:52px; cursor:pointer; background:none; border:none; font-family:inherit; padding:0;}
+.vip-logo{width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:17px; position:relative;
+  background:radial-gradient(circle at 38% 32%,#fff0c4,#e9c261 45%,#a97c20);
+  border:1.5px solid #ffeab5; box-shadow:0 2px 8px rgba(200,149,46,.55), inset 0 -2px 5px rgba(122,90,20,.5);}
+.vip-logo::after{content:""; position:absolute; inset:-3px; border-radius:50%;
+  border:1px solid rgba(230,182,76,.45); animation:vipHalo 2.6s ease-in-out infinite;}
+@keyframes vipHalo{0%,100%{opacity:.25; transform:scale(1);} 50%{opacity:.75; transform:scale(1.1);}}
+.hud-vip-txt{font-size:9.5px; color:var(--gold-soft); font-weight:800;}
+body.is-vip .vip-logo{background:radial-gradient(circle at 38% 32%,#d8fff0,#7fe0b4 45%,#2f7d5a);
+  border-color:#c8ffe6; box-shadow:0 2px 8px rgba(47,125,90,.55), inset 0 -2px 5px rgba(18,63,44,.5);}
+body.is-vip .hud-vip-txt{color:#a8f0d2;}
 .hud-wallets{display:flex; flex-direction:column; gap:6px; flex:0 0 auto;}
 .wallet{display:flex; align-items:center; gap:5px; background:linear-gradient(180deg,rgba(38,56,107,.9),rgba(19,30,64,.9));
   border:1px solid var(--gold); border-radius:12px; padding:4px 6px 4px 9px; min-width:96px;}
@@ -450,6 +457,12 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 .srow.total{font-weight:800; color:var(--gold-soft); border-bottom:none; font-size:16px; margin-top:4px;}
 .modal .btn{width:100%; margin-top:14px;}
 .modal p{font-size:14.5px; line-height:2; color:#dfe6f8;}
+/* ===== تب‌های دسته‌بندی فروشگاه ===== */
+.shop-tabs{display:flex; gap:7px; margin-bottom:12px;}
+.shop-tab{flex:1 1 0; font-family:inherit; font-size:12.5px; font-weight:800; cursor:pointer;
+  color:#b9c6ee; background:rgba(255,255,255,.05); border:1px solid #2c3d72; border-radius:12px;
+  padding:9px 4px; transition:background .2s, color .2s, border-color .2s; white-space:nowrap;}
+.shop-tab.active{background:linear-gradient(180deg,#f3d489,#d9b24c); color:#3a2a06; border-color:#f4d78c;}
 /* ===== 🎨 طرح‌های میز بازی (شخصی‌سازی) ===== */
 body.table-emerald #game{background:radial-gradient(1200px 760px at 50% -8%,#125a4a,#08382e 68%,#052620 100%);}
 body.table-crimson #game{background:radial-gradient(1200px 760px at 50% -8%,#5e1526,#3a0d19 68%,#240810 100%);}
@@ -535,9 +548,25 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
 }
 
 /* ===================== صفحهٔ لودینگ (بر اساس لوگوی بازی) ===================== */
-#splash{position:fixed; inset:0; z-index:300; background:#0a0a0c;
+#splash{position:fixed; inset:0; z-index:300; overflow:hidden;
+  background:radial-gradient(1200px 800px at 50% -10%, #1c2b52, #101a33 62%, #080d1c 100%);
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   transition:opacity .55s ease;}
+/* نقش هندسی اصیل ایرانی در پس‌زمینه */
+#splash::before{content:""; position:absolute; inset:0; opacity:.08; pointer-events:none;
+  background-image:
+    repeating-linear-gradient(45deg,  #e6b64c 0 1px, transparent 1px 34px),
+    repeating-linear-gradient(-45deg, #e6b64c 0 1px, transparent 1px 34px);
+  animation:spDrift 22s linear infinite;}
+@keyframes spDrift{to{background-position:68px 68px, -68px 68px;}}
+/* هالهٔ طلایی نرم پشت لوگو */
+#splash::after{content:""; position:absolute; top:38%; left:50%; width:min(85vw,420px); height:min(85vw,420px);
+  transform:translate(-50%,-50%); pointer-events:none; border-radius:50%;
+  background:radial-gradient(circle, rgba(230,182,76,.20), transparent 62%);
+  animation:spGlow 3.2s ease-in-out infinite;}
+@keyframes spGlow{0%,100%{opacity:.55; transform:translate(-50%,-50%) scale(1);}
+  50%{opacity:1; transform:translate(-50%,-50%) scale(1.09);}}
+#splash>*{position:relative; z-index:1;}
 #splash.hide{opacity:0; pointer-events:none;}
 .sp-ring{position:relative; width:min(62vw,270px); height:min(62vw,270px);
   display:flex; align-items:flex-end; justify-content:center;}
@@ -566,14 +595,28 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
   -webkit-background-clip:text; background-clip:text; color:transparent;}
 .sp-11 .s{background:linear-gradient(165deg,#ffffff,#cccccc 46%,#7d7d7d);
   -webkit-background-clip:text; background-clip:text; color:transparent; margin-right:-8px;}
-.sp-title{margin-top:16px; color:#e9c56b; font-size:20px; font-weight:800; letter-spacing:1px;}
-.sp-sub{margin-top:5px; color:#caa64a; font-size:11.5px; letter-spacing:7px; text-indent:7px;}
-.sp-bar{width:min(46vw,200px); height:3px; border-radius:3px; background:rgba(217,178,76,.16); margin-top:24px; overflow:hidden;}
-.sp-bar i{display:block; height:100%; width:40%; background:linear-gradient(90deg,#d9b24c,#f6dd9a); border-radius:3px; animation:spBar 1.3s ease-in-out infinite;}
+.sp-title{margin-top:16px; font-size:26px; font-weight:800; letter-spacing:1px;
+  background:linear-gradient(180deg,#fff2cd,#e9c56b 45%,#b8892b);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  text-shadow:0 6px 24px rgba(0,0,0,.5); animation:spPop .6s .45s ease backwards;}
+/* خط تزئینی طلایی زیر عنوان */
+.sp-orn{width:min(52vw,220px); height:12px; margin-top:8px; position:relative; opacity:.9;
+  animation:spPop .6s .55s ease backwards;}
+.sp-orn::before{content:""; position:absolute; inset:5px 0 auto 0; height:1.5px;
+  background:linear-gradient(90deg,transparent,rgba(230,182,76,.85),transparent);}
+.sp-orn::after{content:"❖"; position:absolute; top:-3px; left:50%; transform:translateX(-50%);
+  color:var(--gold); font-size:13px; background:transparent; padding:0 8px;}
+.sp-sub{margin-top:9px; color:#c3d0f0; font-size:12.5px; letter-spacing:1px; font-weight:700;
+  animation:spPop .6s .65s ease backwards;}
+.sp-bar{width:min(46vw,200px); height:4px; border-radius:3px; background:rgba(217,178,76,.16); margin-top:22px; overflow:hidden;
+  box-shadow:0 0 12px rgba(230,182,76,.18);}
+.sp-bar i{display:block; height:100%; width:40%; background:linear-gradient(90deg,#d9b24c,#fff2cd,#d9b24c); border-radius:3px; animation:spBar 1.3s ease-in-out infinite;}
 @keyframes spBar{0%{transform:translateX(170%)}100%{transform:translateX(-330%)}}
+.sp-tip{margin-top:14px; color:#8d9bc4; font-size:11.5px; animation:spPop .6s .8s ease backwards;}
 @media (prefers-reduced-motion:reduce){
   .sp-ring::before,.sp-ring::after,.sp-bar i{animation:none;}
-  .sp-c,.sp-11{animation:none;}
+  .sp-c,.sp-11,.sp-title,.sp-orn,.sp-sub,.sp-tip{animation:none;}
+  #splash::before,#splash::after{animation:none;}
 }
 
 /* ===================== سیستم پیشرفت (سکه، سطح، مأموریت، چرخ، لیگ، فروشگاه، چت) ===================== */
@@ -675,8 +718,10 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
     <div class="sp-11"><span class="g">1</span><span class="s">1</span></div>
   </div>
   <div class="sp-title">پاسور ۱۱</div>
-  <div class="sp-sub">CARD GAME</div>
+  <div class="sp-orn"></div>
+  <div class="sp-sub">بازی کلاسیک ورق ایرانی</div>
   <div class="sp-bar"><i></i></div>
+  <div class="sp-tip" id="spTip"></div>
 </div>
 
 <!-- ============ منوی اصلی ============ -->
@@ -694,11 +739,11 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
           <div class="pbar hud-xpbar"><i id="hudXp" style="width:0%"></i></div>
         </div>
       </div>
-      <button class="hud-vip" id="btnVip"><span class="hud-vip-badge" id="vipBadge">VIP</span><span class="hud-vip-txt">اشتراک</span></button>
+      <button class="hud-vip" id="btnVip"><span class="vip-logo" id="vipBadge">👑</span><span class="hud-vip-txt">اشتراک</span></button>
     </div>
     <div class="hud-wallets">
       <div class="wallet"><span class="w-ic">🪙</span><span class="w-val" id="hudCoins">۱۰۰</span><button class="w-plus" id="btnAddCoins">＋</button></div>
-      <div class="wallet"><span class="w-ic">🎟️</span><span class="w-val" id="hudTickets">۰</span><button class="w-plus" id="btnAddTickets">＋</button></div>
+      <div class="wallet wallet-trophy"><span class="w-ic">🏆</span><span class="w-val" id="hudTrophies">۰</span></div>
     </div>
   </div>
 
@@ -1042,11 +1087,21 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
   <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>فروشگاه</h2></div>
   <div class="scroll">
     <div class="card-box" id="shopTop"></div>
-    <div class="card-box"><h3>💎 بستهٔ سکه</h3><div id="shopPacks"></div></div>
-    <div class="card-box" id="shopVipBox"><h3>👑 اشتراک ویژه VIP</h3><div id="shopVip"></div></div>
-    <div class="card-box"><h3>🎫 بلیت مسابقات ویژه</h3><div id="shopTickets"></div></div>
-    <div class="card-box"><h3>🎨 طرح میز بازی</h3><div id="shopTables"></div></div>
-    <div class="card-box"><h3>🖼 قاب آواتار</h3><div id="shopFrames"></div></div>
+    <div class="shop-tabs">
+      <button class="shop-tab active" data-tab="coins">💎 سکه</button>
+      <button class="shop-tab" data-tab="vip">👑 VIP</button>
+      <button class="shop-tab" data-tab="style">🎨 شخصی‌سازی</button>
+    </div>
+    <div class="shop-sec" data-sec="coins">
+      <div class="card-box"><h3>💎 بسته‌های سکه</h3><div id="shopPacks"></div></div>
+    </div>
+    <div class="shop-sec" data-sec="vip" style="display:none">
+      <div class="card-box" id="shopVipBox"><h3>👑 اشتراک ویژه VIP</h3><div id="shopVip"></div></div>
+    </div>
+    <div class="shop-sec" data-sec="style" style="display:none">
+      <div class="card-box"><h3>🎨 طرح میز بازی</h3><div id="shopTables"></div></div>
+      <div class="card-box"><h3>🖼 قاب آواتار</h3><div id="shopFrames"></div></div>
+    </div>
   </div>
 </div>
 
@@ -2033,15 +2088,6 @@ function openPickModal(card,captures){
     };
     body.appendChild(row);
   });
-  // گزینهٔ گذاشتن ساده روی زمین
-  const place=document.createElement('div'); place.className='pick-opt pick-place';
-  place.innerHTML='<div class="pick-info"><b>گذاشتن روی زمین</b><span class="hint">بدون برداشت</span></div>';
-  place.onclick=()=>{
-    $('#pickWrap').classList.remove('show');
-    const cd=card; selectedHandCard=null; selectedTableIds.clear();
-    playAs(cd,[],'place');
-  };
-  body.appendChild(place);
   $('#pickWrap').classList.add('show');
 }
 function onTableCardClick(c){
@@ -2936,7 +2982,7 @@ const PROG=Object.assign({
   games:0, wins:0, losses:0, highScore:0, surTotal:0, jackSweeps:0,
   missions:{date:'',list:[]}, achClaimed:[], owned:['back-default','tbl-classic','fr-none'],
   activeBack:'back-default', activeTable:'tbl-classic', activeFrame:'fr-none', activeTitle:'t_none', iap:[],
-  vip:false, invitedBy:'', inviteRedeemed:false, tickets:0
+  vip:false, invitedBy:'', inviteRedeemed:false
 }, loadJSON('pasur11_prog')||{});
 function progSave(){ saveJSONSafe('pasur11_prog',PROG); }
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -2959,7 +3005,7 @@ function renderProgChip(){
   const lv=document.getElementById('hudLevel'); if(lv)lv.textContent='★ '+fa(PROG.level);
   const xp=document.getElementById('hudXp'); if(xp)xp.style.width=pct+'%';
   const co=document.getElementById('hudCoins'); if(co)co.textContent=fa(PROG.coins);
-  const tk=document.getElementById('hudTickets'); if(tk)tk.textContent=fa(PROG.tickets||0);
+  const tr=document.getElementById('hudTrophies'); if(tr)tr.textContent=fa(PROG.trophies||0);
   updateHubBadge();
 }
 /* ----- نشان اطلاع‌رسانیِ پیشرفت: تعداد مأموریت/دستاوردِ آمادهٔ دریافت ----- */
@@ -3358,24 +3404,6 @@ function openShop(){
     }
     vrow.appendChild(vb); vipBox.appendChild(vrow);
   }
-  // 🎫 بلیت مسابقات (با سکه)
-  const tkBox=$('#shopTickets');
-  if(tkBox){
-    tkBox.innerHTML='';
-    [{n:'۱ بلیت',q:1,p:300},{n:'۳ بلیت',q:3,p:800},{n:'۱۰ بلیت',q:10,p:2500}].forEach(t=>{
-      const row=document.createElement('div'); row.className='mission-row';
-      row.innerHTML='<div class="mi"><div class="mt">🎫 '+t.n+'</div>'
-        +'<div class="hint">ورود به مسابقات ویژه با جایزهٔ بیشتر</div></div>';
-      const b=document.createElement('button'); b.className='small-btn'; b.style.margin='0';
-      b.textContent='🪙 '+fa(t.p);
-      b.onclick=()=>{
-        if(PROG.coins<t.p){ toast('سکهٔ کافی نداری؛ '+fa(t.p-PROG.coins)+' سکهٔ دیگر لازم است'); return; }
-        addCoins(-t.p); PROG.tickets=(PROG.tickets||0)+t.q; progSave(); renderProgChip(); openShop();
-        toast('🎫 '+fa(t.q)+' بلیت اضافه شد',true);
-      };
-      row.appendChild(b); tkBox.appendChild(row);
-    });
-  }
   // 🎨 طرح میز بازی
   renderShopSkinList($('#shopTables'),TABLE_SKINS,'activeTable',s=>{
     const d=document.createElement('div'); d.className='table-prev '+(s.prev||''); return d;
@@ -3386,6 +3414,14 @@ function openShop(){
     d.style.width='44px'; d.style.height='44px'; d.style.fontSize='20px'; d.textContent='👤'; return d;
   });
 }
+/* تب‌های فروشگاه */
+document.querySelectorAll('.shop-tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    document.querySelectorAll('.shop-tab').forEach(t=>t.classList.toggle('active',t===tab));
+    const sec=tab.dataset.tab;
+    document.querySelectorAll('.shop-sec').forEach(s=>{ s.style.display=(s.dataset.sec===sec)?'block':'none'; });
+  });
+});
 /* رندر مشترک فهرست‌های خریدنی فروشگاه (طرح میز / قاب آواتار) */
 function renderShopSkinList(box,list,activeKey,makePreview){
   if(!box)return;
@@ -3562,7 +3598,9 @@ function renderPresets(containerId,apply){
 /* ================= اشتراک VIP ================= */
 function applyVipUI(){
   document.body.classList.toggle('is-vip', !!PROG.vip);
-  const b=$('#vipBadge'); if(b)b.style.display=PROG.vip?'inline-block':'none';
+  // لوگوی اشتراک همیشه دیده می‌شود (رنگش با فعال‌بودن VIP عوض می‌شود)
+  const b=$('#vipBadge'); if(b){ b.style.display='flex'; b.textContent='👑'; }
+  const bt=$('#btnVip'); if(bt){ const t=bt.querySelector('.hud-vip-txt'); if(t)t.textContent=PROG.vip?'فعال':'اشتراک'; }
   const av=$('#menuAvatar'); if(av)av.style.borderColor=PROG.vip?'#ffd75e':'var(--gold)';
 }
 function openVip(){
@@ -3637,7 +3675,18 @@ function myInviteCode(){
   if(!c){ c=(deviceId().replace(/[^a-z0-9]/gi,'').slice(-5)||Math.random().toString(36).slice(2,7)).toUpperCase(); saveJSONSafe('pasur11_invite',c); }
   return c;
 }
-function openInvite(){ $('#inviteCode').textContent=myInviteCode(); }
+function openInvite(){
+  $('#inviteCode').textContent=myInviteCode();
+  // وضعیت: اگر قبلاً کد وارد کرده، کادر ورود کد را قفل کن
+  const inp=$('#inviteInput'), btn=$('#btnRedeemInvite');
+  if(PROG.inviteRedeemed){
+    if(inp){ inp.value=PROG.invitedBy||''; inp.disabled=true; }
+    if(btn){ btn.textContent='قبلاً ثبت شده ✔'; btn.disabled=true; }
+  } else {
+    if(inp)inp.disabled=false;
+    if(btn){ btn.textContent='ثبت کد و دریافت هدیه'; btn.disabled=false; }
+  }
+}
 $('#btnCopyInvite').onclick=()=>{
   const t='بیا پاسور ۱۱ بازی کنیم! 🎴 با کد دعوت من «'+myInviteCode()+'» ثبت‌نام کن تا هر دو سکه هدیه بگیریم.';
   copyText(t); toast('متن دعوت کپی شد ✔');
@@ -3653,15 +3702,14 @@ $('#btnRedeemInvite').onclick=()=>{
   if(v.length<4){ toast('کد دعوت معتبر نیست'); return; }
   if(v===myInviteCode()){ toast('نمی‌توانی کد خودت را وارد کنی 🙂'); return; }
   PROG.invitedBy=v; PROG.inviteRedeemed=true; progSave();
-  addCoins(100); addXP(20);
-  toast('🎁 هدیهٔ دعوت گرفتی: ۱۰۰ سکه + ۲۰ XP!',true);
-  $('#inviteInput').value='';
+  addCoins(200); addXP(50);
+  toast('🎁 هدیهٔ دعوت گرفتی: ۲۰۰ سکه + ۵۰ XP!',true);
+  openInvite();
 };
 
 /* ----- دکمه‌های نوار بالا (سکه/بلیط) ----- */
 (function(){
   const bc=document.getElementById('btnAddCoins'); if(bc)bc.onclick=e=>{ e.stopPropagation(); openShop(); show('shop'); };
-  const bt=document.getElementById('btnAddTickets'); if(bt)bt.onclick=e=>{ e.stopPropagation(); openShop(); show('shop'); };
 })();
 
 /* ----- دکمه‌های منو ----- */
@@ -3704,6 +3752,15 @@ function init(){
   window.addEventListener('orientationchange',()=>setTimeout(()=>{ setAppVH(); fitMenu(); },250));
   if(window.visualViewport)window.visualViewport.addEventListener('resize',()=>{ setAppVH(); fitMenu(); });
   fitMenu();
+
+  // نکتهٔ تصادفی روی صفحهٔ لودینگ
+  try{
+    const tips=['سرباز همهٔ کارت‌های زمین را جمع می‌کند','۱۰ خشت ۳ امتیاز دارد',
+      'هر کس خاج بیشتری جمع کند ۷ امتیاز می‌گیرد','۲ خاج ۲ امتیاز دارد',
+      'خالی‌کردن زمین یعنی سور: ۵ امتیاز!','آس و سرباز هرکدام ۱ امتیاز دارند'];
+    const tp=document.getElementById('spTip');
+    if(tp)tp.textContent='💡 '+tips[Math.floor(Math.random()*tips.length)];
+  }catch(e){}
 
   // صفحهٔ لودینگ: کوتاه و جذاب؛ بعد از آن، اگر کاربر هنوز ثبت‌نام نکرده،
   // مودال ثبت‌نام اجباری نمایش داده می‌شود (مثلاً بعد از نصب از گوگل‌پلی)
