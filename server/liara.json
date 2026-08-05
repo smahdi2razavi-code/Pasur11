@@ -1,0 +1,11 @@
+{
+  "platform": "node",
+  "port": 3000,
+  "app": "pasur11",
+  "disks": [
+    {
+      "name": "data",
+      "mountTo": "/var/lib/data"
+    }
+  ]
+}
