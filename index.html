@@ -24,9 +24,9 @@
   --ivory:#f8f2e2;      /* رنگ کارت */
   --ink:#232733;
   --crimson:#b3273b;
-  --cw:clamp(66px, 20.5vw, 108px);         /* عرض کارت دست */
+  --cw:clamp(72px, 22vw, 118px);           /* عرض کارت دست */
   --ch:calc(var(--cw)*1.4);   /* نسبت واقعی ورق بازی */
-  --tw:clamp(60px, 18vw, 96px);            /* عرض کارت روی میز */
+  --tw:clamp(66px, 20vw, 106px);           /* عرض کارت روی میز */
   --th:calc(var(--tw)*1.4);
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
@@ -360,8 +360,8 @@ body.is-vip .vip-emblem .ve-crown{filter:drop-shadow(0 2px 6px rgba(127,224,180,
 #handRow{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 12px); min-height:calc(var(--ch) + 14px); align-items:flex-end;}
 #handRow .card{margin:0 2px; transition:transform .15s;}
 #handRow .card.playable:active{transform:translateY(-14px);}
-.card.selected{box-shadow:0 0 0 3px var(--gold), 0 0 22px rgba(230,182,76,.75) !important; transform:translateY(-8px);}
-#tableArea .card.selected{transform:translateY(-6px) scale(1.05);}
+.card.selected{box-shadow:0 0 0 3px var(--gold), 0 0 14px 1px rgba(230,182,76,.65) !important; transform:translateY(-8px);}
+#tableArea .card.selected{transform:translateY(-6px);}
 .card.deal-in{animation:dealIn .45s cubic-bezier(.2,.85,.25,1) both;}
 @keyframes dealIn{from{opacity:0; transform:translateY(28px) scale(.82) rotate(-5deg);}
   60%{opacity:1;} to{opacity:1; transform:none;}}
@@ -409,7 +409,7 @@ body.custom-back .card.back{
   background-position:var(--custom-back-pos,center);
 }
 body.custom-back .card.back::after{content:"";}
-.card.capturing{box-shadow:0 0 0 2px var(--gold), 0 0 18px 2px rgba(230,182,76,.7); z-index:3;
+.card.capturing{box-shadow:0 0 0 3px var(--gold), 0 0 14px 1px rgba(230,182,76,.65); z-index:3;
   animation:capturePulse .5s cubic-bezier(.3,.9,.35,1.05);}
 @keyframes capturePulse{0%{transform:scale(1);} 45%{transform:scale(1.07);} 100%{transform:scale(1);}}
 .card.ghost{visibility:hidden;}
@@ -466,28 +466,28 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 /* ===================== کارت‌های تصویری از پوشهٔ cards (گیت‌هاب) =====================
    عکس‌ها (حتی مربع ۵۱۲×۵۱۲) به‌صورت کامل و بدون کش‌آمدگی، وسط کارت نمایش داده می‌شوند */
 .card.repo-img{background-color:transparent; background-size:100% 100%; background-position:center; background-repeat:no-repeat;
-  box-shadow:none; border:none; border-radius:6px;
+  box-shadow:none; border:none; border-radius:10px;
   height:auto !important; aspect-ratio:var(--card-ar, 5 / 7);}
-.card.repo-img.capturing{box-shadow:0 0 0 2px var(--gold), 0 0 18px 2px rgba(230,182,76,.7);}
+.card.repo-img.capturing{box-shadow:0 0 0 3px var(--gold), 0 0 14px 1px rgba(230,182,76,.65);}
 .card.repo-img.selected{transform:translateY(-8px);}
-#tableArea .card.repo-img.selected{transform:translateY(-6px) scale(1.05);}
+#tableArea .card.repo-img.selected{transform:translateY(-6px);}
 .card.back.repo-img::after{content:"";}
 
 /* ===================== سازگاری با ابعاد همهٔ گوشی‌ها (اندروید و آیفون) ===================== */
 @media (max-height:660px){
-  :root{--cw:clamp(56px,17.5vw,90px); --tw:clamp(50px,15vw,80px);}
+  :root{--cw:clamp(60px,19vw,98px); --tw:clamp(54px,16.5vw,88px);}
   .logo h1{font-size:clamp(34px,10vw,52px);}
   .menu-cards{margin-bottom:12px;}
   .ornament{margin:8px auto 12px;}
 }
 @media (max-height:560px){
-  :root{--cw:clamp(48px,15vw,72px); --tw:clamp(42px,12.5vw,62px);}
+  :root{--cw:clamp(52px,16.5vw,80px); --tw:clamp(46px,14vw,68px);}
   .menu-btns{gap:8px;}
   .btn{padding:10px 16px; font-size:15px;}
   .deckinfo,#surIndicator{font-size:10.5px;}
 }
 @media (min-width:760px){
-  :root{--cw:112px; --tw:98px;}
+  :root{--cw:120px; --tw:106px;}
   .menu-btns,.profile-chip{width:360px;}
 }
 
@@ -1680,6 +1680,7 @@ let prevHandIds=new Set();
 function save(){ if(G)saveJSONSafe('pasur11_save',G); }
 
 function newMatch(){
+  if(USER_BANNED){ showBanModal(); return; }
   G={pScore:0,bScore:0,round:1,finished:false};
   startRound(); show('game');
 }
@@ -2456,6 +2457,43 @@ function mpSetStatus(text){
 const FIREBASE_DB_URL='YOUR_FIREBASE_DB_URL';
 function firebaseConfigured(){
   return !!FIREBASE_DB_URL&&!FIREBASE_DB_URL.startsWith('YOUR_')&&FIREBASE_DB_URL.startsWith('http');
+}
+/* ===== اتصال به سرور (Firebase): ثبت کاربر + اعمال دستورهای ربات تلگرام =====
+   تا وقتی FIREBASE_DB_URL تنظیم نشده باشد، این توابع هیچ کاری نمی‌کنند. */
+let USER_BANNED=false;
+function showBanModal(){
+  try{
+    $('#modalBox').innerHTML='<h3>⛔ حساب مسدود شده</h3>'
+      +'<p style="text-align:center">حساب شما توسط مدیریت مسدود شده است. برای پیگیری با پشتیبانی تماس بگیرید.</p>'
+      +'<p style="text-align:center;color:var(--gold-soft)">شناسهٔ شما: '+fa(ensureUserId())+'</p>';
+    $('#modalWrap').classList.add('show');
+  }catch(e){}
+}
+async function syncUserWithServer(){
+  if(!firebaseConfigured())return;
+  const uid=encodeURIComponent(ensureUserId());
+  // ۱) ثبت/به‌روزرسانی اطلاعات کاربر روی سرور
+  fetch(FIREBASE_DB_URL+'/users/'+uid+'.json',{method:'PUT',body:JSON.stringify({
+    name:SET.pName||'', user:SET.profileUsername||'', level:PROG.level,
+    coins:PROG.coins, trophies:PROG.trophies, vip:!!PROG.vip, ts:Date.now()
+  })}).catch(()=>{});
+  // ۲) خواندن و اعمال دستورهای مدیریتی (از ربات تلگرام)
+  try{
+    const r=await fetch(FIREBASE_DB_URL+'/control/'+uid+'.json');
+    const c=await r.json();
+    if(!c)return;
+    if(c.coinGrant){
+      addCoins(c.coinGrant);
+      toast('🎁 هدیهٔ '+fa(c.coinGrant)+' سکه از پشتیبانی دریافت شد',true);
+      fetch(FIREBASE_DB_URL+'/control/'+uid+'/coinGrant.json',{method:'PUT',body:'0'}).catch(()=>{});
+    }
+    if(c.vipGrant){
+      if(!PROG.vip)grantVip();
+      fetch(FIREBASE_DB_URL+'/control/'+uid+'/vipGrant.json',{method:'PUT',body:'false'}).catch(()=>{});
+    }
+    USER_BANNED=!!c.banned;
+    if(USER_BANNED)showBanModal();
+  }catch(e){}
 }
 function genShortCode(){return String(Math.floor(1000000+Math.random()*9000000))}
 let mpPollTimer=null;
@@ -3377,6 +3415,12 @@ function init(){
     if(sp){ sp.classList.add('hide'); setTimeout(()=>sp.remove(),650); }
     if(!SET.profileSet)showRegistration(); else maybeDailyLogin();
   },1700);
+
+  // اتصال به سرور (اگر FIREBASE_DB_URL تنظیم شده باشد): همگام‌سازی کاربر + دستورهای مدیریتی
+  setTimeout(()=>{ try{ syncUserWithServer(); }catch(e){} }, 2500);
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible'){ try{ syncUserWithServer(); }catch(e){} }
+  });
 
   // تلاش برای قفل جهت عمودی (فقط در حالت نصب‌شده/تمام‌صفحه توسط مرورگر مجاز است)
   try{
