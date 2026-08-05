@@ -24,9 +24,9 @@
   --ivory:#f8f2e2;      /* رنگ کارت */
   --ink:#232733;
   --crimson:#b3273b;
-  --cw:clamp(60px, 18.5vw, 96px);          /* عرض کارت دست */
+  --cw:clamp(66px, 20.5vw, 108px);         /* عرض کارت دست */
   --ch:calc(var(--cw)*1.4);   /* نسبت واقعی ورق بازی */
-  --tw:clamp(54px, 16vw, 86px);            /* عرض کارت روی میز */
+  --tw:clamp(60px, 18vw, 96px);            /* عرض کارت روی میز */
   --th:calc(var(--tw)*1.4);
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
@@ -226,6 +226,30 @@ body.is-vip .vip-cta{background:linear-gradient(180deg,#2f7d5a,#1f5c40); color:#
 .corner-btn .ci{font-size:20px;}
 .corner-btn:active{transform:scale(.96);}
 @media (hover:hover){ .corner-btn:hover,.vip-cta:hover{filter:brightness(1.07);} }
+/* لوگوی اشتراک VIP روی صفحهٔ اصلی — با قصد خرید «طلایی» می‌شود */
+.vip-emblem{width:min(340px,86vw); margin:0 auto clamp(8px,1.6vh,14px); position:relative; overflow:hidden;
+  display:flex; align-items:center; gap:10px; cursor:pointer; font-family:inherit; text-align:right;
+  padding:clamp(9px,1.5vh,13px) 15px; border-radius:16px; border:1.5px solid var(--gold); color:var(--gold-soft);
+  background:linear-gradient(180deg,#1c2a55,#131e40);
+  box-shadow:0 4px 14px rgba(0,0,0,.4), inset 0 0 0 1px rgba(230,182,76,.15);
+  transition:transform .18s, box-shadow .3s, background .4s, color .4s, border-color .4s;}
+.vip-emblem::after{content:""; position:absolute; top:0; left:-60%; width:42%; height:100%;
+  background:linear-gradient(100deg, transparent, rgba(255,235,170,.5), transparent);
+  transform:skewX(-18deg); animation:vipShine 3.8s ease-in-out infinite;}
+@keyframes vipShine{0%,55%{left:-60%;} 78%,100%{left:135%;}}
+.vip-emblem .ve-crown{font-size:26px; flex:0 0 auto; z-index:1; filter:drop-shadow(0 2px 6px rgba(230,182,76,.6));}
+.vip-emblem .ve-txt{flex:1 1 auto; display:flex; flex-direction:column; line-height:1.35; z-index:1;}
+.vip-emblem .ve-txt b{font-size:15px; font-weight:800; color:var(--gold-soft);}
+.vip-emblem .ve-txt small{font-size:11.5px; color:#b9c6ee;}
+.vip-emblem .ve-go{font-size:15px; color:var(--gold); flex:0 0 auto; z-index:1;}
+.vip-emblem:active{transform:translateY(2px);}
+.vip-emblem.goldify{background:linear-gradient(180deg,#f7dd95,#dcae44 55%,#bd8b29); color:#3a2a06; border-color:#fff0c4;
+  box-shadow:0 0 0 3px rgba(230,182,76,.4), 0 8px 24px rgba(200,149,46,.6); animation:goldPop .5s cubic-bezier(.2,.9,.3,1.3);}
+.vip-emblem.goldify .ve-txt b,.vip-emblem.goldify .ve-txt small,.vip-emblem.goldify .ve-go{color:#3a2a06;}
+@keyframes goldPop{0%{transform:scale(1);}45%{transform:scale(1.05);}100%{transform:scale(1);}}
+body.is-vip .vip-emblem{border-color:#7fe0b4; background:linear-gradient(180deg,#245c44,#173f2e);}
+body.is-vip .vip-emblem .ve-txt b{color:#c8ffe6;}
+body.is-vip .vip-emblem .ve-crown{filter:drop-shadow(0 2px 6px rgba(127,224,180,.6));}
 .profile-chip .pc-user{font-size:12px; color:#96a5cf;}
 .profile-chip>div:last-child{flex:1; min-width:0;}
 .pc-prog{display:flex; align-items:center; gap:6px; margin-top:5px; font-size:11px; font-weight:800;}
@@ -385,14 +409,14 @@ body.custom-back .card.back{
   background-position:var(--custom-back-pos,center);
 }
 body.custom-back .card.back::after{content:"";}
-.card.capturing{box-shadow:0 0 0 3px var(--gold), 0 0 30px rgba(230,182,76,.9); z-index:3;
-  animation:capturePulse .55s cubic-bezier(.3,.9,.35,1.05);}
-@keyframes capturePulse{0%{transform:scale(1);} 45%{transform:scale(1.14);} 100%{transform:scale(1);}}
+.card.capturing{box-shadow:0 0 0 2px var(--gold), 0 0 18px 2px rgba(230,182,76,.7); z-index:3;
+  animation:capturePulse .5s cubic-bezier(.3,.9,.35,1.05);}
+@keyframes capturePulse{0%{transform:scale(1);} 45%{transform:scale(1.07);} 100%{transform:scale(1);}}
 .card.ghost{visibility:hidden;}
 .fly{position:fixed; margin:0; z-index:60; pointer-events:none;
   transition:transform .48s cubic-bezier(.3,.9,.35,1.05), opacity .48s;}
 @media (prefers-reduced-motion:reduce){
-  .fly{transition-duration:.01s;} .mini-card{animation:none;} .card.deal-in{animation:none;} .card.capturing{animation:none;}
+  .fly{transition-duration:.01s;} .mini-card{animation:none;} .card.deal-in{animation:none;} .card.capturing{animation:none;} .vip-emblem::after{animation:none;}
   .screen.active,.modal-wrap.show,.modal-wrap.show .modal{animation:none;}
   .btn,.gbtn,.small-btn,.chat-quick button{transition:none;}
 }
@@ -440,26 +464,26 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 .card.repo-img{background-color:transparent; background-size:100% 100%; background-position:center; background-repeat:no-repeat;
   box-shadow:none; border:none; border-radius:6px;
   height:auto !important; aspect-ratio:var(--card-ar, 5 / 7);}
-.card.repo-img.capturing{box-shadow:0 0 0 3px var(--gold), 0 0 26px rgba(230,182,76,.85);}
+.card.repo-img.capturing{box-shadow:0 0 0 2px var(--gold), 0 0 18px 2px rgba(230,182,76,.7);}
 .card.repo-img.selected{transform:translateY(-8px);}
 #tableArea .card.repo-img.selected{transform:translateY(-6px) scale(1.05);}
 .card.back.repo-img::after{content:"";}
 
 /* ===================== سازگاری با ابعاد همهٔ گوشی‌ها (اندروید و آیفون) ===================== */
 @media (max-height:660px){
-  :root{--cw:clamp(52px,16vw,80px); --tw:clamp(46px,13.5vw,70px);}
+  :root{--cw:clamp(56px,17.5vw,90px); --tw:clamp(50px,15vw,80px);}
   .logo h1{font-size:clamp(34px,10vw,52px);}
   .menu-cards{margin-bottom:12px;}
   .ornament{margin:8px auto 12px;}
 }
 @media (max-height:560px){
-  :root{--cw:clamp(44px,13.5vw,66px); --tw:clamp(38px,11.5vw,56px);}
+  :root{--cw:clamp(48px,15vw,72px); --tw:clamp(42px,12.5vw,62px);}
   .menu-btns{gap:8px;}
   .btn{padding:10px 16px; font-size:15px;}
   .deckinfo,#surIndicator{font-size:10.5px;}
 }
 @media (min-width:760px){
-  :root{--cw:104px; --tw:90px;}
+  :root{--cw:112px; --tw:98px;}
   .menu-btns,.profile-chip{width:360px;}
 }
 
@@ -651,6 +675,13 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
     <button class="round-btn" id="btnInvite"><span class="rb-circle vip-free">🎁</span><span class="rb-tx">دعوت دوستان</span></button>
     <button class="round-btn" id="btnSettings2"><span class="rb-circle">⚙️</span><span class="rb-tx">تنظیمات</span></button>
   </div>
+
+  <!-- لوگوی اشتراک VIP روی صفحهٔ اصلی -->
+  <button class="vip-emblem" id="btnVipHome">
+    <span class="ve-crown">👑</span>
+    <span class="ve-txt"><b>اشتراک ویژه VIP</b><small>امتیازهای طلایی بازی</small></span>
+    <span class="ve-go">✦</span>
+  </button>
  </div>
 
   <!-- کادر پایین -->
@@ -956,9 +987,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
   <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>فروشگاه</h2></div>
   <div class="scroll">
     <div class="card-box" id="shopTop"></div>
-    <div class="card-box"><h3>🂠 طرح پشت کارت</h3><div class="shop-grid" id="shopBacks"></div></div>
-    <div class="card-box"><h3>💎 بستهٔ سکه — خرید درون‌برنامه‌ای</h3><div id="shopPacks"></div>
-      <div class="hint">خرید واقعی در نسخهٔ نصب‌شده از مایکت یا گوگل‌پلی فعال می‌شود؛ اینجا پیش‌نمایش است.</div></div>
+    <div class="card-box"><h3>💎 بستهٔ سکه</h3><div id="shopPacks"></div></div>
+    <div class="card-box" id="shopVipBox"><h3>👑 اشتراک ویژه VIP</h3><div id="shopVip"></div></div>
   </div>
 </div>
 
@@ -2208,11 +2238,19 @@ $('#hudBPile').addEventListener('click',()=>openCollectedModal('b'));
 $('#collectedClose').onclick=()=>$('#collectedWrap').classList.remove('show');
 
 /* ================= خروج از بازی و ریست اضطراری ================= */
-$('#btnQuitGame').onclick=()=>{
-  if(mpActive()){ mpSend({t:'leave'}); mpTeardown(); }
-  show('menu');
-};
+$('#btnQuitGame').onclick=()=>{ showBackConfirm('game'); };
 $('#btnEmergency').onclick=()=>$('#erWrap').classList.add('show');
+
+/* جریمهٔ خروج وسط بازی: کم‌شدن جام (رنک) با هشدار — یک‌بار برای هر مسابقه */
+const QUIT_PENALTY=15;
+function quitPenaltyApplies(){ return !!(G && !G.matchRewarded && !G.leftPenalty); }
+function applyQuitPenalty(){
+  if(!quitPenaltyApplies())return;
+  PROG.trophies=Math.max(0,PROG.trophies-QUIT_PENALTY);
+  G.leftPenalty=true;
+  progSave(); try{save();}catch(e){} renderProgChip();
+  toast('⚠ به‌خاطر خروج وسط بازی، '+fa(QUIT_PENALTY)+' جام کم شد',true);
+}
 
 /* ================= دکمهٔ برگشت (اندروید / مرورگر) =================
    وسط بازی یا در منو، دکمهٔ برگشت اول سؤال می‌پرسد تا خروج ناخواسته پیش نیاید. */
@@ -2221,7 +2259,9 @@ function showBackConfirm(mode){
   backMode=mode;
   $('#backTitle').textContent=mode==='game'?'خروج از بازی؟':'خروج از برنامه؟';
   $('#backMsg').textContent=mode==='game'
-    ?'بازی همین‌جا ذخیره می‌شود و می‌توانی بعداً از «ادامه بازی قبلی» برگردی.'
+    ?(quitPenaltyApplies()
+        ?'⚠ اگر وسط بازی خارج شوی، '+fa(QUIT_PENALTY)+' جام 🏆 از دست می‌دهی. بازی هم ذخیره می‌شود.'
+        :'بازی همین‌جا ذخیره می‌شود و می‌توانی بعداً از «ادامه بازی قبلی» برگردی.')
     :'مطمئنی می‌خواهی از پاسور ۱۱ خارج شوی؟';
   $('#backGo').textContent=mode==='game'?'بازگشت به منو':'بله، خروج';
   $('#backWrap').classList.add('show');
@@ -2241,6 +2281,7 @@ $('#backStay').onclick=()=>$('#backWrap').classList.remove('show');
 $('#backGo').onclick=()=>{
   $('#backWrap').classList.remove('show');
   if(backMode==='game'){
+    applyQuitPenalty();
     if(mpActive()){ mpSend({t:'leave'}); mpTeardown(); }
     show('menu');
   } else {
@@ -2961,7 +3002,7 @@ function openShop(){
   $('#shopTop').innerHTML='<div style="display:flex;justify-content:space-between;align-items:center">'
     +'<span style="font-weight:800;color:var(--gold-soft)">موجودی شما</span>'
     +'<span style="font-weight:800;color:#ffe9ad;font-size:18px">🪙 '+fa(PROG.coins)+'</span></div>';
-  const g=$('#shopBacks'); g.innerHTML='';
+  const g=$('#shopBacks'); if(g){ g.innerHTML='';
   BACK_SKINS.forEach(s=>{
     const owned=PROG.owned.includes(s.id), active=PROG.activeBack===s.id;
     const item=document.createElement('div'); item.className='shop-item'+(active?' active':'');
@@ -2984,7 +3025,7 @@ function openShop(){
       } else toast('سکهٔ کافی نداری؛ '+fa(s.price-PROG.coins)+' سکهٔ دیگر لازم است');
     };
     g.appendChild(item);
-  });
+  }); }
   const pk=$('#shopPacks'); pk.innerHTML='';
   IAP_PACKS.forEach(x=>{
     const row=document.createElement('div'); row.className='mission-row';
@@ -2998,6 +3039,25 @@ function openShop(){
     };
     row.appendChild(b); pk.appendChild(row);
   });
+  // بخش خرید اشتراک VIP در فروشگاه
+  const vipBox=$('#shopVip');
+  if(vipBox){
+    vipBox.innerHTML='';
+    const vrow=document.createElement('div'); vrow.className='mission-row';
+    vrow.innerHTML='<div class="mi"><div class="mt">👑 اشتراک ویژه VIP</div>'
+      +'<div class="hint">XP و سکهٔ دوبرابر، چرخ رایگان نامحدود، بدون تبلیغ، طرح‌های ویژه و هدیهٔ خوش‌آمد</div></div>';
+    const vb=document.createElement('button'); vb.className='small-btn claim-ready'; vb.style.margin='0';
+    if(PROG.vip){ vb.textContent='فعال ✔'; vb.disabled=true; }
+    else{
+      vb.textContent='خرید';
+      vb.onclick=()=>{
+        const bridge=window.AndroidBilling||window.MyketBilling;
+        if(bridge&&bridge.buy){ try{ bridge.buy('vip_subscription'); }catch(e){ toast('شروع خرید ممکن نشد؛ دوباره امتحان کن'); } }
+        else { grantVip(); }
+      };
+    }
+    vrow.appendChild(vb); vipBox.appendChild(vrow);
+  }
 }
 /* پل خرید: نسخهٔ اندرویدی بعد از خرید موفق این تابع را صدا می‌زند */
 window.grantPurchase=function(sku){
@@ -3160,6 +3220,13 @@ function grantVip(){
 }
 window.grantVip=grantVip; // پل خرید اندروید (مایکت/گوگل‌پلی) بعد از پرداخت موفق
 $('#btnVip').onclick=()=>{ openVip(); show('vip'); };
+const _btnVipHome=document.getElementById('btnVipHome');
+if(_btnVipHome){
+  _btnVipHome.onclick=()=>{
+    _btnVipHome.classList.add('goldify');   // لوگو هنگام قصد خرید طلایی می‌شود
+    setTimeout(()=>{ _btnVipHome.classList.remove('goldify'); openVip(); show('vip'); }, 460);
+  };
+}
 $('#btnBuyVip').onclick=()=>{
   const bridge=window.AndroidBilling||window.MyketBilling;
   if(bridge&&bridge.buy){ try{ bridge.buy('vip_subscription'); }catch(e){ toast('شروع خرید ممکن نشد'); } }
