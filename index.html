@@ -2454,7 +2454,7 @@ function mpSetStatus(text){
 }
 /* کد کوتاه ۷ رقمی (اختیاری - نیاز به Firebase Realtime Database رایگان دارد)
    بدون این تنظیم، بازی دو نفره همچنان با روش دستی (کد طولانی) کار می‌کند. */
-const FIREBASE_DB_URL='YOUR_FIREBASE_DB_URL';
+const FIREBASE_DB_URL='https://pasur-11-default-rtdb.asia-southeast1.firebasedatabase.app';
 function firebaseConfigured(){
   return !!FIREBASE_DB_URL&&!FIREBASE_DB_URL.startsWith('YOUR_')&&FIREBASE_DB_URL.startsWith('http');
 }
