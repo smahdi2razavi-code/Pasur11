@@ -45,6 +45,51 @@
 
 ---
 
+## ❗ رفع خطای «Could not find ... lint-gradle» (تحریم گوگل)
+اگر هنگام ساخت این خطا را دیدی:
+> Could not resolve all files for configuration ':app:androidLintTool'
+> Could not find com.android.tools.lint:lint-gradle:32.2.1
+
+علتش تحریم است: گریدل نمی‌تواند از `dl.google.com` دانلود کند. راه‌حل، استفاده از
+**آینهٔ ایرانی مایکت** است.
+
+### راه‌حل ۱ (اصلی) — افزودن آینهٔ مایکت
+فایل **`settings.gradle.kts`** (در ریشهٔ پروژه) را باز کن. باید دو بخش
+`repositories` داشته باشد؛ در **هر دو**، خط آینه را **اول از همه** اضافه کن:
+
+```kotlin
+pluginManagement {
+    repositories {
+        maven { url = uri("https://maven.myket.ir") }   // ← اضافه شد
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositories {
+        maven { url = uri("https://maven.myket.ir") }   // ← اضافه شد
+        google()
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+    }
+}
+```
+سپس `Ctrl+S` → **Sync Now** → دوباره APK بساز.
+
+### راه‌حل ۲ (کمکی) — خاموش‌کردن lint در نسخهٔ انتشار
+اگر باز هم خطای lint گرفتی، در **`build.gradle.kts (:app)`** داخل بخش
+`android { ... }` این را اضافه کن:
+```kotlin
+lint {
+    checkReleaseBuilds = false
+    abortOnError = false
+}
+```
+این فقط بررسی خودکار کد را خاموش می‌کند و روی خود بازی هیچ اثری ندارد.
+
+> پیشنهاد: اول راه‌حل ۱ را بزن. اگر جواب نداد، راه‌حل ۲ را هم اضافه کن.
+
 ## رفع هشدار «compile SDK version 37.1»
 اگر هنگام ساخت این پیام را دیدی:
 > We recommend using a newer Android Gradle plugin to use compile SDK version 37.1 ...
