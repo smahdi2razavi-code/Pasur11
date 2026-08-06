@@ -12,11 +12,19 @@ set -e
 
 DOMAIN="$1"
 APP_DIR="/opt/pasur11"
+RAW_BASE="https://raw.githubusercontent.com/smahdi2razavi-code/Pasur11/claude/gallant-planck-ofe9g8/server"
 
+# اگر دامنه داده نشده، از آی‌پی عمومی سرور یک دامنهٔ رایگان sslip.io ساخته می‌شود
 if [ -z "$DOMAIN" ]; then
-  echo "❌ دامنه را وارد نکردی."
-  echo "روش درست:  bash setup.sh api.yourdomain.ir"
-  exit 1
+  echo "▶ دامنه وارد نشده؛ ساخت دامنهٔ رایگان از روی آی‌پی سرور..."
+  IP="$(curl -s --max-time 10 https://api.ipify.org || true)"
+  [ -z "$IP" ] && IP="$(hostname -I | awk '{print $1}')"
+  if [ -z "$IP" ]; then
+    echo "❌ آی‌پی سرور پیدا نشد. دامنه را دستی بده:  bash setup.sh 94-184-36-13.sslip.io"
+    exit 1
+  fi
+  DOMAIN="$(echo "$IP" | tr '.' '-').sslip.io"
+  echo "   آی‌پی: $IP  →  دامنه: $DOMAIN"
 fi
 
 echo "════════════════════════════════════════"
@@ -39,14 +47,17 @@ echo "   نسخهٔ Node: $(node -v)"
 # ---------- ۳) قرار دادن فایل سرور ----------
 echo "▶ گام ۳ از ۷: آماده‌سازی پوشهٔ برنامه..."
 mkdir -p "$APP_DIR"
-if [ ! -f "$APP_DIR/server.js" ]; then
-  if [ -f "./server.js" ]; then
-    cp ./server.js "$APP_DIR/"
-    [ -f ./package.json ] && cp ./package.json "$APP_DIR/"
-  else
-    echo "❌ فایل server.js پیدا نشد. آن را کنار همین اسکریپت بگذار."
-    exit 1
-  fi
+if [ -f "./server.js" ]; then
+  cp ./server.js "$APP_DIR/"
+  [ -f ./package.json ] && cp ./package.json "$APP_DIR/"
+else
+  echo "   دانلود فایل سرور از گیت‌هاب..."
+  curl -fsSL "$RAW_BASE/server.js"    -o "$APP_DIR/server.js"
+  curl -fsSL "$RAW_BASE/package.json" -o "$APP_DIR/package.json" || true
+fi
+if [ ! -s "$APP_DIR/server.js" ]; then
+  echo "❌ دانلود فایل سرور ناموفق بود. اینترنت سرور را بررسی کن."
+  exit 1
 fi
 
 # ---------- ۴) ساخت کلید مدیریت ----------
