@@ -45,6 +45,27 @@ echo "[7] Firewall (ufw):"
 ufw status 2>/dev/null | head -6
 
 echo ""
+echo "[8] HTTPS local test (port 443):"
+if curl -sk --max-time 5 https://127.0.0.1/health | grep -q '"ok"'; then
+  echo "  OK - https works locally"
+else
+  echo "  FAIL - https not working"
+fi
+
+echo ""
+echo "[9] Certificate files:"
+ls /etc/letsencrypt/live/ 2>/dev/null || echo "  no certs found"
+
+echo ""
+echo "[10] Nginx 443 config:"
+nginx -T 2>/dev/null | grep -c "listen 443" | xargs echo "  'listen 443' lines:"
+nginx -T 2>/dev/null | grep "ssl_certificate " | head -2
+
+echo ""
+echo "[11] Nginx error log (last 5):"
+tail -5 /var/log/nginx/error.log 2>/dev/null || echo "  no log"
+
+echo ""
 echo "======================================"
 echo " Send a photo of this screen"
 echo "======================================"
