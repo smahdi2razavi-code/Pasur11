@@ -8,121 +8,282 @@
 *{box-sizing:border-box;}
 :root{
   --bg1:#101a33; --bg2:#1c2b52; --gold:#e6b64c; --gold-soft:#f3d489;
-  --ivory:#f8f2e2; --line:#2c3d72; --ok:#3ecb6a; --bad:#e0333f;
+  --ivory:#f8f2e2; --line:#2c3d72; --ok:#3ecb6a; --bad:#e0333f; --warn:#e6a23c;
+  --muted:#8d9bc4; --panel:rgba(255,255,255,.05);
 }
+/* رنگ پایه روی html تا هنگام اسکرول هم هیچ‌جای صفحه سفید نشود */
+html{background:var(--bg1);}
 body{margin:0; font-family:"Vazirmatn","Segoe UI",Tahoma,Arial,sans-serif;
-  background:radial-gradient(1200px 700px at 50% -10%, var(--bg2), var(--bg1) 70%);
-  color:var(--ivory); min-height:100vh; padding:18px;}
-.wrap{max-width:960px; margin:0 auto;}
-h1{font-size:24px; color:var(--gold-soft); text-align:center; margin:6px 0 4px;}
-.sub{text-align:center; color:#96a5cf; font-size:13px; margin-bottom:18px;}
-.box{background:rgba(255,255,255,.05); border:1px solid var(--line); border-radius:16px;
+  background-color:var(--bg1);
+  background-image:radial-gradient(1200px 700px at 50% -10%, var(--bg2), rgba(16,26,51,0) 70%);
+  background-repeat:no-repeat;
+  color:var(--ivory); min-height:100vh; padding:16px 14px 40px;}
+.wrap{max-width:1080px; margin:0 auto;}
+h1{font-size:23px; color:var(--gold-soft); text-align:center; margin:6px 0 3px;}
+.sub{text-align:center; color:var(--muted); font-size:12.5px; margin-bottom:16px;}
+.box{background:var(--panel); border:1px solid var(--line); border-radius:16px;
   padding:16px; margin-bottom:14px;}
-.box h2{font-size:16px; color:var(--gold-soft); margin:0 0 12px;}
-label{display:block; font-size:13px; font-weight:700; margin-bottom:6px; color:#c3d0f0;}
-input,select{width:100%; font-family:inherit; font-size:15px; padding:11px 12px; border-radius:10px;
+.box h2{font-size:16px; color:var(--gold-soft); margin:0 0 12px; display:flex; align-items:center; gap:8px;}
+.box h3{font-size:14px; color:var(--gold-soft); margin:18px 0 8px;}
+label{display:block; font-size:12.5px; font-weight:700; margin-bottom:5px; color:#c3d0f0;}
+input,select,textarea{width:100%; font-family:inherit; font-size:15px; padding:10px 12px; border-radius:10px;
   border:1px solid #3a4f8e; background:#131e40; color:var(--ivory); margin-bottom:10px;}
-input:focus,select:focus{outline:none; border-color:var(--gold);}
+textarea{resize:vertical; min-height:74px; line-height:1.8;}
+input:focus,select:focus,textarea:focus{outline:none; border-color:var(--gold);}
+input[type=checkbox]{width:auto; margin:0; vertical-align:middle;}
 button{font-family:inherit; font-size:14px; font-weight:800; cursor:pointer; border:none;
-  border-radius:11px; padding:11px 16px; transition:filter .15s, transform .12s;}
+  border-radius:11px; padding:10px 15px; transition:filter .15s, transform .12s;}
 button:active{transform:scale(.97);}
-button:hover{filter:brightness(1.08);}
+button:hover{filter:brightness(1.1);}
+button:disabled{opacity:.45; cursor:not-allowed; transform:none;}
 .btn-gold{background:linear-gradient(180deg,#f3d489,#c8952e); color:#3a2a06;}
 .btn-ghost{background:#22305d; color:var(--ivory); border:1px solid #3a4f8e;}
 .btn-bad{background:#5d1827; color:#ffb9c6; border:1px solid #a53a50;}
 .btn-ok{background:linear-gradient(180deg,#3ecb6a,#1f9f4a); color:#fff;}
+.btn-sm{padding:5px 9px; font-size:11.5px; border-radius:8px;}
 .row{display:flex; gap:9px; flex-wrap:wrap;}
 .row>*{flex:1 1 130px;}
-.status{font-size:13px; padding:9px 12px; border-radius:10px; margin-top:10px; display:none; line-height:1.8;}
+.row.tight>*{flex:0 0 auto;}
+.status{font-size:13px; padding:9px 12px; border-radius:10px; margin-top:10px; display:none;
+  line-height:1.9; white-space:pre-wrap;}
 .status.show{display:block;}
 .status.ok{background:rgba(62,203,106,.14); border:1px solid var(--ok); color:#b6ffcf;}
 .status.err{background:rgba(224,51,63,.14); border:1px solid var(--bad); color:#ffc2c8;}
 .dot{display:inline-block; width:9px; height:9px; border-radius:50%; background:#666; margin-left:6px;}
 .dot.on{background:var(--ok); box-shadow:0 0 8px var(--ok);}
 .dot.off{background:var(--bad);}
+@keyframes pulse{50%{opacity:.35}}
+.dot.on.live{animation:pulse 2s infinite;}
 table{width:100%; border-collapse:collapse; font-size:13.5px;}
-th{background:rgba(230,182,76,.12); color:var(--gold-soft); padding:10px 8px; text-align:right; font-size:12.5px;}
-td{padding:10px 8px; border-bottom:1px solid var(--line);}
+th{background:rgba(230,182,76,.12); color:var(--gold-soft); padding:9px 8px; text-align:right;
+  font-size:12px; white-space:nowrap;}
+th.sortable{cursor:pointer; user-select:none;}
+th.sortable:hover{background:rgba(230,182,76,.2);}
+td{padding:8px; border-bottom:1px solid var(--line); white-space:nowrap;}
 tr:hover td{background:rgba(255,255,255,.03);}
-.tbl-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch;}
-.tag{font-size:11px; font-weight:800; border-radius:6px; padding:2px 8px; white-space:nowrap;}
+.tbl-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:10px;}
+.tag{font-size:10.5px; font-weight:800; border-radius:6px; padding:2px 7px; white-space:nowrap;
+  display:inline-block;}
 .tag.vip{background:linear-gradient(180deg,#f6dd9a,#c8952e); color:#3a2a06;}
 .tag.ban{background:#5d1827; color:#ffb9c6;}
-.hint{font-size:12px; color:#8d9bc4; line-height:1.9;}
-.stat-row{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;}
-.stat{flex:1 1 120px; background:rgba(255,255,255,.05); border:1px solid var(--line);
-  border-radius:14px; padding:13px; text-align:center;}
-.stat b{display:block; font-size:24px; color:var(--gold-soft);}
-.stat span{font-size:12px; color:#96a5cf;}
+.tag.pend{background:#3d2f10; color:#f3d489; border:1px solid #7a5d1b;}
+.tag.on{background:#123d24; color:#9dffc0; border:1px solid #2f7a4a;}
+.hint{font-size:12px; color:var(--muted); line-height:1.9;}
+.stat-row{display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin-bottom:14px;}
+.stat{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px; text-align:center;}
+.stat b{display:block; font-size:22px; color:var(--gold-soft); line-height:1.4;}
+.stat span{font-size:11.5px; color:var(--muted);}
+.stat.accent{border-color:rgba(230,182,76,.5);}
 .mono{direction:ltr; text-align:left; font-family:"Courier New",monospace;}
+/* ---- تب‌ها ---- */
+.tabs{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px;}
+.tab{background:#1a2549; color:#a9b8e0; border:1px solid var(--line); border-radius:11px;
+  padding:9px 14px; font-size:13.5px;}
+.tab.active{background:linear-gradient(180deg,#f3d489,#c8952e); color:#3a2a06; border-color:var(--gold);}
+.page{display:none;} .page.active{display:block;}
+/* ---- نمودار ---- */
+.chart{width:100%; height:150px; display:block;}
+.chart .bar{fill:var(--gold); opacity:.85;}
+.chart .bar2{fill:#5b8def;}
+.chart .gl{stroke:rgba(255,255,255,.08); stroke-width:1;}
+.chart text{fill:var(--muted); font-size:9px; font-family:inherit;}
+.legend{display:flex; gap:14px; font-size:12px; color:var(--muted); justify-content:center; margin-top:4px;}
+.legend i{display:inline-block; width:10px; height:10px; border-radius:3px; margin-left:5px;}
+/* ---- نوار عملیات گروهی ---- */
+.bulkbar{background:rgba(230,182,76,.1); border:1px solid var(--gold);
+  border-radius:12px; padding:11px; margin-bottom:10px; display:none;}
+.bulkbar.show{display:block;}
+/* ---- پیش‌نمایش اعلان ---- */
+.preview{background:linear-gradient(180deg,#1b2748,#141d38); border:1px solid var(--line);
+  border-radius:14px; padding:14px; display:flex; gap:12px; align-items:flex-start;}
+.preview .pv-ic{font-size:26px; flex:0 0 auto;}
+.preview .pv-t{font-weight:800; color:var(--gold-soft); font-size:14.5px; margin-bottom:4px;}
+.preview .pv-x{font-size:13px; color:#d8e0f5; line-height:1.9; word-break:break-word;}
+/* ---- توست ---- */
+#toast{position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:#16224a; border:1px solid var(--gold); color:var(--ivory); padding:12px 20px;
+  border-radius:12px; font-size:13.5px; font-weight:700; opacity:0; pointer-events:none;
+  transition:opacity .25s, transform .25s; z-index:99; max-width:90vw; text-align:center;}
+#toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+#toast.bad{border-color:var(--bad);}
+.spin{display:inline-block; width:13px; height:13px; border:2px solid rgba(255,255,255,.25);
+  border-top-color:var(--gold); border-radius:50%; animation:sp .8s linear infinite; vertical-align:-2px;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.chk{display:flex; align-items:center; gap:7px; font-size:13px; color:#c3d0f0; cursor:pointer;}
+.pager{display:flex; gap:8px; align-items:center; justify-content:center; margin-top:12px; flex-wrap:wrap;}
+.danger{border-color:#7a2233; background:rgba(224,51,63,.07);}
+@media (max-width:600px){
+  body{padding:10px 8px 30px;} .box{padding:13px;} h1{font-size:20px;}
+  .tab{padding:8px 11px; font-size:12.5px;}
+}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>👑 پنل مدیریت پاسور ۱۱</h1>
-  <div class="sub">این پنل روی لپ‌تاپ خودت اجرا می‌شود و مستقیم با سرور بازی حرف می‌زند</div>
+  <div class="sub">روی لپ‌تاپ خودت اجرا می‌شود و مستقیم با سرور بازی حرف می‌زند</div>
 
-  <!-- اتصال -->
-  <div class="box">
-    <h2>اتصال به سرور <span class="dot" id="dot"></span></h2>
-    <label>آدرس سرور</label>
-    <input id="srv" class="mono" value="http://94.184.36.13" placeholder="http://94.184.36.13">
-    <label>کلید مدیریت</label>
-    <input id="key" class="mono" type="password" placeholder="کلید ADMIN_KEY">
+  <!-- ================= اتصال ================= -->
+  <div class="box" id="connBox">
+    <h2>اتصال به سرور <span class="dot" id="dot"></span> <span class="hint" id="connLive"></span></h2>
     <div class="row">
+      <div style="flex:2 1 240px"><label>آدرس سرور</label>
+        <input id="srv" class="mono" value="http://94.184.36.13" placeholder="http://94.184.36.13"></div>
+      <div style="flex:1 1 180px"><label>کلید مدیریت</label>
+        <input id="key" class="mono" type="password" placeholder="کلید ADMIN_KEY"></div>
+    </div>
+    <div class="row tight">
       <button class="btn-gold" id="btnConnect">اتصال و ذخیره</button>
       <button class="btn-ghost" id="btnForget">فراموش کن</button>
+      <label class="chk" style="margin:0 6px"><input type="checkbox" id="autoRef"> به‌روزرسانی خودکار (۳۰ ثانیه)</label>
     </div>
     <div class="status" id="connMsg"></div>
   </div>
 
-  <!-- آمار -->
-  <div class="stat-row" id="stats" style="display:none">
-    <div class="stat"><b id="stUsers">۰</b><span>کاربر</span></div>
-    <div class="stat"><b id="stVip">۰</b><span>کاربر VIP</span></div>
-    <div class="stat"><b id="stBoard">۰</b><span>در جدول رتبه‌بندی</span></div>
-    <div class="stat"><b id="stBan">۰</b><span>مسدود</span></div>
+  <!-- ================= تب‌ها ================= -->
+  <div class="tabs" id="tabs" style="display:none">
+    <button class="tab active" data-p="dash">📊 داشبورد</button>
+    <button class="tab" data-p="users">👥 کاربران</button>
+    <button class="tab" data-p="one">🎯 مدیریت کاربر</button>
+    <button class="tab" data-p="bc">📢 اعلان</button>
+    <button class="tab" data-p="live">🌐 آنلاین</button>
+    <button class="tab" data-p="tools">🧰 ابزار</button>
   </div>
 
-  <!-- عملیات روی کاربر -->
-  <div class="box" id="opsBox" style="display:none">
-    <h2>مدیریت کاربر</h2>
-    <label>شناسهٔ کاربر (مثل 11-123456)</label>
-    <input id="uid" class="mono" placeholder="11-123456">
-    <div class="row">
-      <button class="btn-ghost" id="btnInfo">مشاهدهٔ اطلاعات</button>
-      <button class="btn-ok" id="btnVip">فعال‌کردن VIP</button>
+  <!-- ================= داشبورد ================= -->
+  <div class="page active" id="p-dash">
+    <div class="stat-row">
+      <div class="stat accent"><b id="stUsers">—</b><span>کل کاربران</span></div>
+      <div class="stat"><b id="stAct1">—</b><span>فعال امروز</span></div>
+      <div class="stat"><b id="stAct7">—</b><span>فعال ۷ روز</span></div>
+      <div class="stat"><b id="stVip">—</b><span>کاربر VIP</span></div>
+      <div class="stat"><b id="stBan">—</b><span>مسدود</span></div>
+      <div class="stat"><b id="stPend">—</b><span>دستور در انتظار</span></div>
     </div>
-    <div style="height:9px"></div>
-    <label>تعداد سکهٔ هدیه</label>
-    <input id="coins" type="number" value="500" min="1">
-    <button class="btn-gold" id="btnCoins" style="width:100%">🪙 هدیهٔ سکه</button>
+    <div class="stat-row">
+      <div class="stat"><b id="stCoins">—</b><span>🪙 کل سکه در گردش</span></div>
+      <div class="stat"><b id="stTro">—</b><span>🏆 کل جام</span></div>
+      <div class="stat"><b id="stLvl">—</b><span>میانگین سطح</span></div>
+      <div class="stat"><b id="stBoard">—</b><span>در جدول رتبه‌بندی</span></div>
+      <div class="stat"><b id="stSess">—</b><span>بازی آنلاین فعال</span></div>
+      <div class="stat"><b id="stUp">—</b><span>مدت روشن‌بودن سرور</span></div>
+    </div>
 
-    <div style="height:12px"></div>
-    <label>امتیاز (جام) — برای کم‌کردن، عدد منفی بنویس</label>
-    <input id="score" type="number" value="100">
-    <button class="btn-gold" id="btnScore" style="width:100%">🏆 افزودن امتیاز</button>
+    <div class="box">
+      <h2>📈 فعالیت ۱۴ روز اخیر</h2>
+      <svg class="chart" id="chart" viewBox="0 0 700 150" preserveAspectRatio="none"
+           role="img" aria-label="نمودار فعالیت روزانه"></svg>
+      <div class="legend">
+        <span><i style="background:var(--gold)"></i>آخرین بازدید در آن روز</span>
+        <span><i style="background:#5b8def"></i>کاربر تازه</span>
+      </div>
+      <div class="hint" id="chartHint" style="text-align:center"></div>
+    </div>
 
-    <div style="height:12px"></div>
-    <label>پیام به کاربر (در صندوق پستی بازی نشان داده می‌شود)</label>
-    <input id="msg" placeholder="مثلاً: از گزارش شما ممنونیم!">
-    <button class="btn-ghost" id="btnMsg" style="width:100%">✉️ ارسال پیام</button>
+    <div class="box">
+      <h2>🏆 ۱۰ بازیکن برتر</h2>
+      <div class="tbl-wrap"><table id="topTbl"></table></div>
+    </div>
 
-    <div style="height:12px"></div>
-    <details style="margin-bottom:12px">
-      <summary style="cursor:pointer;color:var(--gold-soft);font-weight:800;font-size:14px;padding:8px 0">
-        ⚙️ کنترل کامل پیشرفت کاربر</summary>
+    <div class="box">
+      <h2>⏳ دستورهای در انتظار دریافت</h2>
+      <div class="hint" style="margin-bottom:8px">کارهایی که ثبت شده ولی کاربر هنوز بازی را باز نکرده تا اعمال شود.</div>
+      <div class="tbl-wrap"><table id="pendTbl"></table></div>
+    </div>
+  </div>
+
+  <!-- ================= کاربران ================= -->
+  <div class="page" id="p-users">
+    <div class="box">
+      <h2>👥 فهرست کاربران</h2>
+      <div class="row">
+        <div style="flex:2 1 220px"><label>جستجو (نام، نام‌کاربری یا شناسه)</label>
+          <input id="search" placeholder="مثلاً: علی یا 11-1234"></div>
+        <div style="flex:1 1 160px"><label>فیلتر</label>
+          <select id="filter">
+            <option value="all">همه</option>
+            <option value="vip">فقط VIP</option>
+            <option value="ban">فقط مسدودها</option>
+            <option value="pend">دستور در انتظار</option>
+            <option value="a1">فعال امروز</option>
+            <option value="a7">فعال ۷ روز اخیر</option>
+            <option value="i30">غیرفعال بیش از ۳۰ روز</option>
+          </select></div>
+        <div style="flex:0 1 120px"><label>در هر صفحه</label>
+          <select id="perPage"><option>25</option><option selected>50</option><option>100</option><option>250</option></select></div>
+      </div>
+      <div class="row tight" style="margin-bottom:10px">
+        <button class="btn-ghost" id="btnUsers">🔄 بارگذاری دوباره</button>
+        <button class="btn-ghost" id="btnSelAll">انتخاب همهٔ این صفحه</button>
+        <button class="btn-ghost" id="btnSelNone">لغو انتخاب</button>
+        <button class="btn-ghost" id="btnCsv">⬇️ خروجی CSV</button>
+      </div>
+
+      <div class="bulkbar" id="bulkbar">
+        <div style="font-weight:800;color:var(--gold-soft);margin-bottom:8px" id="bulkCount"></div>
+        <div class="row">
+          <div style="flex:1 1 130px"><label>عملیات گروهی</label>
+            <select id="bulkField">
+              <option value="coinGrant">🪙 هدیهٔ سکه</option>
+              <option value="scoreGrant">🏆 افزودن جام</option>
+              <option value="msg">✉️ پیام</option>
+              <option value="vipGrant">👑 فعال‌کردن VIP</option>
+              <option value="banned">⛔ مسدودکردن</option>
+            </select></div>
+          <div style="flex:1 1 130px"><label>مقدار</label><input id="bulkValue" value="500"></div>
+        </div>
+        <button class="btn-gold" id="btnBulk" style="width:100%">اجرا روی انتخاب‌شده‌ها</button>
+      </div>
+
+      <div class="tbl-wrap"><table id="tbl"></table></div>
+      <div class="pager" id="pager"></div>
+      <div class="hint" id="listHint"></div>
+    </div>
+  </div>
+
+  <!-- ================= مدیریت یک کاربر ================= -->
+  <div class="page" id="p-one">
+    <div class="box">
+      <h2>🎯 مدیریت کاربر</h2>
+      <label>شناسهٔ کاربر (مثل 11-123456)</label>
+      <input id="uid" class="mono" placeholder="11-123456" list="uidList">
+      <datalist id="uidList"></datalist>
+      <div class="row tight">
+        <button class="btn-ghost" id="btnInfo">👁 مشاهدهٔ اطلاعات</button>
+        <button class="btn-ok" id="btnVip">👑 فعال‌کردن VIP</button>
+        <button class="btn-ghost" id="btnClearPend">🧹 لغو دستورهای در انتظار</button>
+      </div>
+      <div class="status" id="opMsg"></div>
+
+      <h3>🪙 سکه و 🏆 جام</h3>
+      <div class="row">
+        <div><label>تعداد سکهٔ هدیه</label><input id="coins" type="number" value="500"></div>
+        <div><label>امتیاز (جام) — منفی هم می‌شود</label><input id="score" type="number" value="100"></div>
+      </div>
+      <div class="row tight">
+        <button class="btn-gold" id="btnCoins">🪙 هدیهٔ سکه</button>
+        <button class="btn-gold" id="btnScore">🏆 افزودن امتیاز</button>
+      </div>
+
+      <h3>✉️ پیام به کاربر</h3>
+      <textarea id="msg" placeholder="مثلاً: از گزارش شما ممنونیم! ۵۰۰ سکه هدیه گرفتید."></textarea>
+      <div class="row tight" style="margin-bottom:8px">
+        <button class="btn-ghost btn-sm" data-tpl="از گزارش شما ممنونیم؛ مشکل برطرف شد.">قالب: تشکر</button>
+        <button class="btn-ghost btn-sm" data-tpl="مشکل شما بررسی شد. لطفاً بازی را ببندید و دوباره باز کنید.">قالب: راهنمایی</button>
+        <button class="btn-ghost btn-sm" data-tpl="به‌خاطر مشکل پیش‌آمده، جبران کوچکی تقدیم شما شد.">قالب: عذرخواهی</button>
+      </div>
+      <button class="btn-ghost" id="btnMsg" style="width:100%">✉️ ارسال پیام</button>
+
+      <h3>⚙️ کنترل کامل پیشرفت</h3>
       <div class="hint" style="margin-bottom:8px">اول «مشاهدهٔ اطلاعات» را بزن تا مقادیر فعلی پر شوند.
-      هر کادری را خالی بگذاری، دست‌نخورده می‌ماند.</div>
+        هر کادری را خالی بگذاری، دست‌نخورده می‌ماند.</div>
       <div class="row">
         <div><label>سکه</label><input id="pCoins" type="number" placeholder="—"></div>
         <div><label>جام</label><input id="pTro" type="number" placeholder="—"></div>
-      </div>
-      <div class="row">
         <div><label>سطح</label><input id="pLevel" type="number" placeholder="—"></div>
-        <div><label>XP</label><input id="pXp" type="number" placeholder="—"></div>
       </div>
       <div class="row">
+        <div><label>XP</label><input id="pXp" type="number" placeholder="—"></div>
         <div><label>کل بازی‌ها</label><input id="pGames" type="number" placeholder="—"></div>
         <div><label>بردها</label><input id="pWins" type="number" placeholder="—"></div>
       </div>
@@ -133,91 +294,198 @@ tr:hover td{background:rgba(255,255,255,.03);}
         <option value="0">غیرفعال</option>
       </select>
       <button class="btn-gold" id="btnSetProg" style="width:100%">⚙️ ذخیرهٔ پیشرفت</button>
-    </details>
 
-    <div class="row">
-      <button class="btn-bad" id="btnBan">⛔ مسدودکردن</button>
-      <button class="btn-ghost" id="btnUnban">✅ رفع مسدودی</button>
-      <button class="btn-bad" id="btnDelete">🗑 حذف کامل اکانت</button>
+      <h3>⛔ دسترسی</h3>
+      <div class="row tight">
+        <button class="btn-bad" id="btnBan">⛔ مسدودکردن</button>
+        <button class="btn-ghost" id="btnUnban">✅ رفع مسدودی</button>
+        <button class="btn-bad" id="btnDelete">🗑 حذف کامل اکانت</button>
+      </div>
     </div>
-    <div class="status" id="opMsg"></div>
   </div>
 
-  <!-- اعلان همگانی -->
-  <div class="box" id="bcBox" style="display:none">
-    <h2>📢 اعلان همگانی</h2>
-    <div class="hint" style="margin-bottom:8px">این پیام در صندوق پستی <b>همهٔ کاربران</b> نشان داده می‌شود.</div>
-    <div class="row">
-      <div style="flex:0 0 90px"><label>آیکن</label><input id="bcIcon" value="📢" style="text-align:center"></div>
-      <div><label>عنوان</label><input id="bcTitle" placeholder="مثلاً: آپدیت جدید"></div>
+  <!-- ================= اعلان ================= -->
+  <div class="page" id="p-bc">
+    <div class="box">
+      <h2>📢 اعلان همگانی</h2>
+      <div class="hint" style="margin-bottom:10px">این پیام در صندوق پستی <b>همهٔ کاربران</b> نشان داده می‌شود.</div>
+      <div class="row">
+        <div style="flex:0 0 90px"><label>آیکن</label><input id="bcIcon" value="📢" style="text-align:center"></div>
+        <div><label>عنوان</label><input id="bcTitle" placeholder="مثلاً: آپدیت جدید"></div>
+      </div>
+      <label>متن اعلان</label>
+      <textarea id="bcText" placeholder="متن پیامی که همه می‌بینند"></textarea>
+
+      <label>پیش‌نمایش (همان‌طور که کاربر می‌بیند)</label>
+      <div class="preview" id="bcPrev">
+        <div class="pv-ic" id="pvIc">📢</div>
+        <div style="flex:1 1 auto;min-width:0">
+          <div class="pv-t" id="pvT">اطلاعیه</div>
+          <div class="pv-x" id="pvX">متن اعلان اینجا نشان داده می‌شود…</div>
+        </div>
+      </div>
+
+      <div class="row tight" style="margin-top:12px">
+        <button class="btn-ghost btn-sm" data-bc='📢|آپدیت جدید|نسخهٔ تازهٔ بازی منتشر شد؛ از مایکت به‌روزرسانی کن.'>قالب: آپدیت</button>
+        <button class="btn-ghost btn-sm" data-bc='🎁|هدیهٔ ویژه|به‌مناسبت این هفته، برای همه سکهٔ هدیه در نظر گرفتیم.'>قالب: هدیه</button>
+        <button class="btn-ghost btn-sm" data-bc='🛠|قطعی موقت|سرور برای چند دقیقه در حال به‌روزرسانی است؛ عذرخواهیم.'>قالب: قطعی</button>
+      </div>
+      <div class="row tight" style="margin-top:10px">
+        <button class="btn-gold" id="btnBcSend">📢 انتشار برای همه</button>
+        <button class="btn-ghost" id="btnBcShow">اعلان فعلی</button>
+        <button class="btn-bad" id="btnBcClear">حذف اعلان</button>
+      </div>
+      <div class="status" id="bcMsg"></div>
+
+      <h3>🕘 تاریخچهٔ اعلان‌ها</h3>
+      <div class="tbl-wrap"><table id="bcLog"></table></div>
     </div>
-    <label>متن اعلان</label>
-    <input id="bcText" placeholder="متن پیامی که همه می‌بینند">
-    <div class="row">
-      <button class="btn-gold" id="btnBcSend">📢 انتشار برای همه</button>
-      <button class="btn-ghost" id="btnBcShow">اعلان فعلی</button>
-      <button class="btn-bad" id="btnBcClear">حذف اعلان</button>
-    </div>
-    <div class="status" id="bcMsg"></div>
   </div>
 
-  <!-- فهرست کاربران -->
-  <div class="box" id="listBox" style="display:none">
-    <h2>کاربران</h2>
-    <div class="row" style="margin-bottom:10px">
-      <button class="btn-ghost" id="btnUsers">بارگذاری کاربران</button>
-      <button class="btn-ghost" id="btnBoard">جدول رتبه‌بندی</button>
+  <!-- ================= آنلاین ================= -->
+  <div class="page" id="p-live">
+    <div class="box">
+      <h2>🌐 بازی‌های دو نفرهٔ فعال</h2>
+      <div class="hint" style="margin-bottom:8px">کدهای اتصالی که همین حالا باز هستند. کدها پس از ۱۵ دقیقه خودکار پاک می‌شوند.</div>
+      <button class="btn-ghost" id="btnLive" style="margin-bottom:10px">🔄 به‌روزرسانی</button>
+      <div class="tbl-wrap"><table id="liveTbl"></table></div>
     </div>
-    <input id="search" placeholder="جستجو در نام یا شناسه…">
-    <div class="tbl-wrap"><table id="tbl"></table></div>
-    <div class="hint" id="listHint"></div>
+    <div class="box">
+      <h2>🕓 آخرین کاربران دیده‌شده</h2>
+      <div class="tbl-wrap"><table id="recentTbl"></table></div>
+    </div>
   </div>
 
-  <div class="hint" style="text-align:center">
-    نکته: کلید مدیریت فقط در همین مرورگر ذخیره می‌شود و به هیچ جای دیگری فرستاده نمی‌شود.
+  <!-- ================= ابزار ================= -->
+  <div class="page" id="p-tools">
+    <div class="box">
+      <h2>🧰 وضعیت سرور</h2>
+      <div class="tbl-wrap"><table id="srvTbl"></table></div>
+      <div class="row tight" style="margin-top:12px">
+        <button class="btn-ghost" id="btnPing">📡 تست سرعت سرور</button>
+        <button class="btn-ghost" id="btnExport">⬇️ پشتیبان کامل (JSON)</button>
+        <button class="btn-ghost" id="btnCsv2">⬇️ کاربران (CSV)</button>
+      </div>
+      <div class="status" id="toolMsg"></div>
+    </div>
+    <div class="box">
+      <h2>⌨️ میان‌برهای صفحه‌کلید</h2>
+      <div class="hint">
+        <b>۱ تا ۶</b> — رفتن بین تب‌ها &nbsp;•&nbsp;
+        <b>R</b> — به‌روزرسانی &nbsp;•&nbsp;
+        <b>/</b> — پرش به کادر جستجو &nbsp;•&nbsp;
+        <b>Esc</b> — بستن پیام‌ها
+      </div>
+    </div>
+    <div class="box danger">
+      <h2>⚠️ نکات امنیتی</h2>
+      <div class="hint">
+        • کلید مدیریت فقط در همین مرورگر ذخیره می‌شود و به هیچ جای دیگری فرستاده نمی‌شود.<br>
+        • فایل <b>panel.html</b> را برای کسی نفرست و کلیدت را جای امن نگه دار.<br>
+        • اگر کلید لو رفت: در سرور متغیر <span class="mono">ADMIN_KEY</span> را عوض کن و سرویس را ری‌استارت کن.<br>
+        • این پنل روی <span class="mono">http</span> کار می‌کند؛ روی وای‌فای عمومی از آن استفاده نکن.
+      </div>
+    </div>
   </div>
 </div>
+<div id="toast"></div>
 
 <script>
 "use strict";
 const $=q=>document.querySelector(q);
+const $$=q=>[...document.querySelectorAll(q)];
 const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
 const esc=s=>String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
-let SRV='', KEY='', USERS={}, CONTROL={};
+const num=n=>fa(String(Number(n)||0).replace(/\B(?=(\d{3})+(?!\d))/g,'٬'));
+const DAY=86400000;
 
-function msg(el,text,ok){
-  el.textContent=text;
-  el.className='status show '+(ok?'ok':'err');
+let SRV='', KEY='', USERS={}, CONTROL={}, STATS=null, BOARD={};
+let SEL=new Set(), PAGE=1, SORT={c:'ts',d:-1}, autoTimer=null;
+
+/* ---------- ابزارهای عمومی ---------- */
+function toast(t,bad){
+  const el=$('#toast'); el.textContent=t; el.className='show'+(bad?' bad':'');
+  clearTimeout(toast._t); toast._t=setTimeout(()=>el.className='',2600);
 }
-function api(path,opts){
-  return fetch(SRV.replace(/\/$/,'')+path,opts).then(r=>r.json());
+function msg(el,text,ok){ el.textContent=text; el.className='status show '+(ok?'ok':'err'); }
+function clearMsgs(){ $$('.status').forEach(e=>e.className='status'); }
+function base(){ return SRV.replace(/\/$/,''); }
+function adminUrl(path){ return path+(path.includes('?')?'&':'?')+'key='+encodeURIComponent(KEY); }
+async function api(path,opts){
+  const r=await fetch(base()+path,opts);
+  return r.json();
 }
-function adminUrl(path){
-  return path+(path.includes('?')?'&':'?')+'key='+encodeURIComponent(KEY);
+function ago(ts){
+  if(!ts)return '—';
+  const s=Math.max(0,Math.floor((Date.now()-ts)/1000));
+  if(s<60)return 'همین حالا';
+  if(s<3600)return fa(Math.floor(s/60))+' دقیقه پیش';
+  if(s<86400)return fa(Math.floor(s/3600))+' ساعت پیش';
+  return fa(Math.floor(s/86400))+' روز پیش';
 }
+function dur(sec){
+  sec=Number(sec)||0;
+  const d=Math.floor(sec/86400), h=Math.floor(sec%86400/3600), m=Math.floor(sec%3600/60);
+  if(d)return fa(d)+' روز و '+fa(h)+' ساعت';
+  if(h)return fa(h)+' ساعت و '+fa(m)+' دقیقه';
+  return fa(m)+' دقیقه';
+}
+function bytes(b){
+  b=Number(b)||0;
+  if(b<1024)return fa(b)+' بایت';
+  if(b<1048576)return fa((b/1024).toFixed(1))+' کیلوبایت';
+  return fa((b/1048576).toFixed(2))+' مگابایت';
+}
+function download(name,text,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['﻿'+text],{type:type||'text/plain;charset=utf-8'}));
+  a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+const PEND_KEYS=['coinGrant','vipGrant','msg','scoreGrant','setProgress'];
+function pendOf(id){
+  const c=CONTROL[id]||{}; const out=[];
+  if(c.coinGrant)   out.push('🪙 '+num(c.coinGrant)+' سکه');
+  if(c.scoreGrant)  out.push('🏆 '+num(c.scoreGrant)+' جام');
+  if(c.vipGrant)    out.push('👑 VIP');
+  if(c.msg)         out.push('✉️ پیام');
+  if(c.setProgress) out.push('⚙️ پیشرفت');
+  return out;
+}
+
+/* ---------- تب‌ها ---------- */
+function showPage(p){
+  $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.p===p));
+  $$('.page').forEach(e=>e.classList.toggle('active',e.id==='p-'+p));
+  try{ localStorage.setItem('pasur_admin_tab',p); }catch(e){}
+  if(p==='live')loadLive();
+  if(p==='bc')loadBcLog();
+  if(p==='tools')renderServer();
+}
+$$('.tab').forEach(t=>t.onclick=()=>showPage(t.dataset.p));
 
 /* ---------- اتصال ---------- */
 async function connect(){
   SRV=$('#srv').value.trim();
   KEY=$('#key').value.trim();
   if(!SRV||!KEY){ msg($('#connMsg'),'آدرس سرور و کلید مدیریت را پر کن',false); return; }
-  msg($('#connMsg'),'در حال بررسی…',true);
+  $('#connMsg').innerHTML='<span class="spin"></span> در حال بررسی…';
+  $('#connMsg').className='status show ok';
   try{
     const h=await api('/health.json');
     if(!h||!h.ok)throw new Error('پاسخ نامعتبر');
-    // بررسی درستی کلید
     const u=await api(adminUrl('/users.json'));
-    if(u&&u.error){ throw new Error('کلید مدیریت اشتباه است'); }
+    if(u&&u.error)throw new Error('کلید مدیریت اشتباه است');
     localStorage.setItem('pasur_admin',JSON.stringify({s:SRV,k:KEY}));
     $('#dot').className='dot on';
     msg($('#connMsg'),'✅ متصل شد. سرور سالم است.',true);
-    $('#opsBox').style.display='block';
-    $('#listBox').style.display='block';
-    $('#stats').style.display='flex';
-    $('#bcBox').style.display='block';
-    loadUsers();
+    $('#tabs').style.display='flex';
+    USERS=u||{};
+    await refreshAll();
+    try{ const t=localStorage.getItem('pasur_admin_tab'); if(t)showPage(t); }catch(e){}
   }catch(e){
     $('#dot').className='dot off';
+    $('#tabs').style.display='none';
     msg($('#connMsg'),'❌ اتصال ناموفق: '+(e.message||'سرور در دسترس نیست'),false);
   }
 }
@@ -225,153 +493,412 @@ $('#btnConnect').onclick=connect;
 $('#btnForget').onclick=()=>{
   localStorage.removeItem('pasur_admin');
   $('#key').value=''; $('#dot').className='dot';
-  $('#opsBox').style.display='none'; $('#listBox').style.display='none'; $('#stats').style.display='none'; $('#bcBox').style.display='none';
+  $('#tabs').style.display='none'; $$('.page').forEach(e=>e.classList.remove('active'));
+  $('#p-dash').classList.add('active');
+  stopAuto(); $('#autoRef').checked=false;
   msg($('#connMsg'),'اطلاعات ذخیره‌شده پاک شد',true);
 };
 
-/* ---------- کاربران ---------- */
-async function loadUsers(){
-  try{
-    USERS=await api(adminUrl('/users.json'))||{};
-    if(USERS.error){ msg($('#connMsg'),'کلید مدیریت اشتباه است',false); return; }
-    let vip=0;
-    Object.values(USERS).forEach(u=>{ if(u&&u.vip)vip++; });
-    $('#stUsers').textContent=fa(Object.keys(USERS).length);
-    $('#stVip').textContent=fa(vip);
-    renderUsers();
-    // شمارش مسدودها
-    let ban=0;
-    await Promise.all(Object.keys(USERS).slice(0,200).map(async id=>{
-      try{ const c=await api('/control/'+encodeURIComponent(id)+'.json'); if(c&&c.banned)ban++; }catch(e){}
-    }));
-    $('#stBan').textContent=fa(ban);
-  }catch(e){ msg($('#connMsg'),'دریافت کاربران ممکن نشد',false); }
+/* ---------- بارگذاری همه چیز ---------- */
+async function refreshAll(){
+  const t0=Date.now();
+  const [u,c,s,b]=await Promise.all([
+    api(adminUrl('/users.json')).catch(()=>null),
+    api(adminUrl('/control.json')).catch(()=>null),
+    api(adminUrl('/stats.json')).catch(()=>null),
+    api('/leaderboard.json').catch(()=>null)
+  ]);
+  if(u&&!u.error)USERS=u;
+  CONTROL=(c&&!c.error)?c:{};
+  BOARD=(b&&!b.error)?b:{};
+  STATS=(s&&!s.error&&typeof s.users==='number')?s:localStats();
+  renderStats(); renderChart(); renderTop(); renderPending();
+  renderUsers(); renderRecent(); renderServer(); fillDatalist();
+  $('#connLive').textContent='آخرین به‌روزرسانی: '+new Date().toLocaleTimeString('fa-IR')
+    +' • '+fa(Date.now()-t0)+' میلی‌ثانیه';
 }
-function renderUsers(){
-  const q=($('#search').value||'').trim().toLowerCase();
-  const ids=Object.keys(USERS).filter(id=>{
-    if(!q)return true;
+/* اگر سرور قدیمی باشد و /stats نداشته باشد، همه چیز از روی کاربران حساب می‌شود */
+function localStats(){
+  const now=Date.now(), ids=Object.keys(USERS);
+  let vip=0,coins=0,tro=0,lvl=0,a1=0,a7=0,a30=0;
+  const seen={},neu={};
+  const dk=t=>new Date(t).toISOString().slice(0,10);
+  ids.forEach(id=>{
     const u=USERS[id]||{};
-    return id.toLowerCase().includes(q)||String(u.name||'').toLowerCase().includes(q)
-      ||String(u.user||'').toLowerCase().includes(q);
-  }).sort((a,b)=>(USERS[b].ts||0)-(USERS[a].ts||0));
-  const t=$('#tbl');
-  t.innerHTML='<tr><th>شناسه</th><th>نام</th><th>سطح</th><th>سکه</th><th>جام</th><th>وضعیت</th><th></th></tr>'
-    +ids.slice(0,200).map(id=>{
-      const u=USERS[id]||{};
-      return '<tr><td class="mono">'+esc(id)+'</td><td>'+esc(u.name||'—')
-        +(u.user?' <span class="hint mono">@'+esc(u.user)+'</span>':'')+'</td>'
-        +'<td>'+fa(u.level||1)+'</td><td>'+fa(u.coins||0)+'</td><td>'+fa(u.trophies||0)+'</td>'
-        +'<td>'+(u.vip?'<span class="tag vip">VIP</span>':'—')+'</td>'
-        +'<td><button class="btn-ghost" data-pick="'+esc(id)+'" style="padding:6px 10px;font-size:12px">انتخاب</button></td></tr>';
-    }).join('');
-  $('#listHint').textContent='نمایش '+fa(Math.min(ids.length,200))+' از '+fa(ids.length)+' کاربر';
-  t.querySelectorAll('[data-pick]').forEach(b=>{
-    b.onclick=()=>{ $('#uid').value=b.dataset.pick; window.scrollTo({top:0,behavior:'smooth'}); showInfo(); };
+    if(u.vip)vip++;
+    coins+=Number(u.coins)||0; tro+=Number(u.trophies)||0; lvl+=Number(u.level)||1;
+    const ts=Number(u.ts)||0, age=now-ts;
+    if(age<DAY)a1++; if(age<7*DAY)a7++; if(age<30*DAY)a30++;
+    if(ts)seen[dk(ts)]=(seen[dk(ts)]||0)+1;
+    if(u.first)neu[dk(u.first)]=(neu[dk(u.first)]||0)+1;
+  });
+  let ban=0,pend=0;
+  Object.keys(CONTROL).forEach(id=>{
+    const c=CONTROL[id]||{};
+    if(c.banned)ban++;
+    if(PEND_KEYS.some(k=>c[k]))pend++;
+  });
+  const days=[];
+  for(let i=13;i>=0;i--){ const d=dk(now-i*DAY); days.push({d,seen:seen[d]||0,neu:neu[d]||0}); }
+  return {users:ids.length,vip,banned:ban,pending:pend,active1:a1,active7:a7,active30:a30,
+    coins,trophies:tro,avgLevel:ids.length?+(lvl/ids.length).toFixed(1):0,
+    board:Object.keys(BOARD).length,sessions:null,days,uptime:null,dataSize:null,local:true};
+}
+function renderStats(){
+  const s=STATS||{};
+  const set=(k,v)=>{ const e=$('#'+k); if(e)e.textContent=v; };
+  set('stUsers',num(s.users)); set('stAct1',num(s.active1)); set('stAct7',num(s.active7));
+  set('stVip',num(s.vip)); set('stBan',num(s.banned)); set('stPend',num(s.pending));
+  set('stCoins',num(s.coins)); set('stTro',num(s.trophies));
+  set('stLvl',fa(s.avgLevel==null?'—':s.avgLevel)); set('stBoard',num(s.board));
+  set('stSess',s.sessions==null?'—':num(s.sessions));
+  set('stUp',s.uptime==null?'—':dur(s.uptime));
+}
+
+/* ---------- نمودار ---------- */
+function renderChart(){
+  const days=(STATS&&STATS.days)||[];
+  const svg=$('#chart');
+  if(!days.length){ svg.innerHTML=''; $('#chartHint').textContent='داده‌ای برای نمایش نیست'; return; }
+  const W=700,H=150,pad={t:10,b:22,l:6,r:6};
+  const max=Math.max(1,...days.map(d=>Math.max(d.seen,d.neu)));
+  const bw=(W-pad.l-pad.r)/days.length;
+  const y=v=>pad.t+(H-pad.t-pad.b)*(1-v/max);
+  let out='';
+  for(let g=0;g<=3;g++){
+    const yy=pad.t+(H-pad.t-pad.b)*g/3;
+    out+='<line class="gl" x1="'+pad.l+'" y1="'+yy.toFixed(1)+'" x2="'+(W-pad.r)+'" y2="'+yy.toFixed(1)+'"/>';
+  }
+  days.forEach((d,i)=>{
+    const x=pad.l+i*bw, w=bw*.34;
+    const h1=Math.max(0,H-pad.b-y(d.seen)), h2=Math.max(0,H-pad.b-y(d.neu));
+    out+='<rect class="bar"  x="'+(x+bw*.12).toFixed(1)+'" y="'+y(d.seen).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+h1.toFixed(1)+'" rx="2"><title>'+d.d+' — بازدید: '+d.seen+'</title></rect>';
+    out+='<rect class="bar2" x="'+(x+bw*.52).toFixed(1)+'" y="'+y(d.neu).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+h2.toFixed(1)+'" rx="2"><title>'+d.d+' — تازه: '+d.neu+'</title></rect>';
+    if(i%2===0)out+='<text x="'+(x+bw/2).toFixed(1)+'" y="'+(H-7)+'" text-anchor="middle">'+fa(d.d.slice(5))+'</text>';
+  });
+  svg.innerHTML=out;
+  const tot=days.reduce((a,d)=>a+d.neu,0);
+  $('#chartHint').textContent='بیشترین در یک روز: '+num(max)+' • کاربر تازه در ۱۴ روز: '+num(tot)
+    +(STATS&&STATS.local?' • (محاسبه‌شده در همین مرورگر — سرور را به‌روز کن تا دقیق‌تر شود)':'');
+}
+
+/* ---------- ۱۰ برتر ---------- */
+function renderTop(){
+  const rows=Object.values(BOARD).filter(x=>x&&x.u).sort((a,b)=>(b.t||0)-(a.t||0)).slice(0,10);
+  $('#topTbl').innerHTML=rows.length
+    ?'<tr><th>#</th><th>بازیکن</th><th>نام‌کاربری</th><th>سطح</th><th>جام</th></tr>'
+      +rows.map((x,i)=>'<tr><td>'+fa(i+1)+'</td><td>'+esc(x.n||'—')+'</td>'
+        +'<td class="mono">@'+esc(x.u)+'</td><td>'+fa(x.l||1)+'</td><td>🏆 '+num(x.t||0)+'</td></tr>').join('')
+    :'<tr><td class="hint">هنوز کسی در جدول رتبه‌بندی نیست</td></tr>';
+}
+
+/* ---------- دستورهای در انتظار ---------- */
+function renderPending(){
+  const ids=Object.keys(CONTROL).filter(id=>PEND_KEYS.some(k=>(CONTROL[id]||{})[k]));
+  $('#pendTbl').innerHTML=ids.length
+    ?'<tr><th>شناسه</th><th>نام</th><th>در انتظار</th><th></th></tr>'
+      +ids.slice(0,60).map(id=>{
+        const u=USERS[id]||{};
+        return '<tr><td class="mono">'+esc(id)+'</td><td>'+esc(u.name||'—')+'</td>'
+          +'<td>'+pendOf(id).map(t=>'<span class="tag pend">'+esc(t)+'</span>').join(' ')+'</td>'
+          +'<td><button class="btn-ghost btn-sm" data-go="'+esc(id)+'">مدیریت</button> '
+          +'<button class="btn-bad btn-sm" data-clr="'+esc(id)+'">لغو</button></td></tr>';
+      }).join('')
+    :'<tr><td class="hint">هیچ دستور در انتظاری نیست ✔</td></tr>';
+  $('#pendTbl').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>pickUser(b.dataset.go));
+  $('#pendTbl').querySelectorAll('[data-clr]').forEach(b=>b.onclick=()=>clearPending(b.dataset.clr));
+}
+
+/* ---------- فهرست کاربران ---------- */
+function filteredIds(){
+  const q=($('#search').value||'').trim().toLowerCase();
+  const f=$('#filter').value, now=Date.now();
+  return Object.keys(USERS).filter(id=>{
+    const u=USERS[id]||{}, c=CONTROL[id]||{};
+    if(q){
+      const hay=(id+' '+(u.name||'')+' '+(u.user||'')).toLowerCase();
+      if(!hay.includes(q))return false;
+    }
+    const age=now-(Number(u.ts)||0);
+    if(f==='vip'  && !u.vip)return false;
+    if(f==='ban'  && !c.banned)return false;
+    if(f==='pend' && !PEND_KEYS.some(k=>c[k]))return false;
+    if(f==='a1'   && age>=DAY)return false;
+    if(f==='a7'   && age>=7*DAY)return false;
+    if(f==='i30'  && age<30*DAY)return false;
+    return true;
+  }).sort((a,b)=>{
+    const ua=USERS[a]||{}, ub=USERS[b]||{};
+    let va,vb;
+    if(SORT.c==='id'){ va=a; vb=b; return SORT.d*String(va).localeCompare(String(vb)); }
+    if(SORT.c==='name'){ return SORT.d*String(ua.name||'').localeCompare(String(ub.name||''),'fa'); }
+    va=Number(ua[SORT.c])||0; vb=Number(ub[SORT.c])||0;
+    return SORT.d*(va-vb);
   });
 }
-$('#search').addEventListener('input',renderUsers);
-$('#btnUsers').onclick=loadUsers;
+function renderUsers(){
+  const ids=filteredIds();
+  const per=parseInt($('#perPage').value)||50;
+  const pages=Math.max(1,Math.ceil(ids.length/per));
+  if(PAGE>pages)PAGE=pages;
+  const slice=ids.slice((PAGE-1)*per,PAGE*per);
+  const arrow=c=>SORT.c===c?(SORT.d>0?' ▲':' ▼'):'';
+  const head='<tr><th style="width:28px"></th>'
+    +'<th class="sortable" data-s="id">شناسه'+arrow('id')+'</th>'
+    +'<th class="sortable" data-s="name">نام'+arrow('name')+'</th>'
+    +'<th class="sortable" data-s="level">سطح'+arrow('level')+'</th>'
+    +'<th class="sortable" data-s="coins">سکه'+arrow('coins')+'</th>'
+    +'<th class="sortable" data-s="trophies">جام'+arrow('trophies')+'</th>'
+    +'<th class="sortable" data-s="ts">آخرین بازدید'+arrow('ts')+'</th>'
+    +'<th>وضعیت</th><th></th></tr>';
+  $('#tbl').innerHTML=head+(slice.length?slice.map(id=>{
+    const u=USERS[id]||{}, c=CONTROL[id]||{}, p=pendOf(id);
+    const online=(Date.now()-(Number(u.ts)||0))<5*60000;
+    return '<tr><td><input type="checkbox" data-sel="'+esc(id)+'"'+(SEL.has(id)?' checked':'')+'></td>'
+      +'<td class="mono">'+esc(id)+'</td>'
+      +'<td>'+esc(u.name||'—')+(u.user?' <span class="hint mono">@'+esc(u.user)+'</span>':'')+'</td>'
+      +'<td>'+fa(u.level||1)+'</td><td>'+num(u.coins||0)+'</td><td>'+num(u.trophies||0)+'</td>'
+      +'<td class="hint">'+esc(ago(Number(u.ts)||0))+'</td>'
+      +'<td>'+(online?'<span class="tag on">آنلاین</span> ':'')
+        +(u.vip?'<span class="tag vip">VIP</span> ':'')
+        +(c.banned?'<span class="tag ban">مسدود</span> ':'')
+        +(p.length?'<span class="tag pend">'+fa(p.length)+' در انتظار</span>':'')
+        +((!u.vip&&!c.banned&&!p.length&&!online)?'—':'')+'</td>'
+      +'<td><button class="btn-ghost btn-sm" data-go="'+esc(id)+'">مدیریت</button> '
+      +'<button class="btn-gold btn-sm" data-gift="'+esc(id)+'">🪙+</button></td></tr>';
+  }).join(''):'<tr><td colspan="9" class="hint">کاربری با این فیلتر پیدا نشد</td></tr>');
 
-/* ---------- جدول رتبه‌بندی ---------- */
-$('#btnBoard').onclick=async()=>{
+  $('#tbl').querySelectorAll('[data-s]').forEach(th=>th.onclick=()=>{
+    const c=th.dataset.s;
+    if(SORT.c===c)SORT.d*=-1; else {SORT.c=c; SORT.d=(c==='id'||c==='name')?1:-1;}
+    renderUsers();
+  });
+  $('#tbl').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>pickUser(b.dataset.go));
+  $('#tbl').querySelectorAll('[data-gift]').forEach(b=>b.onclick=()=>quickGift(b.dataset.gift));
+  $('#tbl').querySelectorAll('[data-sel]').forEach(cb=>cb.onchange=()=>{
+    if(cb.checked)SEL.add(cb.dataset.sel); else SEL.delete(cb.dataset.sel);
+    renderBulk();
+  });
+
+  $('#listHint').textContent='نمایش '+fa(slice.length)+' از '+fa(ids.length)+' کاربر'
+    +' • صفحهٔ '+fa(PAGE)+' از '+fa(pages);
+  let pg='';
+  if(pages>1){
+    pg='<button class="btn-ghost btn-sm" '+(PAGE<=1?'disabled':'')+' id="pPrev">قبلی</button>'
+      +'<span class="hint">صفحهٔ '+fa(PAGE)+' از '+fa(pages)+'</span>'
+      +'<button class="btn-ghost btn-sm" '+(PAGE>=pages?'disabled':'')+' id="pNext">بعدی</button>';
+  }
+  $('#pager').innerHTML=pg;
+  if($('#pPrev'))$('#pPrev').onclick=()=>{PAGE--;renderUsers();};
+  if($('#pNext'))$('#pNext').onclick=()=>{PAGE++;renderUsers();};
+  renderBulk();
+}
+function renderBulk(){
+  const n=SEL.size;
+  $('#bulkbar').classList.toggle('show',n>0);
+  $('#bulkCount').textContent=fa(n)+' کاربر انتخاب شده';
+}
+$('#search').addEventListener('input',()=>{PAGE=1;renderUsers();});
+$('#filter').addEventListener('change',()=>{PAGE=1;renderUsers();});
+$('#perPage').addEventListener('change',()=>{PAGE=1;renderUsers();});
+$('#btnUsers').onclick=()=>{ toast('در حال به‌روزرسانی…'); refreshAll().then(()=>toast('به‌روز شد ✔')); };
+$('#btnSelAll').onclick=()=>{
+  const per=parseInt($('#perPage').value)||50;
+  filteredIds().slice((PAGE-1)*per,PAGE*per).forEach(id=>SEL.add(id));
+  renderUsers();
+};
+$('#btnSelNone').onclick=()=>{ SEL.clear(); renderUsers(); };
+
+/* ---------- خروجی CSV ---------- */
+function exportCsv(){
+  const ids=filteredIds();
+  const head=['شناسه','نام','نام‌کاربری','سطح','سکه','جام','VIP','مسدود','آخرین بازدید'];
+  const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const lines=[head.map(q).join(',')].concat(ids.map(id=>{
+    const u=USERS[id]||{}, c=CONTROL[id]||{};
+    return [id,u.name||'',u.user||'',u.level||1,u.coins||0,u.trophies||0,
+      u.vip?'بله':'خیر', c.banned?'بله':'خیر',
+      u.ts?new Date(u.ts).toLocaleString('fa-IR'):''].map(q).join(',');
+  }));
+  download('pasur11-users-'+new Date().toISOString().slice(0,10)+'.csv',lines.join('\r\n'),'text/csv;charset=utf-8');
+  toast('فایل CSV دانلود شد ✔');
+}
+$('#btnCsv').onclick=exportCsv;
+$('#btnCsv2').onclick=exportCsv;
+
+/* ---------- عملیات گروهی ---------- */
+$('#btnBulk').onclick=async()=>{
+  const ids=[...SEL];
+  if(!ids.length){ toast('اول چند کاربر را انتخاب کن',true); return; }
+  const field=$('#bulkField').value;
+  const raw=($('#bulkValue').value||'').trim();
+  let value;
+  if(field==='coinGrant'||field==='scoreGrant'){
+    value=parseInt(raw)||0;
+    if(!value){ toast('مقدار عددی را وارد کن',true); return; }
+  } else if(field==='msg'){
+    value=raw; if(!value){ toast('متن پیام را بنویس',true); return; }
+  } else value=true;
+  const names={coinGrant:'هدیهٔ سکه',scoreGrant:'افزودن جام',msg:'ارسال پیام',
+    vipGrant:'فعال‌کردن VIP',banned:'مسدودکردن'};
+  if(!confirm('«'+names[field]+'» برای '+ids.length+' کاربر اجرا شود؟\n\nاین کار قابل بازگشت نیست.'))return;
   try{
-    const d=await api('/leaderboard.json')||{};
-    const rows=Object.values(d).filter(x=>x&&x.u).sort((a,b)=>(b.t||0)-(a.t||0));
-    $('#stBoard').textContent=fa(rows.length);
-    $('#tbl').innerHTML='<tr><th>رتبه</th><th>بازیکن</th><th>نام‌کاربری</th><th>سطح</th><th>جام</th></tr>'
-      +rows.slice(0,100).map((x,i)=>'<tr><td>'+fa(i+1)+'</td><td>'+esc(x.n||'—')+'</td>'
-        +'<td class="mono">@'+esc(x.u)+'</td><td>'+fa(x.l||1)+'</td><td>🏆 '+fa(x.t||0)+'</td></tr>').join('');
-    $('#listHint').textContent='جدول رتبه‌بندی — '+fa(rows.length)+' بازیکن';
-  }catch(e){ $('#listHint').textContent='دریافت جدول ممکن نشد'; }
+    const r=await fetch(base()+adminUrl('/bulk.json'),{method:'PUT',
+      body:JSON.stringify({ids,field,value})});
+    const j=await r.json();
+    if(j&&j.error)throw new Error(j.error==='forbidden'?'کلید مدیریت اشتباه است':'سرور این قابلیت را ندارد — سرور را به‌روز کن');
+    toast('✔ روی '+fa(j.count)+' کاربر اجرا شد');
+    SEL.clear(); await refreshAll();
+  }catch(e){ toast('انجام نشد: '+(e.message||''),true); }
 };
 
-/* ---------- عملیات ---------- */
+/* ---------- کاربر تکی ---------- */
 function uid(){ return ($('#uid').value||'').trim(); }
-async function showInfo(){
-  const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
-  try{
-    const u=await api('/users/'+encodeURIComponent(id)+'.json');
-    const c=await api('/control/'+encodeURIComponent(id)+'.json');
-    if(!u){ msg($('#opMsg'),'کاربری با این شناسه پیدا نشد',false); return; }
-    // پرکردن کادرهای کنترل پیشرفت
-    const set=(id,v)=>{ const el=$('#'+id); if(el)el.value=(v==null?'':v); };
-    set('pCoins',u.coins); set('pTro',u.trophies); set('pLevel',u.level);
-    set('pXp',u.xp); set('pGames',u.games); set('pWins',u.wins);
-    const pv=$('#pVip'); if(pv)pv.value='';
-    msg($('#opMsg'),
-      'نام: '+(u.name||'—')+'  |  نام‌کاربری: @'+(u.user||'—')+'\n'
-      +'سطح: '+fa(u.level||1)+'  |  سکه: '+fa(u.coins||0)+'  |  جام: '+fa(u.trophies||0)+'\n'
-      +'VIP: '+(u.vip?'بله':'خیر')+'  |  مسدود: '+((c&&c.banned)?'بله':'خیر')
-      +((c&&c.coinGrant)?('\nسکهٔ در انتظار دریافت: '+fa(c.coinGrant)):''), true);
-  }catch(e){ msg($('#opMsg'),'دریافت اطلاعات ممکن نشد',false); }
+function pickUser(id){ $('#uid').value=id; showPage('one'); window.scrollTo({top:0,behavior:'smooth'}); showInfo(); }
+function fillDatalist(){
+  $('#uidList').innerHTML=Object.keys(USERS).slice(0,400)
+    .map(id=>'<option value="'+esc(id)+'">'+esc((USERS[id]||{}).name||'')+'</option>').join('');
 }
-$('#btnInfo').onclick=showInfo;
-
-async function setControl(field,value,okText){
-  const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
+async function quickGift(id){
+  const n=parseInt(prompt('چند سکه به '+id+' هدیه شود؟','500'));
+  if(!n||n<=0)return;
+  const c=CONTROL[id]||{};
+  const cur=Number(c.coinGrant)||0;
+  const ok=await putControl(id,'coinGrant',cur+n);
+  if(ok){ toast('🪙 '+num(n)+' سکه برای '+id+' ثبت شد'); await refreshAll(); }
+}
+async function putControl(id,field,value){
   try{
-    const r=await fetch(SRV.replace(/\/$/,'')+adminUrl('/control/'+encodeURIComponent(id)+'/'+field+'.json'),
+    const r=await fetch(base()+adminUrl('/control/'+encodeURIComponent(id)+'/'+field+'.json'),
       {method:'PUT',body:JSON.stringify(value)});
     const j=await r.json();
     if(j&&j.error)throw new Error('کلید مدیریت اشتباه است');
-    msg($('#opMsg'),okText,true);
-  }catch(e){ msg($('#opMsg'),'انجام نشد: '+(e.message||''),false); }
+    CONTROL[id]=CONTROL[id]||{}; CONTROL[id][field]=value;
+    return true;
+  }catch(e){ toast('انجام نشد: '+(e.message||''),true); return false; }
 }
-$('#btnVip').onclick=()=>setControl('vipGrant',true,'👑 VIP برای این کاربر ثبت شد. با باز کردن بعدی بازی فعال می‌شود.');
+async function setControl(field,value,okText){
+  const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
+  if(await putControl(id,field,value)){ msg($('#opMsg'),okText,true); renderPending(); renderUsers(); }
+}
+async function showInfo(){
+  const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
+  try{
+    const [u,c]=await Promise.all([
+      api('/users/'+encodeURIComponent(id)+'.json'),
+      api('/control/'+encodeURIComponent(id)+'.json')
+    ]);
+    if(!u){ msg($('#opMsg'),'کاربری با این شناسه پیدا نشد',false); return; }
+    CONTROL[id]=c||{};
+    const set=(k,v)=>{ const el=$('#'+k); if(el)el.value=(v==null?'':v); };
+    set('pCoins',u.coins); set('pTro',u.trophies); set('pLevel',u.level);
+    set('pXp',u.xp); set('pGames',u.games); set('pWins',u.wins);
+    $('#pVip').value='';
+    const p=pendOf(id);
+    msg($('#opMsg'),
+      'نام: '+(u.name||'—')+'   |   نام‌کاربری: @'+(u.user||'—')+'\n'
+      +'سطح: '+fa(u.level||1)+'   |   سکه: '+num(u.coins||0)+'   |   جام: '+num(u.trophies||0)+'\n'
+      +'VIP: '+(u.vip?'بله':'خیر')+'   |   مسدود: '+((c&&c.banned)?'بله':'خیر')+'\n'
+      +'آخرین بازدید: '+ago(Number(u.ts)||0)+(u.first?('   |   عضویت: '+ago(Number(u.first))):'')
+      +(p.length?('\nدر انتظار دریافت: '+p.join('  •  ')):'\nدستور در انتظاری ندارد ✔'), true);
+  }catch(e){ msg($('#opMsg'),'دریافت اطلاعات ممکن نشد',false); }
+}
+$('#btnInfo').onclick=showInfo;
+$('#uid').addEventListener('keydown',e=>{ if(e.key==='Enter')showInfo(); });
+
+async function clearPending(id){
+  id=id||uid();
+  if(!id){ toast('شناسه را وارد کن',true); return; }
+  if(!confirm('همهٔ دستورهای در انتظارِ '+id+' لغو شود؟'))return;
+  try{
+    const r=await fetch(base()+adminUrl('/control/'+encodeURIComponent(id)+'.json'),{method:'DELETE'});
+    const j=await r.json();
+    if(j&&j.error)throw new Error('سرور این قابلیت را ندارد — سرور را به‌روز کن');
+    toast('🧹 دستورهای در انتظار لغو شد');
+    await refreshAll();
+  }catch(e){
+    // سرور قدیمی: تک‌تک صفر می‌کنیم
+    try{
+      for(const k of PEND_KEYS)await putControl(id,k,k==='setProgress'?0:(k==='msg'?0:0));
+      toast('🧹 دستورها لغو شد'); await refreshAll();
+    }catch(e2){ toast('انجام نشد',true); }
+  }
+}
+$('#btnClearPend').onclick=()=>clearPending();
+
+$('#btnVip').onclick=()=>setControl('vipGrant',true,'👑 VIP ثبت شد. با باز کردن بعدی بازی فعال می‌شود.');
 $('#btnBan').onclick=()=>{ if(confirm('این کاربر مسدود شود؟'))setControl('banned',true,'⛔ کاربر مسدود شد.'); };
 $('#btnUnban').onclick=()=>setControl('banned',false,'✅ مسدودی برداشته شد.');
+$('#btnCoins').onclick=async()=>{
+  const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
+  const n=parseInt($('#coins').value)||0;
+  if(n<=0){ msg($('#opMsg'),'تعداد سکه را درست وارد کن',false); return; }
+  const c=await api('/control/'+encodeURIComponent(id)+'.json').catch(()=>null);
+  const cur=(c&&typeof c.coinGrant==='number')?c.coinGrant:0;
+  await setControl('coinGrant',cur+n,
+    '🪙 '+num(n)+' سکه ثبت شد (جمع در انتظار: '+num(cur+n)+'). با باز کردن بعدی بازی اضافه می‌شود.');
+};
 $('#btnScore').onclick=async()=>{
   const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
   const n=parseInt($('#score').value)||0;
   if(!n){ msg($('#opMsg'),'مقدار امتیاز را وارد کن',false); return; }
-  try{
-    const c=await api('/control/'+encodeURIComponent(id)+'.json');
-    const cur=(c&&typeof c.scoreGrant==='number')?c.scoreGrant:0;
-    await setControl('scoreGrant',cur+n,'🏆 '+fa(Math.abs(n))+' جام '+(n>0?'اضافه':'کم')+' شد (جمع در انتظار: '+fa(cur+n)+').');
-  }catch(e){ msg($('#opMsg'),'انجام نشد',false); }
+  const c=await api('/control/'+encodeURIComponent(id)+'.json').catch(()=>null);
+  const cur=(c&&typeof c.scoreGrant==='number')?c.scoreGrant:0;
+  await setControl('scoreGrant',cur+n,
+    '🏆 '+num(Math.abs(n))+' جام '+(n>0?'اضافه':'کم')+' شد (جمع در انتظار: '+num(cur+n)+').');
 };
+$$('[data-tpl]').forEach(b=>b.onclick=()=>{ $('#msg').value=b.dataset.tpl; });
 $('#btnMsg').onclick=async()=>{
-  const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
   const t=($('#msg').value||'').trim();
   if(!t){ msg($('#opMsg'),'متن پیام را بنویس',false); return; }
-  await setControl('msg',t,'✉️ پیام ثبت شد. با باز کردن بعدی بازی، در صندوق پستی کاربر نشان داده می‌شود.');
+  await setControl('msg',t,'✉️ پیام ثبت شد. با باز کردن بعدی بازی در صندوق پستی کاربر نشان داده می‌شود.');
   $('#msg').value='';
+};
+$('#btnSetProg').onclick=async()=>{
+  const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
+  const g=v=>{ const x=($('#'+v).value||'').trim(); return x===''?null:(parseInt(x)||0); };
+  const p={}, map={pCoins:'coins',pTro:'trophies',pLevel:'level',pXp:'xp',pGames:'games',pWins:'wins'};
+  Object.keys(map).forEach(k=>{ const v=g(k); if(v!==null)p[map[k]]=Math.max(0,v); });
+  const vv=$('#pVip').value; if(vv!=='')p.vip=(vv==='1');
+  if(!Object.keys(p).length){ msg($('#opMsg'),'حداقل یک کادر را پر کن',false); return; }
+  await setControl('setProgress',p,'⚙️ پیشرفت ثبت شد. با باز کردن بعدی بازی اعمال می‌شود.');
 };
 $('#btnDelete').onclick=async()=>{
   const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
   if(!confirm('اکانت '+id+' کاملاً حذف شود؟\n\nاطلاعات کاربر، رکورد رتبه‌بندی و نام‌کاربری‌اش پاک می‌شود.\nاین کار برگشت‌پذیر نیست.'))return;
   if(!confirm('بار دوم تأیید می‌کنی؟ حذف قطعی است.'))return;
   try{
-    const r=await fetch(SRV.replace(/\/$/,'')+adminUrl('/users/'+encodeURIComponent(id)+'.json'),{method:'DELETE'});
+    const r=await fetch(base()+adminUrl('/users/'+encodeURIComponent(id)+'.json'),{method:'DELETE'});
     const j=await r.json();
     if(j&&j.error)throw new Error('کلید مدیریت اشتباه است');
     msg($('#opMsg'),'🗑 اکانت '+id+' کاملاً حذف شد.',true);
-    $('#uid').value=''; loadUsers();
+    $('#uid').value=''; await refreshAll();
   }catch(e){ msg($('#opMsg'),'حذف ممکن نشد: '+(e.message||''),false); }
-};
-$('#btnSetProg').onclick=async()=>{
-  const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
-  const num=v=>{ const x=($('#'+v).value||'').trim(); return x===''?null:(parseInt(x)||0); };
-  const p={};
-  const map={pCoins:'coins',pTro:'trophies',pLevel:'level',pXp:'xp',pGames:'games',pWins:'wins'};
-  Object.keys(map).forEach(k=>{ const v=num(k); if(v!==null)p[map[k]]=Math.max(0,v); });
-  const vv=$('#pVip').value; if(vv!=='')p.vip=(vv==='1');
-  if(!Object.keys(p).length){ msg($('#opMsg'),'حداقل یک کادر را پر کن',false); return; }
-  await setControl('setProgress',p,'⚙️ پیشرفت ثبت شد. با باز کردن بعدی بازی اعمال می‌شود.');
 };
 
 /* ---------- اعلان همگانی ---------- */
+function bcPreview(){
+  $('#pvIc').textContent=($('#bcIcon').value||'📢').trim();
+  $('#pvT').textContent=($('#bcTitle').value||'اطلاعیه').trim();
+  $('#pvX').textContent=($('#bcText').value||'متن اعلان اینجا نشان داده می‌شود…').trim();
+}
+['#bcIcon','#bcTitle','#bcText'].forEach(s=>$(s).addEventListener('input',bcPreview));
+$$('[data-bc]').forEach(b=>b.onclick=()=>{
+  const p=b.dataset.bc.split('|');
+  $('#bcIcon').value=p[0]; $('#bcTitle').value=p[1]; $('#bcText').value=p[2]; bcPreview();
+});
 $('#btnBcSend').onclick=async()=>{
   const t=($('#bcText').value||'').trim();
   if(!t){ msg($('#bcMsg'),'متن اعلان را بنویس',false); return; }
-  if(!confirm('این اعلان برای همهٔ کاربران فرستاده شود؟'))return;
+  if(!confirm('این اعلان برای همهٔ کاربران ('+fa((STATS&&STATS.users)||0)+' نفر) فرستاده شود؟'))return;
   try{
-    const r=await fetch(SRV.replace(/\/$/,'')+adminUrl('/broadcast.json'),{method:'PUT',
-      body:JSON.stringify({icon:($('#bcIcon').value||'📢').trim(),title:($('#bcTitle').value||'اطلاعیه').trim(),text:t})});
+    const r=await fetch(base()+adminUrl('/broadcast.json'),{method:'PUT',
+      body:JSON.stringify({icon:($('#bcIcon').value||'📢').trim(),
+        title:($('#bcTitle').value||'اطلاعیه').trim(),text:t})});
     const j=await r.json();
     if(j&&j.error)throw new Error('کلید مدیریت اشتباه است');
     msg($('#bcMsg'),'📢 اعلان منتشر شد. کاربران با باز کردن بعدی بازی آن را می‌بینند.',true);
+    toast('اعلان منتشر شد ✔'); loadBcLog();
   }catch(e){ msg($('#bcMsg'),'انتشار ممکن نشد: '+(e.message||''),false); }
 };
 $('#btnBcShow').onclick=async()=>{
@@ -379,34 +906,141 @@ $('#btnBcShow').onclick=async()=>{
     const b=await api('/broadcast.json');
     if(!b||!b.text){ msg($('#bcMsg'),'در حال حاضر هیچ اعلانی فعال نیست.',true); return; }
     $('#bcIcon').value=b.icon||'📢'; $('#bcTitle').value=b.title||''; $('#bcText').value=b.text;
-    msg($('#bcMsg'),'اعلان فعلی: '+(b.icon||'')+' '+(b.title||'')+' — '+b.text,true);
+    bcPreview();
+    msg($('#bcMsg'),'اعلان فعلی بارگذاری شد.',true);
   }catch(e){ msg($('#bcMsg'),'دریافت ممکن نشد',false); }
 };
 $('#btnBcClear').onclick=async()=>{
   if(!confirm('اعلان فعلی حذف شود؟'))return;
   try{
-    await fetch(SRV.replace(/\/$/,'')+adminUrl('/broadcast.json'),{method:'DELETE'});
-    $('#bcText').value=''; $('#bcTitle').value='';
+    await fetch(base()+adminUrl('/broadcast.json'),{method:'DELETE'});
+    $('#bcText').value=''; $('#bcTitle').value=''; bcPreview();
     msg($('#bcMsg'),'اعلان حذف شد.',true);
   }catch(e){ msg($('#bcMsg'),'حذف ممکن نشد',false); }
 };
-
-$('#btnCoins').onclick=async()=>{
-  const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
-  const n=parseInt($('#coins').value)||0;
-  if(n<=0){ msg($('#opMsg'),'تعداد سکه را درست وارد کن',false); return; }
+async function loadBcLog(){
   try{
-    const c=await api('/control/'+encodeURIComponent(id)+'.json');
-    const cur=(c&&typeof c.coinGrant==='number')?c.coinGrant:0;
-    await setControl('coinGrant',cur+n,'🪙 '+fa(n)+' سکه ثبت شد (جمع در انتظار: '+fa(cur+n)+'). با باز کردن بعدی بازی اضافه می‌شود.');
-  }catch(e){ msg($('#opMsg'),'انجام نشد',false); }
+    const log=await api(adminUrl('/broadcast/log.json'));
+    if(!Array.isArray(log))throw new Error('x');
+    $('#bcLog').innerHTML=log.length
+      ?'<tr><th>زمان</th><th>آیکن</th><th>عنوان</th><th>متن</th></tr>'
+        +log.slice().reverse().map(b=>'<tr><td class="hint">'+esc(ago(b.id))+'</td>'
+          +'<td>'+esc(b.icon||'')+'</td><td>'+esc(b.title||'')+'</td>'
+          +'<td style="white-space:normal">'+esc(b.text||'')+'</td></tr>').join('')
+      :'<tr><td class="hint">هنوز اعلانی فرستاده نشده</td></tr>';
+  }catch(e){
+    $('#bcLog').innerHTML='<tr><td class="hint">تاریخچه نیاز به نسخهٔ تازهٔ سرور دارد</td></tr>';
+  }
+}
+
+/* ---------- آنلاین ---------- */
+async function loadLive(){
+  try{
+    const s=await api(adminUrl('/sessions.json'));
+    if(!Array.isArray(s))throw new Error('x');
+    $('#liveTbl').innerHTML=s.length
+      ?'<tr><th>کد اتصال</th><th>ساخته‌شده</th><th>وضعیت</th></tr>'
+        +s.map(x=>'<tr><td class="mono">'+esc(x.code)+'</td><td class="hint">'+esc(ago(x.ts))+'</td>'
+          +'<td>'+(x.answered?'<span class="tag on">وصل شد</span>':'<span class="tag pend">منتظر حریف</span>')+'</td></tr>').join('')
+      :'<tr><td class="hint">هیچ بازی دو نفرهٔ فعالی نیست</td></tr>';
+  }catch(e){
+    $('#liveTbl').innerHTML='<tr><td class="hint">این بخش نیاز به نسخهٔ تازهٔ سرور دارد</td></tr>';
+  }
+  renderRecent();
+}
+function renderRecent(){
+  const ids=Object.keys(USERS).sort((a,b)=>(USERS[b].ts||0)-(USERS[a].ts||0)).slice(0,25);
+  $('#recentTbl').innerHTML=ids.length
+    ?'<tr><th>شناسه</th><th>نام</th><th>آخرین بازدید</th><th></th></tr>'
+      +ids.map(id=>{
+        const u=USERS[id]||{};
+        const online=(Date.now()-(Number(u.ts)||0))<5*60000;
+        return '<tr><td class="mono">'+esc(id)+'</td><td>'+esc(u.name||'—')
+          +(online?' <span class="tag on">آنلاین</span>':'')+'</td>'
+          +'<td class="hint">'+esc(ago(Number(u.ts)||0))+'</td>'
+          +'<td><button class="btn-ghost btn-sm" data-go="'+esc(id)+'">مدیریت</button></td></tr>';
+      }).join('')
+    :'<tr><td class="hint">هنوز کاربری ثبت نشده</td></tr>';
+  $('#recentTbl').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>pickUser(b.dataset.go));
+}
+$('#btnLive').onclick=loadLive;
+
+/* ---------- ابزار ---------- */
+function renderServer(){
+  const s=STATS||{};
+  const rows=[
+    ['آدرس سرور',SRV||'—'],
+    ['وضعیت',$('#dot').classList.contains('on')?'✅ سالم':'❌ قطع'],
+    ['مدت روشن‌بودن',s.uptime==null?'— (نسخهٔ تازهٔ سرور لازم است)':dur(s.uptime)],
+    ['حجم فایل داده',s.dataSize==null?'—':bytes(s.dataSize)],
+    ['کل کاربران',num(s.users)],
+    ['بازی آنلاین فعال',s.sessions==null?'—':num(s.sessions)],
+    ['درخواست دوستی در انتظار',s.friendreq==null?'—':num(s.friendreq)],
+    ['اعلان فعال',s.broadcast&&s.broadcast.text?((s.broadcast.icon||'')+' '+(s.broadcast.title||'')):'ندارد']
+  ];
+  $('#srvTbl').innerHTML=rows.map(r=>'<tr><th style="width:200px">'+esc(r[0])+'</th><td>'+esc(r[1])+'</td></tr>').join('');
+}
+$('#btnPing').onclick=async()=>{
+  msg($('#toolMsg'),'در حال اندازه‌گیری…',true);
+  const t=[];
+  for(let i=0;i<5;i++){
+    const t0=performance.now();
+    try{ await api('/health.json'); t.push(performance.now()-t0); }catch(e){}
+  }
+  if(!t.length){ msg($('#toolMsg'),'سرور پاسخ نداد',false); return; }
+  const avg=t.reduce((a,b)=>a+b,0)/t.length;
+  msg($('#toolMsg'),'میانگین زمان پاسخ: '+fa(avg.toFixed(0))+' میلی‌ثانیه'
+    +'  (کمترین '+fa(Math.min(...t).toFixed(0))+' — بیشترین '+fa(Math.max(...t).toFixed(0))+')'
+    +(avg<300?'\n✅ سرعت خوب است':(avg<900?'\n⚠️ کمی کند است':'\n❌ خیلی کند است')),avg<900);
 };
+$('#btnExport').onclick=async()=>{
+  msg($('#toolMsg'),'در حال دریافت…',true);
+  try{
+    let d=await api(adminUrl('/export.json'));
+    if(d&&d.error)d=null;
+    if(!d)d={users:USERS,control:CONTROL,leaderboard:BOARD};   // سرور قدیمی
+    download('pasur11-backup-'+new Date().toISOString().slice(0,10)+'.json',
+      JSON.stringify(d,null,1),'application/json');
+    msg($('#toolMsg'),'✅ فایل پشتیبان دانلود شد. جای امنی نگهش دار.',true);
+  }catch(e){ msg($('#toolMsg'),'دریافت ممکن نشد',false); }
+};
+
+/* ---------- به‌روزرسانی خودکار ---------- */
+function stopAuto(){ if(autoTimer){clearInterval(autoTimer);autoTimer=null;} $('#dot').classList.remove('live'); }
+function startAuto(){
+  stopAuto();
+  $('#dot').classList.add('live');
+  autoTimer=setInterval(()=>{ if(document.hidden)return; refreshAll().catch(()=>{}); },30000);
+}
+$('#autoRef').onchange=e=>{
+  try{ localStorage.setItem('pasur_admin_auto',e.target.checked?'1':'0'); }catch(err){}
+  if(e.target.checked)startAuto(); else stopAuto();
+};
+
+/* ---------- میان‌برهای صفحه‌کلید ---------- */
+document.addEventListener('keydown',e=>{
+  const tag=(e.target.tagName||'').toLowerCase();
+  if(tag==='input'||tag==='textarea'||tag==='select'){
+    if(e.key==='Escape')e.target.blur();
+    return;
+  }
+  const pages=['dash','users','one','bc','live','tools'];
+  if(e.key>='1'&&e.key<='6'){ showPage(pages[+e.key-1]); return; }
+  if(e.key==='r'||e.key==='R'){ refreshAll().then(()=>toast('به‌روز شد ✔')); return; }
+  if(e.key==='/'){ e.preventDefault(); showPage('users'); $('#search').focus(); return; }
+  if(e.key==='Escape')clearMsgs();
+});
 
 /* ---------- بازیابی تنظیمات ذخیره‌شده ---------- */
 (function(){
+  bcPreview();
   try{
+    if(localStorage.getItem('pasur_admin_auto')==='1')$('#autoRef').checked=true;
     const s=JSON.parse(localStorage.getItem('pasur_admin')||'null');
-    if(s&&s.s&&s.k){ $('#srv').value=s.s; $('#key').value=s.k; connect(); }
+    if(s&&s.s&&s.k){
+      $('#srv').value=s.s; $('#key').value=s.k;
+      connect().then(()=>{ if($('#autoRef').checked)startAuto(); });
+    }
   }catch(e){}
 })();
 </script>

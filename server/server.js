@@ -20,7 +20,7 @@ const ADMIN_KEY = process.env.ADMIN_KEY || 'CHANGE_ME_SECRET';  // برای رب
 const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, 'data.json');
 
 /* ---------- ذخیره‌سازی ساده روی فایل ---------- */
-let DB = { sessions:{}, leaderboard:{}, usernames:{}, users:{}, control:{}, friendreq:{}, backup:{}, broadcast:null };
+let DB = { sessions:{}, leaderboard:{}, usernames:{}, users:{}, control:{}, friendreq:{}, backup:{}, broadcast:null, broadcastLog:[] };
 try { if (fs.existsSync(DATA_FILE)) DB = Object.assign(DB, JSON.parse(fs.readFileSync(DATA_FILE,'utf8'))); }
 catch (e) { console.error('خواندن داده‌ها ناموفق بود:', e.message); }
 
@@ -143,7 +143,12 @@ const server = http.createServer(async (req, res) => {
   if (root === 'users') {
     if (method === 'PUT' && a) {
       const body = await readBody(req);
-      DB.users[a] = Object.assign({}, body, { ts: Date.now() });
+      const prev = DB.users[a];
+      // «first» = نخستین باری که این کاربر دیده شده (برای نمودار کاربران تازه)
+      DB.users[a] = Object.assign({}, body, {
+        first: (prev && prev.first) || Date.now(),
+        ts: Date.now()
+      });
       saveDB(); return sendJSON(res, 200, body);
     }
     if (method === 'GET' && a)  return sendJSON(res, 200, DB.users[a] || null);
@@ -184,11 +189,18 @@ const server = http.createServer(async (req, res) => {
 
   /* ===== ۶) اعلان همگانی ===== */
   if (root === 'broadcast') {
+    if (method === 'GET' && a === 'log') {          // تاریخچهٔ اعلان‌ها
+      if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+      return sendJSON(res, 200, DB.broadcastLog || []);
+    }
     if (method === 'GET') return sendJSON(res, 200, DB.broadcast || null);
     if (method === 'PUT') {
       if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
       const body = await readBody(req);
       DB.broadcast = body ? Object.assign({}, body, { id: Date.now() }) : null;
+      if (DB.broadcast) {                            // نگهداری ۲۰ اعلان اخیر
+        DB.broadcastLog = (DB.broadcastLog || []).concat([DB.broadcast]).slice(-20);
+      }
       saveDB(); return sendJSON(res, 200, DB.broadcast);
     }
     if (method === 'DELETE') {
@@ -209,7 +221,19 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (root === 'control') {
+    // فهرست کامل دستورها، یکجا (پنل با یک درخواست همه را می‌گیرد)
+    if (method === 'GET' && !a) {
+      if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+      return sendJSON(res, 200, DB.control);
+    }
     if (method === 'GET' && a && !b) return sendJSON(res, 200, DB.control[a] || null);
+    // پاک‌کردن همهٔ دستورهای در انتظارِ یک کاربر
+    if (method === 'DELETE' && a && !b) {
+      if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+      const c = DB.control[a];
+      if (c) ['coinGrant','vipGrant','msg','scoreGrant','setProgress'].forEach(k => delete c[k]);
+      saveDB(); return sendJSON(res, 200, { cleared: true });
+    }
     // نوشتن دستور مدیریتی: از سمت بازی فقط صفرکردن مجاز است؛ بقیه کلید می‌خواهد
     if (method === 'PUT' && a && b) {
       const body = await readBody(req);
@@ -220,6 +244,100 @@ const server = http.createServer(async (req, res) => {
       DB.control[a][b] = body;
       saveDB(); return sendJSON(res, 200, body);
     }
+  }
+
+  /* ===== ۸) آمار کلی برای پنل مدیریت ===== */
+  if (root === 'stats' && method === 'GET') {
+    if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+    const now = Date.now(), DAY = 86400000;
+    const ids = Object.keys(DB.users);
+    let vip = 0, coins = 0, trophies = 0, levelSum = 0, a1 = 0, a7 = 0, a30 = 0;
+    const seenDay = {}, newDay = {};
+    const dayKey = t => new Date(t).toISOString().slice(0, 10);
+    for (const id of ids) {
+      const u = DB.users[id] || {};
+      if (u.vip) vip++;
+      coins    += Number(u.coins)    || 0;
+      trophies += Number(u.trophies) || 0;
+      levelSum += Number(u.level)    || 1;
+      const ts = Number(u.ts) || 0, age = now - ts;
+      if (age < DAY)      a1++;
+      if (age < 7  * DAY) a7++;
+      if (age < 30 * DAY) a30++;
+      if (ts) seenDay[dayKey(ts)] = (seenDay[dayKey(ts)] || 0) + 1;
+      if (u.first) newDay[dayKey(u.first)] = (newDay[dayKey(u.first)] || 0) + 1;
+    }
+    let banned = 0, pending = 0;
+    const PEND = ['coinGrant', 'vipGrant', 'msg', 'scoreGrant', 'setProgress'];
+    for (const id of Object.keys(DB.control)) {
+      const c = DB.control[id] || {};
+      if (c.banned) banned++;
+      if (PEND.some(k => c[k])) pending++;
+    }
+    // ۱۴ روز اخیر برای نمودار
+    const days = [];
+    for (let i = 13; i >= 0; i--) {
+      const d = dayKey(now - i * DAY);
+      days.push({ d, seen: seenDay[d] || 0, neu: newDay[d] || 0 });
+    }
+    let dataSize = 0;
+    try { dataSize = fs.statSync(DATA_FILE).size; } catch (e) {}
+    return sendJSON(res, 200, {
+      users: ids.length, vip, banned, pending,
+      active1: a1, active7: a7, active30: a30,
+      coins, trophies,
+      avgLevel: ids.length ? +(levelSum / ids.length).toFixed(1) : 0,
+      board: Object.keys(DB.leaderboard).length,
+      sessions: Object.keys(DB.sessions).length,
+      friendreq: Object.keys(DB.friendreq || {}).length,
+      broadcast: DB.broadcast || null,
+      days, dataSize,
+      uptime: Math.floor(process.uptime()),
+      time: now
+    });
+  }
+
+  /* ===== ۹) فهرست نشست‌های بازی دو نفره (زنده) ===== */
+  if (root === 'sessions' && method === 'GET' && !a) {
+    if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+    const out = Object.keys(DB.sessions).map(code => {
+      const s = DB.sessions[code] || {};
+      return { code, ts: s.ts || 0, answered: !!s.answer };
+    }).sort((x, y) => y.ts - x.ts);
+    return sendJSON(res, 200, out);
+  }
+
+  /* ===== ۱۰) عملیات گروهی: یک دستور برای چند کاربر ===== */
+  if (root === 'bulk' && method === 'PUT') {
+    if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+    const body = await readBody(req) || {};
+    const field = String(body.field || '');
+    const ALLOWED = ['coinGrant', 'scoreGrant', 'vipGrant', 'msg', 'banned'];
+    if (ALLOWED.indexOf(field) < 0) return sendJSON(res, 400, { error: 'bad field' });
+    let ids = Array.isArray(body.ids) ? body.ids : [];
+    if (!ids.length) return sendJSON(res, 400, { error: 'no ids' });
+    if (ids.length > 5000) ids = ids.slice(0, 5000);
+    const add = (field === 'coinGrant' || field === 'scoreGrant') && body.mode !== 'set';
+    let n = 0;
+    for (const id of ids) {
+      if (typeof id !== 'string' || !id) continue;
+      DB.control[id] = DB.control[id] || {};
+      if (add) {
+        const cur = Number(DB.control[id][field]) || 0;
+        DB.control[id][field] = cur + (Number(body.value) || 0);
+      } else {
+        DB.control[id][field] = body.value;
+      }
+      n++;
+    }
+    saveDB();
+    return sendJSON(res, 200, { ok: true, count: n, field });
+  }
+
+  /* ===== ۱۱) خروجی کامل داده‌ها (پشتیبان) ===== */
+  if (root === 'export' && method === 'GET') {
+    if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+    return sendJSON(res, 200, DB);
   }
 
   return sendJSON(res, 404, { error: 'not found' });
