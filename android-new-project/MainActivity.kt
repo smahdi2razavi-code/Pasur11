@@ -95,6 +95,25 @@ class MainActivity : ComponentActivity() {
         webView.addJavascriptInterface(object {
             @android.webkit.JavascriptInterface
             fun exit() { runOnUiThread { finish() } }
+
+            // باز کردن برنامهٔ ایمیل از داخل بازی (صفحهٔ ارتباط با ما)
+            @android.webkit.JavascriptInterface
+            fun sendMail(to: String, subject: String, body: String) {
+                runOnUiThread {
+                    try {
+                        val i = android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
+                            data = Uri.parse("mailto:$to")
+                            putExtra(android.content.Intent.EXTRA_SUBJECT, subject)
+                            putExtra(android.content.Intent.EXTRA_TEXT, body)
+                        }
+                        startActivity(android.content.Intent.createChooser(i, "ارسال ایمیل"))
+                    } catch (e: Exception) {
+                        android.widget.Toast.makeText(
+                            this@MainActivity, "برنامهٔ ایمیلی روی گوشی پیدا نشد", 
+                            android.widget.Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
         }, "AndroidApp")
 
         // ✅ بازی از داخل خود اپ سرو می‌شود (آدرس محلیِ امن، نه اینترنت)

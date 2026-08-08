@@ -106,7 +106,7 @@ body.is-vip .hud-vip-txt{color:#a8f0d2;}
 .round-row{display:flex; justify-content:center; gap:clamp(5px,1.8vw,12px); width:min(440px,96%); flex-wrap:nowrap;}
 .round-btn{display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer;
   background:none; border:none; font-family:inherit; width:auto; flex:1 1 0; min-width:0;}
-.rb-circle{width:clamp(42px,9.5vw,54px); height:clamp(42px,9.5vw,54px); border-radius:50%;
+.rb-circle{position:relative; width:clamp(42px,9.5vw,54px); height:clamp(42px,9.5vw,54px); border-radius:50%;
   display:flex; align-items:center; justify-content:center; font-size:clamp(22px,5.5vw,26px);
   background:linear-gradient(180deg,#26386b,#131e40); border:2px solid var(--gold);
   box-shadow:0 4px 12px rgba(0,0,0,.4); transition:transform .15s ease-out, filter .15s ease-out;}
@@ -402,9 +402,9 @@ body.custom-front .card:not(.back){
 .card .corner{position:absolute; top:calc(var(--cw)*.055); left:calc(var(--cw)*.075);
   display:flex; flex-direction:column; align-items:center; line-height:.95;}
 .card .corner.b{top:auto; left:auto; bottom:calc(var(--cw)*.055); right:calc(var(--cw)*.075); transform:rotate(180deg);}
-.card .corner .r{font-size:calc(var(--cw)*.30); font-weight:700; font-family:'Arial Black',Arial,Helvetica,sans-serif;
-  letter-spacing:-.5px;}
-.card .corner .s{font-size:calc(var(--cw)*.22); margin-top:calc(var(--cw)*.01);}
+.card .corner .r{font-size:calc(var(--cw)*.34); font-weight:900; font-family:'Arial Black',Arial,Helvetica,sans-serif;
+  letter-spacing:-1px;}
+.card .corner .s{font-size:calc(var(--cw)*.26); margin-top:calc(var(--cw)*-.02);}
 .card .mid{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
   font-size:calc(var(--cw)*.52);}
 .card.red{color:#d40000;}                 /* قرمز واقعی ورق */
@@ -416,12 +416,16 @@ body.custom-front .card:not(.back){
 .card .pips i.flip{transform:rotate(180deg);}
 /* کارت‌های صورت‌دار: قاب دولایه و حرف بزرگ */
 .card .mid .court{
-  font-family:Georgia,'Times New Roman',serif; font-weight:800; font-size:calc(var(--cw)*.46);
-  width:62%; height:70%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
-  border:2px solid currentColor; border-radius:5px; background:rgba(0,0,0,.03);
-  box-shadow:inset 0 0 0 2px #fff, inset 0 0 0 3.5px currentColor;
+  font-family:Georgia,'Times New Roman',serif; font-weight:800; font-size:calc(var(--cw)*.5);
+  width:64%; height:74%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0;
+  border:2.5px solid currentColor; border-radius:4px;
+  background:repeating-linear-gradient(45deg, currentColor 0 2px, transparent 2px 7px);
+  box-shadow:inset 0 0 0 3px #fff;
+  position:relative; overflow:hidden;
 }
-.card .mid .court .cs{font-size:calc(var(--cw)*.3); font-family:inherit; margin-top:2px;}
+.card .mid .court::before{content:""; position:absolute; inset:5px; background:#fff; border-radius:2px;}
+.card .mid .court>*{position:relative; z-index:1;}
+.card .mid .court .cs{font-size:calc(var(--cw)*.32); font-family:inherit; margin-top:-2px;}
 .card.back{
   background:
     repeating-linear-gradient(45deg, rgba(243,212,137,.16) 0 6px, transparent 6px 12px),
@@ -883,7 +887,7 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
   <div class="round-row">
     <button class="round-btn" id="btnHall"><span class="rb-circle">🏆</span><span class="rb-tx">تالار افتخار</span></button>
     <button class="round-btn" id="btnBoard"><span class="rb-circle">📊</span><span class="rb-tx">رده‌بندی</span></button>
-    <button class="round-btn" id="btnFriends"><span class="rb-circle">👥</span><span class="rb-tx">دوستان من</span></button>
+    <button class="round-btn" id="btnFriends"><span class="rb-circle">👥<span class="dock-badge" id="frBadge"></span></span><span class="rb-tx">دوستان من</span></button>
     <button class="round-btn" id="btnInvite"><span class="rb-circle vip-free">🎁</span><span class="rb-tx">دعوت</span></button>
     <button class="round-btn" id="btnSettings2"><span class="rb-circle">⚙️</span><span class="rb-tx">تنظیمات</span></button>
   </div>
@@ -1353,6 +1357,8 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
       <div class="invite-code" id="contactMail" style="font-size:17px;letter-spacing:0">smr2.ff@gmail.com</div>
       <button class="btn primary" id="btnCopyMail" style="width:100%">کپی ایمیل</button>
       <button class="btn" id="btnOpenMail" style="width:100%">ارسال ایمیل</button>
+      <button class="btn" id="btnCopyMsg" style="width:100%">کپی متن پیام</button>
+      <div class="hint" style="margin-top:6px">اگر برنامهٔ ایمیل باز نشد، «کپی متن پیام» را بزن و در ایمیل خودت بچسبان.</div>
     </div>
     <div class="card-box">
       <h3>هنگام پیام‌دادن این‌ها را بنویس</h3>
@@ -1652,12 +1658,30 @@ $('#btnGuide').onclick=()=>show('guide');
   };
   const _cp=document.getElementById('btnCopyMail');
   if(_cp)_cp.onclick=()=>{ copyText(CONTACT_MAIL); toast('ایمیل کپی شد ✔'); };
+  function contactBody(){
+    return 'سلام،\n\n'
+      +'—————————————\n'
+      +'شناسهٔ کاربری: '+ensureUserId()+'\n'
+      +'نام‌کاربری: '+(SET.profileUsername?('@'+SET.profileUsername):'—')+'\n'
+      +'نام نمایشی: '+(SET.pName||'—')+'\n'
+      +'سطح: '+PROG.level+'  |  جام: '+PROG.trophies+'\n'
+      +'نسخهٔ بازی: ۱.۰\n'
+      +'—————————————\n\n'
+      +'پیام شما:\n';
+  }
   const _om=document.getElementById('btnOpenMail');
   if(_om)_om.onclick=()=>{
-    const sub=encodeURIComponent('پاسور ۱۱ — شناسه: '+ensureUserId());
-    try{ location.href='mailto:'+CONTACT_MAIL+'?subject='+sub; }
-    catch(e){ copyText(CONTACT_MAIL); toast('ایمیل کپی شد ✔'); }
+    const sub=encodeURIComponent('پاسور ۱۱ — پشتیبانی ('+ensureUserId()+')');
+    const body=encodeURIComponent(contactBody());
+    // در نسخهٔ اندروید، اپ خودش برنامهٔ ایمیل را باز می‌کند
+    if(window.AndroidApp&&window.AndroidApp.sendMail){
+      try{ window.AndroidApp.sendMail(CONTACT_MAIL, decodeURIComponent(sub), contactBody()); return; }catch(e){}
+    }
+    try{ window.location.href='mailto:'+CONTACT_MAIL+'?subject='+sub+'&body='+body; }
+    catch(e){ copyText(CONTACT_MAIL+'\n\n'+contactBody()); toast('ایمیل و متن کپی شد ✔'); }
   };
+  const _cm=document.getElementById('btnCopyMsg');
+  if(_cm)_cm.onclick=()=>{ copyText(contactBody()); toast('متن پیام کپی شد ✔'); };
 }
 $('#btnSettings').onclick=()=>{ openSettingsForm(); show('settings'); };
 $('#btnExit').onclick=()=>{ show('exit'); try{window.close()}catch(e){} };
@@ -2868,7 +2892,7 @@ function waitIceComplete(pc){
   });
 }
 function mpCreatePeer(){
-  const pc=new RTCPeerConnection({iceServers:[]});
+  const pc=new RTCPeerConnection({iceServers:ICE_SERVERS, iceCandidatePoolSize:2});
   pc.oniceconnectionstatechange=()=>{
     if(pc.iceConnectionState==='failed'||pc.iceConnectionState==='disconnected'){
       mpSetStatus('اتصال قطع شد. اینترنت هر دو گوشی را بررسی کنید و دوباره تلاش کنید.');
@@ -2947,6 +2971,13 @@ async function syncUserWithServer(){
     if(USER_BANNED)showBanModal();
   }catch(e){}
 }
+/* سرورهای ICE برای بازی دو نفرهٔ آنلاین.
+   بدون این‌ها، دو گوشی روی اینترنت‌های مختلف هرگز به هم وصل نمی‌شوند. */
+const ICE_SERVERS=[
+  {urls:'stun:94.184.36.13:3478'},
+  {urls:'turn:94.184.36.13:3478?transport=udp', username:'pasur11', credential:'Pasur11Turn2026'},
+  {urls:'turn:94.184.36.13:3478?transport=tcp', username:'pasur11', credential:'Pasur11Turn2026'},
+];
 function genShortCode(){return String(Math.floor(1000000+Math.random()*9000000))}
 let mpPollTimer=null;
 function stopMpPoll(){ if(mpPollTimer){clearInterval(mpPollTimer);mpPollTimer=null;} }
@@ -3253,6 +3284,19 @@ function progClaimableCount(){
     ACHS.forEach(a=>{ if(a.f()&&!PROG.achClaimed.includes(a.id))n++; });
   }catch(e){}
   return n;
+}
+/* نشان درخواست دوستی روی صفحهٔ اصلی */
+async function refreshFriendBadge(){
+  const el=document.getElementById('frBadge');
+  if(!el)return;
+  if(!firebaseConfigured()){ el.classList.remove('show'); return; }
+  try{
+    const r=await fetch(FIREBASE_DB_URL+'/friendreq/'+encodeURIComponent(ensureUserId())+'.json');
+    const d=await r.json();
+    const n=d?Object.keys(d).length:0;
+    if(n>0){ el.textContent=fa(n); el.classList.add('show'); }
+    else{ el.classList.remove('show'); el.textContent=''; }
+  }catch(e){}
 }
 let _hubBadgePrev=-1;
 function updateHubBadge(){
@@ -4245,8 +4289,13 @@ function init(){
   // اتصال به سرور (اگر FIREBASE_DB_URL تنظیم شده باشد): همگام‌سازی کاربر + دستورهای مدیریتی
   setTimeout(()=>{ try{ syncUserWithServer(); }catch(e){} }, 2500);
   document.addEventListener('visibilitychange',()=>{
-    if(document.visibilityState==='visible'){ try{ syncUserWithServer(); }catch(e){} }
+    if(document.visibilityState==='visible'){
+      try{ syncUserWithServer(); }catch(e){}
+      try{ refreshFriendBadge(); }catch(e){}
+    }
   });
+  setTimeout(()=>{ try{ refreshFriendBadge(); }catch(e){} }, 3500);
+  setInterval(()=>{ try{ refreshFriendBadge(); }catch(e){} }, 120000);
 
   // تلاش برای قفل جهت عمودی (فقط در حالت نصب‌شده/تمام‌صفحه توسط مرورگر مجاز است)
   try{
