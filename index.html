@@ -24,9 +24,9 @@
   --ivory:#f8f2e2;      /* رنگ کارت */
   --ink:#232733;
   --crimson:#b3273b;
-  --cw:clamp(68px, 21.5vw, 112px);          /* عرض کارت دست */
+  --cw:clamp(75px, 23.7vw, 123px);          /* عرض کارت دست */
   --ch:calc(var(--cw)*1.4);   /* نسبت واقعی ورق بازی */
-  --tw:clamp(57px, 17.5vw, 96px);          /* عرض کارت روی میز */
+  --tw:clamp(63px, 19.3vw, 106px);          /* عرض کارت روی میز */
   --th:calc(var(--tw)*1.4);
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
@@ -198,7 +198,8 @@ body.is-vip .hud-vip-txt{color:#a8f0d2;}
   background:#22305d center/cover no-repeat; border:2px solid var(--gold);
   display:flex; align-items:center; justify-content:center; font-size:20px;
 }
-.pc-name-row{display:flex; align-items:center; gap:8px;}
+.pc-name-row{display:flex; align-items:center; gap:8px; min-width:0;}
+.pc-user{font-size:11.5px; font-weight:700; color:rgba(230,214,180,.62); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;}
 .profile-chip .pc-name{font-size:15px; font-weight:800; color:var(--gold-soft);}
 .vip-hero{text-align:center; background:linear-gradient(180deg,#2a2408,#1a1605); border-color:var(--gold);}
 .vip-hero-crown{font-size:54px; filter:drop-shadow(0 4px 10px rgba(230,182,76,.5));}
@@ -308,19 +309,43 @@ body.is-vip .vip-emblem .ve-crown{filter:drop-shadow(0 2px 6px rgba(127,224,180,
 .preview-wrap{display:flex; justify-content:center; margin:10px 0 4px;}
 
 /* ===================== صفحهٔ بازی ===================== */
-/* میز بازی: هم‌رنگِ صفحهٔ اصلی (لاجوردی) با نقشِ هندسیِ زعفرانیِ اصیل ایرانی */
+/* ===================== میز بازی =====================
+   چند لایه روی هم: نور کانونی از بالا، بافت نمدی، نقش هندسی ایرانی،
+   مدال مرکزی و سایهٔ گوشه‌ها — تا میز عمق و جنس واقعی داشته باشد */
 #game{background:
   radial-gradient(1200px 760px at 50% -8%, var(--bg2), var(--bg1) 68%, #0b1330 100%);
 }
-#game::after{content:""; position:absolute; inset:0; pointer-events:none; z-index:0; opacity:.07;
+/* لایهٔ ۱: بافت نمدی ریز + نقش هندسی + مدال مرکزی */
+#game::after{content:""; position:absolute; inset:0; pointer-events:none; z-index:0;
   background-image:
-    radial-gradient(circle at 50% 40%, rgba(230,182,76,.35), transparent 58%),
-    repeating-linear-gradient(45deg, var(--gold) 0 1px, transparent 1px 30px),
-    repeating-linear-gradient(-45deg, var(--gold) 0 1px, transparent 1px 30px);
-  background-size:100% 100%, 44px 44px, 44px 44px;
+    /* مدال مرکزی: حلقه‌های تودرتوی طلایی کم‌رنگ */
+    repeating-radial-gradient(circle at 50% 46%, rgba(230,182,76,.14) 0 1px, transparent 1px 26px),
+    /* نقش هندسی چهارگوش اصیل */
+    repeating-linear-gradient(45deg, rgba(230,182,76,.10) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(-45deg, rgba(230,182,76,.10) 0 1px, transparent 1px 26px),
+    /* بافت نمدی ریز */
+    repeating-linear-gradient(0deg, rgba(255,255,255,.014) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0,0,0,.02) 0 1px, transparent 1px 3px);
+  background-size:100% 100%, 37px 37px, 37px 37px, 3px 3px, 3px 3px;
+  mask-image:radial-gradient(closest-side at 50% 46%, #000 40%, rgba(0,0,0,.35) 78%, transparent 100%);
+  -webkit-mask-image:radial-gradient(closest-side at 50% 46%, #000 40%, rgba(0,0,0,.35) 78%, transparent 100%);
 }
-#game::before{content:""; position:absolute; inset:10px; border:2px solid rgba(230,182,76,.34); border-radius:22px; pointer-events:none; z-index:0;
-  box-shadow:inset 0 0 48px rgba(0,0,0,.42);}
+/* لایهٔ ۲: قاب طلایی دولایه + نور کانونی از بالا + تیرگی گوشه‌ها */
+#game::before{content:""; position:absolute; inset:9px; pointer-events:none; z-index:0;
+  border-radius:26px;
+  border:1.5px solid rgba(230,182,76,.42);
+  box-shadow:
+    inset 0 0 0 4px rgba(10,16,34,.55),          /* فاصلهٔ تیره بین دو خط قاب */
+    inset 0 0 0 5.5px rgba(230,182,76,.20),      /* خط باریک دوم */
+    inset 0 34px 70px rgba(255,255,255,.045),    /* نور کانونی از بالا */
+    inset 0 -40px 90px rgba(0,0,0,.42),          /* سایهٔ پایین */
+    inset 0 0 120px rgba(0,0,0,.5),              /* تیرگی نرم گوشه‌ها */
+    0 0 0 1px rgba(0,0,0,.35);
+}
+/* درخشش ملایم پشت ناحیهٔ میز، تا کارت‌ها روی آن بنشینند */
+#tableArea::before{content:""; position:absolute; inset:6% 8%; pointer-events:none; z-index:0;
+  border-radius:50%;
+  background:radial-gradient(closest-side, rgba(230,182,76,.09), transparent 72%);}
 .hud{
   flex:0 0 auto; display:flex; align-items:center; justify-content:space-between;
   padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 6px; gap:8px; z-index:5;
@@ -590,6 +615,9 @@ body.table-emerald #game{background:radial-gradient(1200px 760px at 50% -8%,#125
 body.table-crimson #game{background:radial-gradient(1200px 760px at 50% -8%,#5e1526,#3a0d19 68%,#240810 100%);}
 body.table-royal   #game{background:radial-gradient(1200px 760px at 50% -8%,#3d2a6b,#241848 68%,#160f2e 100%);}
 body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#22262e,#141519 68%,#0a0a0c 100%);}
+body.table-sunset  #game{background:radial-gradient(1200px 760px at 50% -8%,#6b3410,#3d1c08 66%,#241004 100%);}
+body.table-ocean   #game{background:radial-gradient(1200px 760px at 50% -8%,#0d4a63,#062f42 66%,#031c28 100%);}
+body.table-persian #game{background:radial-gradient(1200px 760px at 50% -8%,#5a1230,#360a1c 66%,#20050f 100%);}
 /* پیش‌نمایش طرح میز در فروشگاه */
 .table-prev{width:76px; height:52px; border-radius:12px; border:1.5px solid rgba(230,182,76,.5); flex:0 0 auto;
   box-shadow:inset 0 0 18px rgba(0,0,0,.45);}
@@ -598,11 +626,20 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
 .tp-crimson{background:radial-gradient(70% 90% at 50% 10%,#5e1526,#3a0d19);}
 .tp-royal{background:radial-gradient(70% 90% at 50% 10%,#3d2a6b,#241848);}
 .tp-night{background:radial-gradient(70% 90% at 50% 10%,#22262e,#141519);}
+.tp-sunset{background:radial-gradient(70% 90% at 50% 10%,#6b3410,#3d1c08);}
+.tp-ocean{background:radial-gradient(70% 90% at 50% 10%,#0d4a63,#062f42);}
+.tp-persian{background:radial-gradient(70% 90% at 50% 10%,#5a1230,#360a1c);}
 /* ===== 👤 قاب آواتار ===== */
 .avatar.fr-gold{border-color:#ffd75e !important; box-shadow:0 0 0 2px #7a5a14, 0 0 16px rgba(255,215,94,.55);}
 .avatar.fr-emerald{border-color:#7fe0b4 !important; box-shadow:0 0 0 2px #1f5c40, 0 0 16px rgba(127,224,180,.5);}
 .avatar.fr-ruby{border-color:#ff8095 !important; box-shadow:0 0 0 2px #7a1428, 0 0 16px rgba(255,128,149,.5);}
 .avatar.fr-royal{border-color:#b6a2ff !important; box-shadow:0 0 0 2px #2f2360, 0 0 16px rgba(182,162,255,.5);}
+.avatar.fr-fire{border-color:#ff9d4d !important; box-shadow:0 0 0 2px #7a3308, 0 0 18px rgba(255,140,60,.65);}
+.avatar.fr-ice{border-color:#9fe8ff !important; box-shadow:0 0 0 2px #10506b, 0 0 18px rgba(159,232,255,.6);}
+.avatar.fr-legend{border-color:#fff0c4 !important;
+  box-shadow:0 0 0 2px #7a5a14, 0 0 10px rgba(255,215,94,.9), 0 0 26px rgba(255,215,94,.55);
+  animation:legendGlow 2.4s ease-in-out infinite;}
+@keyframes legendGlow{0%,100%{filter:brightness(1);}50%{filter:brightness(1.22);}}
 /* ===== 👤 عنوان ویژه ===== */
 .user-title{font-size:10.5px; font-weight:800; color:#3a2a06; letter-spacing:.3px;
   background:linear-gradient(180deg,#f6dd9a,#c8952e); border-radius:6px; padding:1px 7px; margin-right:5px;
@@ -653,19 +690,19 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
 
 /* ===================== سازگاری با ابعاد همهٔ گوشی‌ها (اندروید و آیفون) ===================== */
 @media (max-height:660px){
-  :root{--cw:clamp(57px,18vw,91px); --tw:clamp(49px,15vw,78px);}
+  :root{--cw:clamp(63px,19.8vw,100px); --tw:clamp(54px,16.5vw,86px);}
   .logo h1{font-size:clamp(34px,10vw,52px);}
   .menu-cards{margin-bottom:12px;}
   .ornament{margin:8px auto 12px;}
 }
 @media (max-height:560px){
-  :root{--cw:clamp(49px,15.5vw,75px); --tw:clamp(42px,13vw,65px);}
+  :root{--cw:clamp(54px,17vw,83px); --tw:clamp(46px,14.3vw,72px);}
   .menu-btns{gap:8px;}
   .btn{padding:10px 16px; font-size:15px;}
   .deckinfo,#surIndicator{font-size:10.5px;}
 }
 @media (min-width:760px){
-  :root{--cw:120px; --tw:101px;}
+  :root{--cw:132px; --tw:111px;}
   .menu-btns,.profile-chip{width:360px;}
 }
 
@@ -811,6 +848,17 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
   background:repeating-linear-gradient(45deg,rgba(220,220,235,.13) 0 6px,transparent 6px 12px),
     repeating-linear-gradient(-45deg,rgba(220,220,235,.13) 0 6px,transparent 6px 12px),
     linear-gradient(160deg,#1b1b22,#050508);}
+.card.back.sk-fire, body.skin-fire .card.back{
+  background:radial-gradient(circle at 50% 40%,rgba(255,180,90,.28),transparent 62%),
+    repeating-linear-gradient(45deg,rgba(255,150,60,.16) 0 5px,transparent 5px 11px),
+    repeating-linear-gradient(-45deg,rgba(255,150,60,.16) 0 5px,transparent 5px 11px),
+    linear-gradient(160deg,#7a2606,#2e0d02);}
+.card.back.sk-persian, body.skin-persian .card.back{
+  background:radial-gradient(circle at 50% 50%,rgba(243,212,137,.24),transparent 58%),
+    repeating-linear-gradient(0deg,rgba(243,212,137,.14) 0 1px,transparent 1px 9px),
+    repeating-linear-gradient(90deg,rgba(243,212,137,.14) 0 1px,transparent 1px 9px),
+    repeating-linear-gradient(45deg,rgba(243,212,137,.1) 0 1px,transparent 1px 13px),
+    linear-gradient(160deg,#5a1230,#22060f);}
 #chatPanel{position:absolute; left:10px; right:10px; bottom:10px; top:30%; z-index:45;
   display:none; flex-direction:column; background:rgba(10,16,34,.97);
   border:1px solid var(--gold); border-radius:16px; padding:10px;
@@ -862,6 +910,7 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
       <div class="hud-pinfo">
         <div class="pc-name-row">
           <div class="pc-name" id="menuProfName">مهمان</div>
+          <div class="pc-user" id="menuProfUser"></div>
         </div>
         <div class="hud-levelrow">
           <span class="hud-star" id="hudLevel">★ ۱</span>
@@ -1253,6 +1302,7 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
     <div class="shop-sec" data-sec="style" style="display:none">
       <div class="card-box"><h3>🎨 طرح میز بازی</h3><div id="shopTables"></div></div>
       <div class="card-box"><h3>🖼 قاب آواتار</h3><div id="shopFrames"></div></div>
+      <div class="card-box"><h3>🂠 پشت کارت</h3><div id="shopBacks"></div></div>
     </div>
   </div>
 </div>
@@ -1397,6 +1447,7 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
       <div class="srow"><span>نسخهٔ بازی</span><span>۱.۰</span></div>
       <div class="hint" style="margin-top:8px">با داشتن شناسه، سریع‌تر می‌توانیم کمکت کنیم.</div>
     </div>
+    <button class="btn" id="btnAbout" style="width:100%">ℹ️ دربارهٔ برنامه</button>
   </div>
 </div>
 
@@ -1698,7 +1749,10 @@ document.querySelectorAll('[data-to]').forEach(b=>b.addEventListener('click',()=
 $('#btnGuide').onclick=()=>show('guide');
 { const _ab=document.getElementById('btnAbout'); if(_ab)_ab.onclick=()=>show('about'); }
 { const _ib=document.getElementById('btnInbox');
-  if(_ib)_ib.onclick=()=>{ openInbox(); show('inbox'); }; }
+  if(_ib)_ib.onclick=async()=>{
+    show('inbox'); openInbox();
+    try{ await syncUserWithServer(); await checkBroadcast(); openInbox(); }catch(e){}
+  }; }
 /* ارتباط با ما */
 {
   const CONTACT_MAIL='smr2.ff@gmail.com';
@@ -3865,6 +3919,8 @@ const BACK_SKINS=[
   {id:'back-crimson', n:'یاقوت',     price:150, cls:'sk-crimson'},
   {id:'back-royal',   n:'شاهانه',    price:250, cls:'sk-royal'},
   {id:'back-night',   n:'شب نقره‌ای',price:400, cls:'sk-night'},
+  {id:'back-fire',    n:'اژدها',     price:600, cls:'sk-fire'},
+  {id:'back-persian', n:'نقش پارسی', price:800, cls:'sk-persian'},
 ];
 const IAP_PACKS=[
   {sku:'coins_500',  n:'۵۰۰ سکه',    c:500},
@@ -3878,6 +3934,9 @@ const TABLE_SKINS=[
   {id:'tbl-crimson', n:'یاقوت',         price:200, cls:'table-crimson', prev:'tp-crimson'},
   {id:'tbl-royal',   n:'شاهانه',        price:350, cls:'table-royal',   prev:'tp-royal'},
   {id:'tbl-night',   n:'شب',            price:450, cls:'table-night',   prev:'tp-night'},
+  {id:'tbl-sunset',  n:'غروب کویر',      price:500, cls:'table-sunset',  prev:'tp-sunset'},
+  {id:'tbl-ocean',   n:'اقیانوس',        price:550, cls:'table-ocean',   prev:'tp-ocean'},
+  {id:'tbl-persian', n:'نقش پارسی',      price:700, cls:'table-persian', prev:'tp-persian'},
 ];
 /* 👤 قاب‌های آواتار */
 const AVA_FRAMES=[
@@ -3886,6 +3945,9 @@ const AVA_FRAMES=[
   {id:'fr-emerald', n:'زمردی',    price:250, cls:'fr-emerald'},
   {id:'fr-ruby',    n:'یاقوتی',   price:300, cls:'fr-ruby'},
   {id:'fr-royal',   n:'شاهانه',   price:400, cls:'fr-royal'},
+  {id:'fr-fire',    n:'آتشین',    price:450, cls:'fr-fire'},
+  {id:'fr-ice',     n:'یخی',      price:450, cls:'fr-ice'},
+  {id:'fr-legend',  n:'افسانه',   price:900, cls:'fr-legend'},
 ];
 /* 👤 عنوان‌های ویژه (با پیشرفت باز می‌شوند) */
 const TITLES=[
@@ -3895,7 +3957,7 @@ const TITLES=[
   {id:'t_legend',n:'افسانه‌ای',  f:()=>PROG.trophies>=1000||PROG.level>=30},
 ];
 function applySkin(){
-  ['skin-emerald','skin-crimson','skin-royal','skin-night'].forEach(c=>document.body.classList.remove(c));
+  ['skin-emerald','skin-crimson','skin-royal','skin-night','skin-fire','skin-persian'].forEach(c=>document.body.classList.remove(c));
   const s=BACK_SKINS.find(x=>x.id===PROG.activeBack);
   if(s&&s.cls)document.body.classList.add(s.cls.replace('sk-','skin-'));
   // طرح میز
@@ -3921,30 +3983,6 @@ function openShop(){
   $('#shopTop').innerHTML='<div style="display:flex;justify-content:space-between;align-items:center">'
     +'<span style="font-weight:800;color:var(--gold-soft)">موجودی شما</span>'
     +'<span style="font-weight:800;color:#ffe9ad;font-size:18px">🪙 '+fa(PROG.coins)+'</span></div>';
-  const g=$('#shopBacks'); if(g){ g.innerHTML='';
-  BACK_SKINS.forEach(s=>{
-    const owned=PROG.owned.includes(s.id), active=PROG.activeBack===s.id;
-    const item=document.createElement('div'); item.className='shop-item'+(active?' active':'');
-    const cardDiv=document.createElement('div'); cardDiv.className='card back '+s.cls;
-    cardDiv.innerHTML='<div class="frame"></div>';
-    const pr=document.createElement('span'); pr.className='pr';
-    pr.textContent=active?'فعال ✔':(owned?'انتخاب':(s.price===0?'رایگان':'🪙 '+fa(s.price)));
-    const nm=document.createElement('span'); nm.style.fontSize='12.5px'; nm.style.fontWeight='700'; nm.textContent=s.n;
-    item.appendChild(cardDiv); item.appendChild(nm); item.appendChild(pr);
-    item.onclick=()=>{
-      if(active)return;
-      if(owned||s.price===0){
-        if(!PROG.owned.includes(s.id))PROG.owned.push(s.id);
-        PROG.activeBack=s.id; progSave(); applySkin(); openShop();
-        toast('طرح «'+s.n+'» فعال شد ✔'); if(G)render();
-      } else if(PROG.coins>=s.price){
-        addCoins(-s.price); PROG.owned.push(s.id); PROG.activeBack=s.id;
-        progSave(); applySkin(); openShop();
-        toast('طرح «'+s.n+'» خریداری و فعال شد 🎉',true); if(G)render();
-      } else toast('سکهٔ کافی نداری؛ '+fa(s.price-PROG.coins)+' سکهٔ دیگر لازم است');
-    };
-    g.appendChild(item);
-  }); }
   // 🎁 بنر پیشنهاد اولین خرید (فقط تا وقتی هیچ خریدی نکرده)
   const ofb=$('#firstBuyOffer');
   if(ofb)ofb.style.display=(PROG.iap&&PROG.iap.length)?'none':'flex';
@@ -3989,6 +4027,12 @@ function openShop(){
     const d=document.createElement('div'); d.className='avatar '+(s.cls||'');
     d.style.width='44px'; d.style.height='44px'; d.style.fontSize='20px'; d.textContent='👤'; return d;
   });
+  // 🂠 پشت کارت
+  renderShopSkinList($('#shopBacks'),BACK_SKINS,'activeBack',s=>{
+    const d=document.createElement('div'); d.className='card back '+(s.cls||'');
+    d.style.width='34px'; d.style.height='48px'; d.style.position='relative';
+    d.style.flex='0 0 auto'; d.innerHTML='<div class="frame"></div>'; return d;
+  });
 }
 /* تب‌های فروشگاه */
 document.querySelectorAll('.shop-tab').forEach(tab=>{
@@ -4001,6 +4045,8 @@ document.querySelectorAll('.shop-tab').forEach(tab=>{
 /* رندر مشترک فهرست‌های خریدنی فروشگاه (طرح میز / قاب آواتار) */
 function renderShopSkinList(box,list,activeKey,makePreview){
   if(!box)return;
+  if(!Array.isArray(PROG.owned))PROG.owned=[];        // ایمنی در برابر ذخیرهٔ خراب
+  if(!isFinite(PROG.coins))PROG.coins=0;
   box.innerHTML='';
   list.forEach(s=>{
     const owned=PROG.owned.includes(s.id)||s.price===0;
@@ -4022,6 +4068,7 @@ function renderShopSkinList(box,list,activeKey,makePreview){
         toast('«'+s.n+'» خریداری و فعال شد 🎉',true);
       } else toast('«'+s.n+'» فعال شد ✔');
       PROG[activeKey]=s.id; progSave(); applySkin(); refreshProfileWidget(); openShop();
+      try{ if(G)render(); }catch(e){}
     };
     row.appendChild(left); row.appendChild(b); box.appendChild(row);
   });
@@ -4568,7 +4615,8 @@ $('#btnSettings2').onclick=()=>{ openSettingsForm(); show('settings'); };
 $('#btnHall').onclick=()=>{ openHall(); show('hall'); };
 $('#btnInvite').onclick=()=>{ openInvite(); show('invite'); };
 $('#btnHub').onclick=()=>{ openHub(); show('hub'); };
-$('#btnShop').onclick=()=>{ openShop(); show('shop'); };
+$('#btnShop').onclick=async()=>{ openShop(); show('shop');
+  try{ await syncUserWithServer(); openShop(); }catch(e){} };
 /* جدول رتبه‌بندی (فعال روی صفحهٔ اصلی) */
 { const _bb=document.getElementById('btnBoard');
   if(_bb)_bb.onclick=()=>{ show('board'); openBoard(); }; }
@@ -4623,6 +4671,9 @@ function init(){
   // اتصال به سرور (اگر FIREBASE_DB_URL تنظیم شده باشد): همگام‌سازی کاربر + دستورهای مدیریتی
   setTimeout(()=>{ try{ syncUserWithServer(); }catch(e){} }, 2500);
   setTimeout(()=>{ try{ checkBroadcast(); }catch(e){} }, 4200);
+  // بررسی دوره‌ای تا هدیه‌ها بدون بستن بازی هم برسند
+  setInterval(()=>{ try{ if(!G||!$('#game').classList.contains('active'))syncUserWithServer(); }catch(e){} }, 45000);
+  setInterval(()=>{ try{ checkBroadcast(); }catch(e){} }, 180000);
   document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState==='visible'){
       try{ syncUserWithServer(); }catch(e){}
