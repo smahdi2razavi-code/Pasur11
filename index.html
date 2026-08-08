@@ -24,9 +24,13 @@
   --ivory:#f8f2e2;      /* رنگ کارت */
   --ink:#232733;
   --crimson:#b3273b;
-  --cw:clamp(75px, 23.7vw, 123px);          /* عرض کارت دست */
+  /* ارتفاع واقعی قابل‌دیدن (در اپ اندروید با JS اندازه‌گیری می‌شود) */
+  --vhpx:var(--tg-vh, var(--app-vh, 100dvh));
+  /* عرض کارت دست = بزرگ‌ترین اندازهٔ ممکن که هر ۴ کارت داخل کادر جا شوند
+     و از ارتفاع صفحه هم بیرون نزنند */
+  --cw:min(clamp(75px, 23.7vw, 123px), calc((100vw - 64px)/4), max(40px, calc((var(--vhpx) - 130px)/3.4)));
   --ch:calc(var(--cw)*1.4);   /* نسبت واقعی ورق بازی */
-  --tw:clamp(63px, 19.3vw, 106px);          /* عرض کارت روی میز */
+  --tw:min(clamp(63px, 19.3vw, 106px), calc((100vw - 78px)/4), max(34px, calc((var(--vhpx) - 130px)/4)));
   --th:calc(var(--tw)*1.4);
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
@@ -42,7 +46,10 @@ body{
   user-select:none; -webkit-user-select:none;
   overscroll-behavior:none;
 }
-.screen{position:fixed; inset:0; display:none; flex-direction:column; overflow:hidden;}
+/* ارتفاع از روی اندازهٔ واقعیِ قابل‌دیدن گرفته می‌شود، نه inset:0؛
+   وگرنه در وب‌ویو اندروید پایین صفحه زیر نوار ناوبری می‌رود و کارت‌ها بریده می‌شوند */
+.screen{position:fixed; left:0; right:0; top:0; height:var(--vhpx);
+  display:none; flex-direction:column; overflow:hidden;}
 .screen.active{display:flex; animation:screenIn .26s ease-out;}
 @keyframes screenIn{from{opacity:0; transform:translateY(8px);}}
 .scroll{overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px 18px 90px;}
@@ -381,16 +388,22 @@ body.is-vip .vip-emblem .ve-crown{filter:drop-shadow(0 2px 6px rgba(127,224,180,
 #surIndicator{position:absolute; bottom:calc(env(safe-area-inset-bottom,0px) + var(--ch) + 26px); right:14px; z-index:4; display:none;
   font-size:11.5px; color:#ffe9ad; background:rgba(0,0,0,.35); border:1px solid var(--gold); border-radius:12px; padding:3px 10px; pointer-events:none;}
 .row{flex:0 0 auto; display:flex; justify-content:center; gap:6px; padding:4px 8px; min-height:calc(var(--ch)*.66); z-index:2;}
-#botRow{min-height:calc(var(--ch)*.5); padding-top:2px;}
-#botRow .card{width:calc(var(--cw)*.55); height:calc(var(--ch)*.55); margin:0 1px;}
+/* کارت‌های حریف از سمت راست تا زیر دکمه‌های منو نروند */
+#botRow{min-height:calc(var(--ch)*.5); padding:2px 96px 4px 10px;
+  --bw:min(calc(var(--cw)*.55), calc((100vw - 130px)/4));}
+#botRow .card{width:var(--bw); height:calc(var(--bw)*1.4); margin:0 1px;}
 #tableArea{
   flex:1 1 auto; display:flex; flex-wrap:wrap; align-content:center; justify-content:center;
   gap:10px; padding:8px 14px; z-index:1; position:relative;
+  /* اگر کارت‌های روی میز زیاد شدند، خودِ میز جمع شود تا دست بازیکن بیرون نزند */
+  min-height:0; overflow-y:auto; overflow-x:hidden; scrollbar-width:none;
 }
+#tableArea::-webkit-scrollbar{display:none;}
 #tableArea .card{width:var(--tw); height:var(--th);}
 .table-empty-hint{width:100%; text-align:center; color:rgba(248,242,226,.45); font-size:14px;}
 #selHint{flex:0 0 auto; text-align:center; font-size:11.5px; color:#ffe9ad; min-height:18px; padding:0 20px; z-index:2; line-height:1.6;}
-#handRow{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 12px); min-height:calc(var(--ch) + 14px); align-items:flex-end;}
+/* ۲۰ پیکسل فاصله تا کف، تا کارت‌ها روی قاب طلایی ننشینند */
+#handRow{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 20px); min-height:calc(var(--ch) + 22px); align-items:flex-end;}
 #handRow .card{margin:0 2px; transition:transform .15s;}
 #handRow .card.playable:active{transform:translateY(-14px);}
 .card.selected{box-shadow:0 0 0 3px var(--gold), 0 0 14px 1px rgba(230,182,76,.65) !important; transform:translateY(-8px);}
@@ -690,19 +703,21 @@ body.table-persian #game{background:radial-gradient(1200px 760px at 50% -8%,#5a1
 
 /* ===================== سازگاری با ابعاد همهٔ گوشی‌ها (اندروید و آیفون) ===================== */
 @media (max-height:660px){
-  :root{--cw:clamp(63px,19.8vw,100px); --tw:clamp(54px,16.5vw,86px);}
+  :root{--cw:min(clamp(63px,19.8vw,100px), calc((100vw - 64px)/4), max(40px, calc((var(--vhpx) - 130px)/3.4)));
+        --tw:min(clamp(54px,16.5vw,86px), calc((100vw - 78px)/4), max(34px, calc((var(--vhpx) - 130px)/4)));}
   .logo h1{font-size:clamp(34px,10vw,52px);}
   .menu-cards{margin-bottom:12px;}
   .ornament{margin:8px auto 12px;}
 }
 @media (max-height:560px){
-  :root{--cw:clamp(54px,17vw,83px); --tw:clamp(46px,14.3vw,72px);}
+  :root{--cw:min(clamp(54px,17vw,83px), calc((100vw - 64px)/4), max(40px, calc((var(--vhpx) - 130px)/3.4)));
+        --tw:min(clamp(46px,14.3vw,72px), calc((100vw - 78px)/4), max(34px, calc((var(--vhpx) - 130px)/4)));}
   .menu-btns{gap:8px;}
   .btn{padding:10px 16px; font-size:15px;}
   .deckinfo,#surIndicator{font-size:10.5px;}
 }
 @media (min-width:760px){
-  :root{--cw:132px; --tw:111px;}
+  :root{--cw:min(132px, max(40px, calc((var(--vhpx) - 130px)/3.4))); --tw:min(111px, max(34px, calc((var(--vhpx) - 130px)/4)));}
   .menu-btns,.profile-chip{width:360px;}
 }
 
