@@ -71,6 +71,9 @@ class MainActivity : ComponentActivity() {
             useWideViewPort = true
             loadWithOverviewMode = true
             cacheMode = WebSettings.LOAD_DEFAULT
+            // اجازهٔ ارتباط با سرور بازی روی http (سرور ایرانی، بدون TLS تا
+            // فیلترینگ در هندشیک اختلال ایجاد نکند). داده‌ها حساس نیستند.
+            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         }
 
         val assetLoader = WebViewAssetLoader.Builder()

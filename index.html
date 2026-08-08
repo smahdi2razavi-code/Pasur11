@@ -2826,8 +2826,9 @@ function mpSetStatus(text){
 }
 /* کد کوتاه ۷ رقمی (اختیاری - نیاز به Firebase Realtime Database رایگان دارد)
    بدون این تنظیم، بازی دو نفره همچنان با روش دستی (کد طولانی) کار می‌کند. */
-/* آدرس سرور بازی (سرور ایرانی — بدون نیاز به VPN) */
-const FIREBASE_DB_URL='https://pasur11.duckdns.org';
+/* آدرس سرور بازی (سرور ایرانی، بدون TLS تا فیلترینگ اختلال ایجاد نکند).
+   داده‌های ردوبدل‌شده حساس نیستند: فقط کد اتصال دو نفره و جدول امتیاز. */
+const FIREBASE_DB_URL='http://94.184.36.13';
 function firebaseConfigured(){
   return !!FIREBASE_DB_URL&&!FIREBASE_DB_URL.startsWith('YOUR_')&&FIREBASE_DB_URL.startsWith('http');
 }
