@@ -109,12 +109,56 @@ tr:hover td{background:rgba(255,255,255,.03);}
     <button class="btn-ghost" id="btnMsg" style="width:100%">✉️ ارسال پیام</button>
 
     <div style="height:12px"></div>
+    <details style="margin-bottom:12px">
+      <summary style="cursor:pointer;color:var(--gold-soft);font-weight:800;font-size:14px;padding:8px 0">
+        ⚙️ کنترل کامل پیشرفت کاربر</summary>
+      <div class="hint" style="margin-bottom:8px">اول «مشاهدهٔ اطلاعات» را بزن تا مقادیر فعلی پر شوند.
+      هر کادری را خالی بگذاری، دست‌نخورده می‌ماند.</div>
+      <div class="row">
+        <div><label>سکه</label><input id="pCoins" type="number" placeholder="—"></div>
+        <div><label>جام</label><input id="pTro" type="number" placeholder="—"></div>
+      </div>
+      <div class="row">
+        <div><label>سطح</label><input id="pLevel" type="number" placeholder="—"></div>
+        <div><label>XP</label><input id="pXp" type="number" placeholder="—"></div>
+      </div>
+      <div class="row">
+        <div><label>کل بازی‌ها</label><input id="pGames" type="number" placeholder="—"></div>
+        <div><label>بردها</label><input id="pWins" type="number" placeholder="—"></div>
+      </div>
+      <label>اشتراک VIP</label>
+      <select id="pVip">
+        <option value="">تغییر نده</option>
+        <option value="1">فعال</option>
+        <option value="0">غیرفعال</option>
+      </select>
+      <button class="btn-gold" id="btnSetProg" style="width:100%">⚙️ ذخیرهٔ پیشرفت</button>
+    </details>
+
     <div class="row">
       <button class="btn-bad" id="btnBan">⛔ مسدودکردن</button>
       <button class="btn-ghost" id="btnUnban">✅ رفع مسدودی</button>
       <button class="btn-bad" id="btnDelete">🗑 حذف کامل اکانت</button>
     </div>
     <div class="status" id="opMsg"></div>
+  </div>
+
+  <!-- اعلان همگانی -->
+  <div class="box" id="bcBox" style="display:none">
+    <h2>📢 اعلان همگانی</h2>
+    <div class="hint" style="margin-bottom:8px">این پیام در صندوق پستی <b>همهٔ کاربران</b> نشان داده می‌شود.</div>
+    <div class="row">
+      <div style="flex:0 0 90px"><label>آیکن</label><input id="bcIcon" value="📢" style="text-align:center"></div>
+      <div><label>عنوان</label><input id="bcTitle" placeholder="مثلاً: آپدیت جدید"></div>
+    </div>
+    <label>متن اعلان</label>
+    <input id="bcText" placeholder="متن پیامی که همه می‌بینند">
+    <div class="row">
+      <button class="btn-gold" id="btnBcSend">📢 انتشار برای همه</button>
+      <button class="btn-ghost" id="btnBcShow">اعلان فعلی</button>
+      <button class="btn-bad" id="btnBcClear">حذف اعلان</button>
+    </div>
+    <div class="status" id="bcMsg"></div>
   </div>
 
   <!-- فهرست کاربران -->
@@ -170,6 +214,7 @@ async function connect(){
     $('#opsBox').style.display='block';
     $('#listBox').style.display='block';
     $('#stats').style.display='flex';
+    $('#bcBox').style.display='block';
     loadUsers();
   }catch(e){
     $('#dot').className='dot off';
@@ -180,7 +225,7 @@ $('#btnConnect').onclick=connect;
 $('#btnForget').onclick=()=>{
   localStorage.removeItem('pasur_admin');
   $('#key').value=''; $('#dot').className='dot';
-  $('#opsBox').style.display='none'; $('#listBox').style.display='none'; $('#stats').style.display='none';
+  $('#opsBox').style.display='none'; $('#listBox').style.display='none'; $('#stats').style.display='none'; $('#bcBox').style.display='none';
   msg($('#connMsg'),'اطلاعات ذخیره‌شده پاک شد',true);
 };
 
@@ -249,6 +294,11 @@ async function showInfo(){
     const u=await api('/users/'+encodeURIComponent(id)+'.json');
     const c=await api('/control/'+encodeURIComponent(id)+'.json');
     if(!u){ msg($('#opMsg'),'کاربری با این شناسه پیدا نشد',false); return; }
+    // پرکردن کادرهای کنترل پیشرفت
+    const set=(id,v)=>{ const el=$('#'+id); if(el)el.value=(v==null?'':v); };
+    set('pCoins',u.coins); set('pTro',u.trophies); set('pLevel',u.level);
+    set('pXp',u.xp); set('pGames',u.games); set('pWins',u.wins);
+    const pv=$('#pVip'); if(pv)pv.value='';
     msg($('#opMsg'),
       'نام: '+(u.name||'—')+'  |  نام‌کاربری: @'+(u.user||'—')+'\n'
       +'سطح: '+fa(u.level||1)+'  |  سکه: '+fa(u.coins||0)+'  |  جام: '+fa(u.trophies||0)+'\n'
@@ -300,6 +350,47 @@ $('#btnDelete').onclick=async()=>{
     $('#uid').value=''; loadUsers();
   }catch(e){ msg($('#opMsg'),'حذف ممکن نشد: '+(e.message||''),false); }
 };
+$('#btnSetProg').onclick=async()=>{
+  const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
+  const num=v=>{ const x=($('#'+v).value||'').trim(); return x===''?null:(parseInt(x)||0); };
+  const p={};
+  const map={pCoins:'coins',pTro:'trophies',pLevel:'level',pXp:'xp',pGames:'games',pWins:'wins'};
+  Object.keys(map).forEach(k=>{ const v=num(k); if(v!==null)p[map[k]]=Math.max(0,v); });
+  const vv=$('#pVip').value; if(vv!=='')p.vip=(vv==='1');
+  if(!Object.keys(p).length){ msg($('#opMsg'),'حداقل یک کادر را پر کن',false); return; }
+  await setControl('setProgress',p,'⚙️ پیشرفت ثبت شد. با باز کردن بعدی بازی اعمال می‌شود.');
+};
+
+/* ---------- اعلان همگانی ---------- */
+$('#btnBcSend').onclick=async()=>{
+  const t=($('#bcText').value||'').trim();
+  if(!t){ msg($('#bcMsg'),'متن اعلان را بنویس',false); return; }
+  if(!confirm('این اعلان برای همهٔ کاربران فرستاده شود؟'))return;
+  try{
+    const r=await fetch(SRV.replace(/\/$/,'')+adminUrl('/broadcast.json'),{method:'PUT',
+      body:JSON.stringify({icon:($('#bcIcon').value||'📢').trim(),title:($('#bcTitle').value||'اطلاعیه').trim(),text:t})});
+    const j=await r.json();
+    if(j&&j.error)throw new Error('کلید مدیریت اشتباه است');
+    msg($('#bcMsg'),'📢 اعلان منتشر شد. کاربران با باز کردن بعدی بازی آن را می‌بینند.',true);
+  }catch(e){ msg($('#bcMsg'),'انتشار ممکن نشد: '+(e.message||''),false); }
+};
+$('#btnBcShow').onclick=async()=>{
+  try{
+    const b=await api('/broadcast.json');
+    if(!b||!b.text){ msg($('#bcMsg'),'در حال حاضر هیچ اعلانی فعال نیست.',true); return; }
+    $('#bcIcon').value=b.icon||'📢'; $('#bcTitle').value=b.title||''; $('#bcText').value=b.text;
+    msg($('#bcMsg'),'اعلان فعلی: '+(b.icon||'')+' '+(b.title||'')+' — '+b.text,true);
+  }catch(e){ msg($('#bcMsg'),'دریافت ممکن نشد',false); }
+};
+$('#btnBcClear').onclick=async()=>{
+  if(!confirm('اعلان فعلی حذف شود؟'))return;
+  try{
+    await fetch(SRV.replace(/\/$/,'')+adminUrl('/broadcast.json'),{method:'DELETE'});
+    $('#bcText').value=''; $('#bcTitle').value='';
+    msg($('#bcMsg'),'اعلان حذف شد.',true);
+  }catch(e){ msg($('#bcMsg'),'حذف ممکن نشد',false); }
+};
+
 $('#btnCoins').onclick=async()=>{
   const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
   const n=parseInt($('#coins').value)||0;

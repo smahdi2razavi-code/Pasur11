@@ -20,7 +20,7 @@ const ADMIN_KEY = process.env.ADMIN_KEY || 'CHANGE_ME_SECRET';  // برای رب
 const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, 'data.json');
 
 /* ---------- ذخیره‌سازی ساده روی فایل ---------- */
-let DB = { sessions:{}, leaderboard:{}, usernames:{}, users:{}, control:{}, friendreq:{} };
+let DB = { sessions:{}, leaderboard:{}, usernames:{}, users:{}, control:{}, friendreq:{}, backup:{}, broadcast:null };
 try { if (fs.existsSync(DATA_FILE)) DB = Object.assign(DB, JSON.parse(fs.readFileSync(DATA_FILE,'utf8'))); }
 catch (e) { console.error('خواندن داده‌ها ناموفق بود:', e.message); }
 
@@ -152,9 +152,10 @@ const server = http.createServer(async (req, res) => {
       if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
       const u = DB.users[a];
       delete DB.users[a];
-      delete DB.control[a];
       if (DB.friendreq) delete DB.friendreq[a];
       if (u && u.user) { delete DB.leaderboard[u.user]; delete DB.usernames[u.user]; }
+      // نشانهٔ حذف باقی می‌ماند تا بازی روی گوشی هم داده‌های محلی را پاک کند
+      DB.control[a] = { deleted: true, ts: Date.now() };
       saveDB(); return sendJSON(res, 200, { deleted: true });
     }
     if (method === 'GET' && !a) {
@@ -178,6 +179,32 @@ const server = http.createServer(async (req, res) => {
     if (method === 'DELETE' && a && b) {
       if (DB.friendreq[a]) delete DB.friendreq[a][b];
       saveDB(); return sendJSON(res, 200, null);
+    }
+  }
+
+  /* ===== ۶) اعلان همگانی ===== */
+  if (root === 'broadcast') {
+    if (method === 'GET') return sendJSON(res, 200, DB.broadcast || null);
+    if (method === 'PUT') {
+      if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+      const body = await readBody(req);
+      DB.broadcast = body ? Object.assign({}, body, { id: Date.now() }) : null;
+      saveDB(); return sendJSON(res, 200, DB.broadcast);
+    }
+    if (method === 'DELETE') {
+      if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+      DB.broadcast = null; saveDB(); return sendJSON(res, 200, null);
+    }
+  }
+
+  /* ===== ۷) پشتیبان‌گیری حساب با ایمیل ===== */
+  if (root === 'backup') {
+    DB.backup = DB.backup || {};
+    if (method === 'GET' && a) return sendJSON(res, 200, DB.backup[a.toLowerCase()] || null);
+    if (method === 'PUT' && a) {
+      const body = await readBody(req);
+      DB.backup[a.toLowerCase()] = Object.assign({}, body, { ts: Date.now() });
+      saveDB(); return sendJSON(res, 200, { ok: true });
     }
   }
 

@@ -1023,9 +1023,20 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
       <div class="hint">شناسهٔ یکتای حساب شما (برای پشتیبانی و کنترل حساب).</div>
     </div>
     <div class="set-item">
-      <label class="title">ورود با گوگل</label>
-      <div id="googleSigninStatus" class="hint"></div>
-      <div id="googleBtnHolder"></div>
+      <label class="title">☁️ ذخیره و بازیابی حساب با ایمیل</label>
+      <div class="hint">با ذخیرهٔ حساب، اگر گوشی‌ات را عوض کردی یا بازی را دوباره نصب کردی،
+      همه‌چیز (سکه، سطح، جام، VIP و دستاوردها) برمی‌گردد.</div>
+      <input type="email" id="bkEmail" placeholder="ایمیل تو (مثلاً you@gmail.com)"
+             style="direction:ltr;text-align:left;margin-top:8px">
+      <input type="text" id="bkCode" inputmode="numeric" maxlength="6" placeholder="رمز ۴ تا ۶ رقمی (یادت بماند)"
+             style="direction:ltr;text-align:center;letter-spacing:4px">
+      <div class="row" style="display:flex;gap:8px">
+        <button class="small-btn claim-ready" id="btnBackup" style="flex:1;margin:0">☁️ ذخیره در سرور</button>
+        <button class="small-btn" id="btnRestore" style="flex:1;margin:0">⬇️ بازیابی</button>
+      </div>
+      <div class="hint" id="bkMsg" style="text-align:center"></div>
+      <div id="googleSigninStatus" class="hint" style="display:none"></div>
+      <div id="googleBtnHolder" style="display:none"></div>
       <div id="googleSignedBox" style="display:none; align-items:center; gap:10px; margin-top:8px">
         <div class="avatar" id="googleAvatar" style="width:38px;height:38px;font-size:16px"></div>
         <div style="flex:1">
@@ -2040,6 +2051,63 @@ function refreshGoogleSignedInUI(){
     $('#googleAvatar').style.backgroundImage=SET.profileAvatar?'url("'+SET.profileAvatar+'")':'none';
     $('#googleSigninStatus').textContent='';
   } else { box.style.display='none'; holder.style.display='block'; }
+}
+/* ================= ذخیره و بازیابی حساب با ایمیل ================= */
+function bkNorm(){
+  const em=($('#bkEmail').value||'').trim().toLowerCase();
+  const cd=toEnDigits(($('#bkCode').value||'').trim()).replace(/\D/g,'');
+  return {em,cd};
+}
+function bkSnapshot(){
+  return {
+    code:bkNorm().cd,
+    prog:PROG,
+    set:{pName:SET.pName,profileUsername:SET.profileUsername,profileAvatar:SET.profileAvatar,
+         profileSet:SET.profileSet,profileEmail:bkNorm().em},
+    uid:ensureUserId(), v:1
+  };
+}
+{
+  const bb=document.getElementById('btnBackup');
+  if(bb)bb.onclick=async()=>{
+    const m=$('#bkMsg'), {em,cd}=bkNorm();
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){ m.textContent='ایمیل معتبر وارد کن'; return; }
+    if(cd.length<4){ m.textContent='یک رمز ۴ تا ۶ رقمی بگذار'; return; }
+    if(!firebaseConfigured()){ m.textContent='برای ذخیره باید به اینترنت وصل باشی'; return; }
+    m.textContent='در حال ذخیره…';
+    try{
+      const r=await fetch(FIREBASE_DB_URL+'/backup/'+encodeURIComponent(em)+'.json',
+        {method:'PUT',body:JSON.stringify(bkSnapshot())});
+      const j=await r.json();
+      if(!j||!j.ok)throw new Error();
+      SET.profileEmail=em; persistSettings();
+      m.textContent='✅ حساب با موفقیت ذخیره شد ('+em+')';
+      addMail('☁️','حساب ذخیره شد','نسخهٔ پشتیبان حساب تو روی ایمیل '+em+' ذخیره شد.');
+    }catch(e){ m.textContent='ذخیره ممکن نشد؛ دوباره تلاش کن'; }
+  };
+  const rb=document.getElementById('btnRestore');
+  if(rb)rb.onclick=async()=>{
+    const m=$('#bkMsg'), {em,cd}=bkNorm();
+    if(!em||cd.length<4){ m.textContent='ایمیل و رمز را وارد کن'; return; }
+    if(!firebaseConfigured()){ m.textContent='برای بازیابی باید به اینترنت وصل باشی'; return; }
+    if(!confirm('پیشرفت فعلی این گوشی با نسخهٔ ذخیره‌شده جایگزین می‌شود. ادامه می‌دهی؟'))return;
+    m.textContent='در حال بازیابی…';
+    try{
+      const r=await fetch(FIREBASE_DB_URL+'/backup/'+encodeURIComponent(em)+'.json');
+      const d=await r.json();
+      if(!d||!d.prog){ m.textContent='برای این ایمیل نسخهٔ پشتیبانی پیدا نشد'; return; }
+      if(String(d.code||'')!==cd){ m.textContent='رمز اشتباه است'; return; }
+      Object.assign(PROG,d.prog);
+      if(d.set)Object.assign(SET,d.set);
+      progSave(); persistSettings();
+      m.textContent='✅ حساب بازیابی شد';
+      toast('حساب تو بازیابی شد 🎉',true);
+      setTimeout(()=>location.reload(),900);
+    }catch(e){ m.textContent='بازیابی ممکن نشد؛ دوباره تلاش کن'; }
+  };
+  // پرکردن ایمیل ذخیره‌شده
+  const be=document.getElementById('bkEmail');
+  if(be&&SET.profileEmail)be.value=SET.profileEmail;
 }
 $('#btnGoogleSignout').onclick=()=>{
   SET.googleSignedIn=false; SET.profileEmail='';
@@ -3113,6 +3181,21 @@ function openInbox(){
   progSave(); updateInboxBadge();
 }
 
+/* اعلان همگانی از پنل مدیریت */
+async function checkBroadcast(){
+  if(!firebaseConfigured())return;
+  try{
+    const r=await fetch(FIREBASE_DB_URL+'/broadcast.json');
+    const b=await r.json();
+    if(!b||!b.id||!b.text)return;
+    if(PROG.lastBroadcast===b.id)return;        // قبلاً دیده شده
+    PROG.lastBroadcast=b.id;
+    addMail(b.icon||'📢', b.title||'اطلاعیه', b.text);
+    progSave();
+    try{ toast('📢 '+(b.title||'اطلاعیهٔ جدید'),true); }catch(e){}
+  }catch(e){}
+}
+
 async function syncUserWithServer(){
   if(!firebaseConfigured())return;
   const uid=encodeURIComponent(ensureUserId());
@@ -3144,6 +3227,31 @@ async function syncUserWithServer(){
       PROG.trophies=Math.max(0,PROG.trophies+c.scoreGrant); progSave(); renderProgChip();
       addMail('🏆','امتیاز هدیه',fa(c.scoreGrant)+' جام به حساب تو اضافه شد.');
       fetch(FIREBASE_DB_URL+'/control/'+uid+'/scoreGrant.json',{method:'PUT',body:'0'}).catch(()=>{});
+    }
+    // حذف اکانت از پنل: داده‌های محلی هم پاک می‌شوند
+    if(c.deleted){
+      try{
+        ['pasur11_save','pasur11_prog','pasur11_set','pasur11_dev'].forEach(k=>delKey(k));
+        Object.keys(localStorage||{}).filter(k=>k.indexOf('pasur11')===0).forEach(k=>delKey(k));
+      }catch(e){}
+      try{
+        $('#modalBox').innerHTML='<h3>حساب حذف شد</h3>'
+          +'<p style="text-align:center">این حساب توسط مدیریت حذف شده است. با باز کردن دوبارهٔ بازی، یک حساب تازه ساخته می‌شود.</p>'
+          +'<button class="btn primary" id="delOk">باشه</button>';
+        $('#modalWrap').classList.add('show');
+        $('#delOk').onclick=()=>location.reload();
+      }catch(e){ location.reload(); }
+      return;
+    }
+    // تنظیم مستقیم پیشرفت از پنل مدیریت
+    if(c.setProgress&&typeof c.setProgress==='object'){
+      const sp=c.setProgress;
+      ['coins','xp','level','trophies','games','wins','losses','highScore','surTotal','jackSweeps','tickets']
+        .forEach(k=>{ if(typeof sp[k]==='number')PROG[k]=Math.max(0,sp[k]); });
+      if(typeof sp.vip==='boolean')PROG.vip=sp.vip;
+      progSave(); renderProgChip(); applyVipUI();
+      addMail('⚙️','به‌روزرسانی حساب','اطلاعات حساب تو توسط مدیریت به‌روزرسانی شد.');
+      fetch(FIREBASE_DB_URL+'/control/'+uid+'/setProgress.json',{method:'PUT',body:'0'}).catch(()=>{});
     }
     USER_BANNED=!!c.banned;
     if(USER_BANNED)showBanModal();
@@ -3424,7 +3532,7 @@ const PROG=Object.assign({
   games:0, wins:0, losses:0, highScore:0, surTotal:0, jackSweeps:0,
   missions:{date:'',list:[]}, achClaimed:[], owned:['back-default','tbl-classic','fr-none'],
   activeBack:'back-default', activeTable:'tbl-classic', activeFrame:'fr-none', activeTitle:'t_none', iap:[],
-  vip:false, invitedBy:'', inviteRedeemed:false, friends:[], mails:[]
+  vip:false, invitedBy:'', inviteRedeemed:false, friends:[], mails:[], lastBroadcast:0
 }, loadJSON('pasur11_prog')||{});
 function progSave(){ saveJSONSafe('pasur11_prog',PROG); }
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -4514,10 +4622,12 @@ function init(){
 
   // اتصال به سرور (اگر FIREBASE_DB_URL تنظیم شده باشد): همگام‌سازی کاربر + دستورهای مدیریتی
   setTimeout(()=>{ try{ syncUserWithServer(); }catch(e){} }, 2500);
+  setTimeout(()=>{ try{ checkBroadcast(); }catch(e){} }, 4200);
   document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState==='visible'){
       try{ syncUserWithServer(); }catch(e){}
       try{ refreshFriendBadge(); }catch(e){}
+      try{ checkBroadcast(); }catch(e){}
     }
   });
   setTimeout(()=>{ try{ refreshFriendBadge(); }catch(e){} }, 3500);
