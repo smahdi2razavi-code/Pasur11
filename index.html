@@ -365,9 +365,19 @@ body.is-vip .vip-emblem .ve-crown{filter:drop-shadow(0 2px 6px rgba(127,224,180,
 #tableArea .card{width:var(--tw); height:var(--th);}
 .table-empty-hint{width:100%; text-align:center; color:rgba(248,242,226,.45); font-size:14px;}
 #selHint{flex:0 0 auto; text-align:center; font-size:11.5px; color:#ffe9ad; min-height:18px; padding:0 20px; z-index:2; line-height:1.6;}
-#handRow{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 12px); min-height:calc(var(--ch) + 14px); align-items:flex-end;}
-#handRow .card{margin:0 2px; transition:transform .15s;}
-#handRow .card.playable:active{transform:translateY(-14px);}
+/* دست بازیکن: چیدمان بادبزنی (کارت‌ها روی هم و کج) */
+#handRow{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 12px); min-height:calc(var(--ch) + 26px);
+  align-items:flex-end; gap:0; padding-top:14px;}
+#handRow .card{margin:0 calc(var(--cw) * -0.20); transition:transform .18s ease-out, margin .18s ease-out;
+  transform-origin:bottom center;
+  transform:rotate(var(--fan-rot,0deg)) translateY(var(--fan-y,0px));}
+#handRow .card:first-child{margin-right:0;}
+#handRow .card:last-child{margin-left:0;}
+#handRow .card.playable:active{
+  transform:rotate(var(--fan-rot,0deg)) translateY(calc(var(--fan-y,0px) - 16px)) scale(1.04); z-index:40 !important;}
+#handRow .card.selected{
+  transform:rotate(0deg) translateY(-18px) scale(1.06) !important; z-index:50 !important;
+  margin:0 4px;}
 .card.selected{box-shadow:0 0 0 3px var(--gold), 0 0 14px 1px rgba(230,182,76,.65) !important; transform:translateY(-8px);}
 #tableArea .card.selected{transform:translateY(-6px);}
 .card.deal-in{animation:dealIn .45s cubic-bezier(.2,.85,.25,1) both;}
@@ -457,6 +467,84 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 .srow.total{font-weight:800; color:var(--gold-soft); border-bottom:none; font-size:16px; margin-top:4px;}
 .modal .btn{width:100%; margin-top:14px;}
 .modal p{font-size:14.5px; line-height:2; color:#dfe6f8;}
+/* ===== تب‌های بخش‌دار (دوستان / رتبه‌بندی) ===== */
+.seg-tabs{display:flex; gap:6px; margin-bottom:10px;}
+.seg-tab{flex:1 1 0; font-family:inherit; font-size:13px; font-weight:800; cursor:pointer;
+  color:#c3d0f0; background:linear-gradient(180deg,#22305d,#18234a); border:1px solid #3a4f8e;
+  border-radius:11px; padding:10px 4px; transition:.2s; white-space:nowrap;}
+.seg-tab.active{background:linear-gradient(180deg,#f3d489,#c8952e); color:#3a2a06; border-color:#f4d78c;}
+.list-head{display:flex; align-items:center; gap:8px; padding:9px 12px; margin-bottom:7px;
+  background:linear-gradient(180deg,#26386b,#18234a); border:1px solid var(--gold); border-radius:12px;
+  font-size:12.5px; font-weight:800; color:var(--gold-soft);}
+.list-head .lh-name{flex:1 1 auto; text-align:center;}
+.list-head .lh-rank{min-width:52px; text-align:center;}
+/* ردیف بازیکن */
+.pl-row{display:flex; align-items:center; gap:9px; padding:9px 11px; margin-bottom:7px;
+  background:rgba(255,255,255,.05); border:1px solid #2c3d72; border-radius:12px;}
+.pl-row.me{border-color:var(--gold); background:rgba(230,182,76,.12);}
+.pl-rank{min-width:44px; text-align:center; font-size:14px; font-weight:800; color:var(--gold-soft);}
+.pl-ava{width:40px; height:40px; border-radius:10px; flex:0 0 auto; position:relative;
+  background:#131e40 center/cover no-repeat; border:1.5px solid var(--gold);
+  display:flex; align-items:center; justify-content:center; font-size:19px;}
+.pl-lvl{position:absolute; bottom:-5px; right:-5px; min-width:19px; height:19px; padding:0 3px;
+  border-radius:50%; background:linear-gradient(180deg,#f6dd9a,#c8952e); color:#3a2a06;
+  font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center;
+  border:1.5px solid #1b2650;}
+.pl-info{flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:1px;}
+.pl-name{font-size:14px; font-weight:800; color:var(--ivory); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.pl-id{font-size:11px; color:#8d9bc4; direction:ltr; text-align:right;}
+.pl-score{flex:0 0 auto; font-size:13px; font-weight:800; color:#ffe9ad; white-space:nowrap;}
+.pl-del{flex:0 0 auto; background:#5d1827; border:1px solid #a53a50; color:#ffb9c6;
+  border-radius:9px; padding:6px 9px; cursor:pointer; font-size:14px; font-family:inherit;}
+.pl-vip{font-size:11px;}
+/* نوار «رتبهٔ شما» چسبیده به پایین */
+.me-rank{position:absolute; left:0; right:0; bottom:0; z-index:6;
+  padding:10px 14px calc(env(safe-area-inset-bottom,0px) + 12px);
+  background:linear-gradient(180deg,rgba(16,26,51,.7),rgba(10,16,34,.97)); backdrop-filter:blur(6px);
+  border-top:1px solid var(--gold);}
+.fr-cap{text-align:center; font-size:12.5px; color:var(--gold-soft); font-weight:700;
+  background:rgba(230,182,76,.1); border:1px solid rgba(230,182,76,.35);
+  border-radius:11px; padding:8px; margin-bottom:10px;}
+/* ===== صفحهٔ اشتراک VIP ===== */
+.vip-panel{display:flex; align-items:center; gap:14px; padding:16px 14px; margin-bottom:12px;
+  background:linear-gradient(160deg,#2a2408,#1a1605); border:1.5px solid var(--gold); border-radius:18px;}
+.vip-shield{width:92px; height:100px; flex:0 0 auto; position:relative;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  background:linear-gradient(170deg,#3a3a42,#17171c 60%,#0d0d10);
+  border:2.5px solid var(--gold); border-radius:14px 14px 46% 46%;
+  box-shadow:0 6px 20px rgba(0,0,0,.6), inset 0 0 18px rgba(230,182,76,.15);}
+.vs-crown{font-size:26px; filter:drop-shadow(0 2px 5px rgba(230,182,76,.7));}
+.vs-tx{font-size:12.5px; font-weight:800; color:var(--gold-soft); text-align:center; line-height:1.25;}
+body.is-vip .vip-shield{border-color:#7fe0b4; box-shadow:0 6px 20px rgba(0,0,0,.6), inset 0 0 18px rgba(127,224,180,.2);}
+.vip-status{flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:8px; text-align:right;}
+.vs-label{font-size:15px; color:var(--ivory);}
+.vs-label b{color:#ff9d9d;}
+body.is-vip .vs-label b{color:#7fe0b4;}
+.vs-bar{height:26px; border-radius:9px; background:#0d2018; border:1.5px solid var(--gold);}
+.vs-note{font-size:12.5px; color:#d8c48a; line-height:1.7;}
+.vip-perks{margin-bottom:12px;}
+.vip-row{display:flex; align-items:center; gap:10px; padding:11px 13px; margin-bottom:7px;
+  background:linear-gradient(180deg,rgba(230,182,76,.1),rgba(230,182,76,.03));
+  border:1px solid rgba(230,182,76,.4); border-radius:12px; font-size:13.5px; color:var(--ivory);}
+.vip-row b{color:var(--gold-soft);}
+.vr-ic{font-size:19px; flex:0 0 auto;}
+.vip-sep{display:flex; align-items:center; gap:10px; margin:14px 0 12px; color:var(--gold-soft);
+  font-size:13.5px; font-weight:800;}
+.vip-sep::before,.vip-sep::after{content:""; flex:1 1 auto; height:1.5px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.vip-packs{display:flex; gap:9px; justify-content:center; flex-wrap:wrap;}
+.vip-pack{flex:1 1 0; min-width:92px; cursor:pointer; font-family:inherit; text-align:center;
+  padding:13px 6px 11px; border-radius:16px; border:2px dashed var(--gold);
+  background:linear-gradient(180deg,#2a2408,#1a1605); transition:transform .15s, filter .2s;}
+.vip-pack:active{transform:scale(.96);}
+.vp-medal{width:56px; height:56px; margin:0 auto 8px; border-radius:50%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.15;
+  background:radial-gradient(circle at 38% 32%,#4fd07f,#1f9f4a 55%,#137a35);
+  border:2.5px solid var(--gold); box-shadow:0 3px 10px rgba(0,0,0,.5);
+  color:#fff; font-weight:800;}
+.vp-num{font-size:19px;}
+.vp-unit{font-size:9.5px;}
+.vp-price{font-size:12.5px; font-weight:800; color:var(--gold-soft);}
 /* ===== 🎁 بنر پیشنهاد ویژه ===== */
 .offer-banner{display:flex; align-items:center; gap:11px; padding:11px 13px; border-radius:16px; margin-bottom:12px;
   background:linear-gradient(135deg,rgba(230,182,76,.22),rgba(230,182,76,.06));
@@ -1132,35 +1220,50 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
 
 <!-- ============ جدول رتبه‌بندی ============ -->
 <div class="screen" id="board">
-  <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>جدول رتبه‌بندی</h2></div>
-  <div class="scroll">
-    <div class="card-box"><div id="boardStatus" class="hint" style="margin-bottom:8px"></div><div id="boardList"></div></div>
+  <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>🏆 رتبه‌بندی</h2></div>
+  <div class="scroll" style="padding-bottom:96px">
+    <div class="seg-tabs">
+      <button class="seg-tab active" data-btab="all">کل</button>
+      <button class="seg-tab" data-btab="week">هفتگی</button>
+      <button class="seg-tab" data-btab="vip">VIP</button>
+    </div>
+    <div id="boardStatus" class="hint" style="text-align:center;margin-bottom:8px"></div>
+    <div class="list-head"><span class="lh-rank">رتبه</span><span class="lh-name">بازیکن</span><span>امتیاز</span></div>
+    <div id="boardList"></div>
   </div>
+  <div class="me-rank" id="boardMe"></div>
 </div>
 
 <!-- ============ اشتراک VIP ============ -->
 <div class="screen" id="vip">
   <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>👑 اشتراک VIP</h2></div>
   <div class="scroll">
-    <div class="card-box vip-hero">
-      <div class="vip-hero-crown">👑</div>
-      <div class="vip-hero-title">پاسور ۱۱ — نسخهٔ ویژه</div>
-      <div class="vip-hero-sub" id="vipState">با VIP، بازی را حرفه‌ای‌تر تجربه کن</div>
+    <div class="vip-panel">
+      <div class="vip-shield"><span class="vs-crown">👑</span><span class="vs-tx">اشتراک<br>VIP</span></div>
+      <div class="vip-status">
+        <div class="vs-label">وضعیت: <b id="vipStateWord">غیرفعال</b></div>
+        <div class="vs-bar"><i id="vipStateBar"></i></div>
+        <div class="vs-note" id="vipState">شما هیچ اشتراک فعالی ندارید</div>
+      </div>
     </div>
-    <div class="card-box">
-      <h3>امتیازهای VIP</h3>
-      <div class="vip-perk"><span>✨</span><div><b>۲۰٪ تجربهٔ بیشتر</b><br><span class="hint">هر XP که می‌گیری ۲۰٪ بیشتر حساب می‌شود</span></div></div>
-      <div class="vip-perk"><span>🪙</span><div><b>جایزهٔ ورود روزانهٔ دوبرابر</b><br><span class="hint">سکه‌های ورود روزانه دو برابر واریز می‌شود</span></div></div>
-      <div class="vip-perk"><span>🎡</span><div><b>چرخ شانس رایگان روزی ۳ بار</b><br><span class="hint">هر روز ۳ چرخش رایگان داری (به‌جای ۱ بار)</span></div></div>
-      <div class="vip-perk"><span>🎁</span><div><b>پاداش پایان مسابقهٔ بیشتر</b><br><span class="hint">سکه و XP پایان هر مسابقه ۵۰٪ بیشتر</span></div></div>
-      <div class="vip-perk"><span>🚫</span><div><b>بدون تبلیغات</b><br><span class="hint">تجربهٔ کاملاً بدون مزاحمت (در نسخه‌های آینده)</span></div></div>
-      <div class="vip-perk"><span>👑</span><div><b>نشان و آواتار طلایی VIP</b><br><span class="hint">نام تو با نشان VIP کنار پروفایلت می‌درخشد</span></div></div>
-      <div class="vip-perk"><span>🎁</span><div><b>هدیهٔ خوش‌آمد ۲۰۰۰ سکه</b><br><span class="hint">با اولین فعال‌سازی VIP، ۲۰۰۰ سکه هدیه می‌گیری</span></div></div>
+
+    <div class="vip-perks">
+      <div class="vip-row"><span class="vr-ic">✨</span><span><b>۲۰٪</b> تجربهٔ بیشتر در هر بازی</span></div>
+      <div class="vip-row"><span class="vr-ic">🪙</span><span>جایزهٔ ورود روزانهٔ <b>دوبرابر</b></span></div>
+      <div class="vip-row"><span class="vr-ic">🎡</span><span>چرخ شانس رایگان <b>روزی ۳ بار</b></span></div>
+      <div class="vip-row"><span class="vr-ic">🏆</span><span><b>۵۰٪</b> پاداش بیشتر در پایان مسابقه</span></div>
+      <div class="vip-row"><span class="vr-ic">🚫</span><span>تجربهٔ <b>بدون تبلیغات</b></span></div>
+      <div class="vip-row"><span class="vr-ic">👑</span><span>نشان و قاب <b>طلایی</b> کنار نامت</span></div>
+      <div class="vip-row"><span class="vr-ic">🎁</span><span>هدیهٔ خوش‌آمد <b>۲۰۰۰ سکه</b></span></div>
     </div>
+
+    <div class="vip-sep"><span>بسته‌های خرید یا تمدید اشتراک</span></div>
+    <div class="vip-packs" id="vipPacks"></div>
+
     <div class="card-box">
-      <button class="btn primary" id="btnBuyVip" style="width:100%">👑 فعال‌سازی VIP</button>
       <button class="btn danger" id="btnCancelVip" style="width:100%; display:none">لغو اشتراک VIP</button>
-      <div class="hint" style="text-align:center;margin-top:8px">خرید واقعی در نسخهٔ نصب‌شده از مایکت یا گوگل‌پلی انجام می‌شود.</div>
+      <button class="btn primary" id="btnBuyVip" style="display:none">فعال‌سازی</button>
+      <div class="hint" style="text-align:center">خرید از طریق مایکت انجام می‌شود.</div>
     </div>
   </div>
 </div>
@@ -1198,12 +1301,28 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
 
 <!-- ============ دوستان من (به‌زودی) ============ -->
 <div class="screen" id="friends">
-  <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>👥 دوستان من</h2></div>
+  <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>👥 دوستان</h2></div>
   <div class="scroll">
-    <div class="card-box" style="text-align:center;padding:40px 20px">
-      <div style="font-size:52px;margin-bottom:12px">👥</div>
-      <h3>این بخش به‌زودی اضافه می‌شود</h3>
-      <p class="hint">لیست دوستان، بازی مستقیم با آن‌ها و رقابت دوستانه در آپدیت‌های بعدی می‌آید. منتظر باش!</p>
+    <div class="seg-tabs">
+      <button class="seg-tab active" data-ftab="mine">دوستان من</button>
+      <button class="seg-tab" data-ftab="find">دوست‌یابی</button>
+    </div>
+    <div class="fr-cap" id="frCap">ظرفیت لیست دوستان حداکثر ۵۰ نفر است</div>
+    <div class="fr-sec" data-fsec="mine">
+      <div class="list-head"><span>عملیات</span><span>امتیاز</span><span class="lh-name">بازیکن</span></div>
+      <div id="friendList"></div>
+    </div>
+    <div class="fr-sec" data-fsec="find" style="display:none">
+      <div class="card-box">
+        <label class="title">شناسهٔ دوستت را وارد کن</label>
+        <input type="text" id="frFindInput" placeholder="مثلاً: 11-123456" style="width:100%;direction:ltr;text-align:center;font-family:inherit;font-size:17px;padding:11px;border-radius:10px;border:1px solid #3a4f8e;background:#131e40;color:var(--ivory)">
+        <button class="btn primary" id="frFindBtn" style="width:100%;margin-top:10px">جستجو و افزودن</button>
+        <div class="hint" id="frFindMsg" style="text-align:center;margin-top:8px"></div>
+      </div>
+      <div class="card-box">
+        <div class="hint">شناسهٔ خودت (برای دادن به دوستانت):</div>
+        <div class="invite-code" id="frMyId">۱۱-------</div>
+      </div>
     </div>
   </div>
 </div>
@@ -2165,9 +2284,12 @@ function botTurn(){
 }
 function aiChooseMove(){
   const diff=SET.diff;
-  const allOptions=[];
+  let allOptions=[];
   G.b.forEach(c=>legalMovesForCard(c,G.t).forEach(m=>allOptions.push({card:c,move:m})));
   if(!allOptions.length)return null;
+  // اگر برداشتی ممکن باشد، ربات حق ندارد کارت را همین‌طوری روی زمین بگذارد
+  const capOnly=allOptions.filter(o=>o.move.type!=='place');
+  if(capOnly.length)allOptions=capOnly;
   if(diff==='beginner'){
     const caps=allOptions.filter(o=>o.move.type!=='place');
     if(caps.length&&Math.random()<0.5)return caps[Math.floor(Math.random()*caps.length)];
@@ -2432,11 +2554,17 @@ function render(){
   });
 
   const hand=$('#handRow'); hand.innerHTML='';
-  G.p.forEach(c=>{
+  const n=G.p.length;
+  G.p.forEach((c,i)=>{
     const el=cardEl(c,false);
     if(G.turn==='p'&&!anim)el.classList.add('playable');
     if(selectedHandCard&&selectedHandCard.id===c.id)el.classList.add('selected');
     if(SET.anims&&!prevHandIds.has(c.id))el.classList.add('deal-in');
+    // چیدمان بادبزنی: کارت‌ها روی هم و کمی کج، مثل دستِ واقعی
+    const mid=(n-1)/2, off=i-mid;
+    el.style.setProperty('--fan-rot', (off*5)+'deg');
+    el.style.setProperty('--fan-y',   (Math.abs(off)*Math.abs(off)*1.7)+'px');
+    el.style.zIndex=String(10+i);
     el.addEventListener('click',()=>onHandCardClick(c));
     bindLongPressPlace(el,c);
     hand.appendChild(el);
@@ -3008,7 +3136,7 @@ const PROG=Object.assign({
   games:0, wins:0, losses:0, highScore:0, surTotal:0, jackSweeps:0,
   missions:{date:'',list:[]}, achClaimed:[], owned:['back-default','tbl-classic','fr-none'],
   activeBack:'back-default', activeTable:'tbl-classic', activeFrame:'fr-none', activeTitle:'t_none', iap:[],
-  vip:false, invitedBy:'', inviteRedeemed:false
+  vip:false, invitedBy:'', inviteRedeemed:false, friends:[]
 }, loadJSON('pasur11_prog')||{});
 function progSave(){ saveJSONSafe('pasur11_prog',PROG); }
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -3506,15 +3634,35 @@ window.grantPurchase=function(sku){
 function boardSubmit(){
   if(!firebaseConfigured()||!SET.profileUsername)return Promise.resolve();
   return fetch(FIREBASE_DB_URL+'/leaderboard/'+encodeURIComponent(SET.profileUsername)+'.json',
-    {method:'PUT',body:JSON.stringify({u:SET.profileUsername,n:SET.pName,t:PROG.trophies,l:PROG.level})}).catch(()=>{});
+    {method:'PUT',body:JSON.stringify({u:SET.profileUsername,n:SET.pName,t:PROG.trophies,
+      l:PROG.level,v:!!PROG.vip,ts:Date.now()})}).catch(()=>{});
+}
+/* ----- جدول رتبه‌بندی (طراحی جدید) ----- */
+let boardTab='all';
+function boardRowHTML(x,i,me){
+  const nm=esc(String(x.n||x.u||'بازیکن').slice(0,16));
+  const crown=i===0?'👑':(i===1?'🥈':(i===2?'🥉':fa(i+1)));
+  const ava=x.a?('style="background-image:url(\''+esc(x.a)+'\')"'):'';
+  return '<div class="pl-row'+(me?' me':'')+'">'
+    +'<span class="pl-rank">'+crown+'</span>'
+    +'<span class="pl-ava" '+ava+'>'+(x.a?'':'👤')+'<span class="pl-lvl">'+fa(x.l||1)+'</span></span>'
+    +'<span class="pl-info"><span class="pl-name">'+nm+(x.v?' <span class="pl-vip">👑</span>':'')+'</span>'
+    +(x.u?'<span class="pl-id">@'+esc(x.u)+'</span>':'')+'</span>'
+    +'<span class="pl-score">🏆 '+fa(x.t||0)+'</span></div>';
 }
 async function openBoard(){
-  const st=$('#boardStatus'), list=$('#boardList'); list.innerHTML='';
+  const st=$('#boardStatus'), list=$('#boardList'), meBox=$('#boardMe');
   const meU=SET.profileUsername||'';
+  const meRow={n:SET.pName,u:meU,t:PROG.trophies,l:PROG.level,v:PROG.vip,a:SET.profileAvatar};
+  list.innerHTML='';
+  if(meBox)meBox.innerHTML='<div class="pl-row me"><span class="pl-rank">شما</span>'
+    +'<span class="pl-ava" '+(SET.profileAvatar?'style="background-image:url(\''+esc(SET.profileAvatar)+'\')"':'')+'>'
+    +(SET.profileAvatar?'':'👤')+'<span class="pl-lvl">'+fa(PROG.level)+'</span></span>'
+    +'<span class="pl-info"><span class="pl-name">'+esc(SET.pName||'شما')+'</span></span>'
+    +'<span class="pl-score">🏆 '+fa(PROG.trophies)+'</span></div>';
   if(!firebaseConfigured()){
-    st.textContent='جدول جهانی وقتی فعال می‌شود که آدرس سرور رایگان (Firebase) در کد تنظیم شود. فعلاً کارنامهٔ خودت:';
-    list.innerHTML='<div class="board-row me"><span>۱. '+esc(SET.pName)+(meU?' (@'+esc(meU)+')':'')+'</span>'
-      +'<span>🏆 '+fa(PROG.trophies)+' | سطح '+fa(PROG.level)+'</span></div>';
+    st.textContent='جدول جهانی وقتی فعال می‌شود که آدرس سرور در کد تنظیم شود.';
+    list.innerHTML=boardRowHTML(meRow,0,true);
     return;
   }
   st.textContent='در حال دریافت جدول…';
@@ -3522,13 +3670,87 @@ async function openBoard(){
     await boardSubmit();
     const r=await fetch(FIREBASE_DB_URL+'/leaderboard.json');
     const data=await r.json()||{};
-    const rows=Object.values(data).filter(x=>x&&x.u).sort((a,b)=>(b.t||0)-(a.t||0)).slice(0,50);
-    st.textContent='🏆 برترین بازیکنان بر اساس جام';
-    list.innerHTML=rows.length?rows.map((x,i)=>
-      '<div class="board-row'+(x.u===meU?' me':'')+'"><span>'+fa(i+1)+'. '+esc(String(x.n||x.u).slice(0,16))+'</span>'
-      +'<span>🏆 '+fa(x.t||0)+' | س '+fa(x.l||1)+'</span></div>').join('')
-      :'<div class="hint">هنوز کسی در جدول ثبت نشده — تو اولین نفر باش!</div>';
+    let rows=Object.values(data).filter(x=>x&&x.u);
+    if(boardTab==='vip')rows=rows.filter(x=>x.v);
+    if(boardTab==='week'){
+      const wk=Date.now()-7*86400000;
+      rows=rows.filter(x=>(x.ts||0)>=wk);
+    }
+    rows.sort((a,b)=>(b.t||0)-(a.t||0));
+    rows=rows.slice(0,50);
+    st.textContent=rows.length?'':'هنوز کسی در این بخش ثبت نشده — تو اولین نفر باش!';
+    list.innerHTML=rows.map((x,i)=>boardRowHTML(x,i,x.u&&x.u===meU)).join('');
+    // رتبهٔ خودم
+    const myIdx=rows.findIndex(x=>x.u&&x.u===meU);
+    if(meBox&&myIdx>=0)meBox.innerHTML=boardRowHTML(rows[myIdx],myIdx,true);
   }catch(e){ st.textContent='دریافت جدول ممکن نشد؛ اینترنت را بررسی کن.'; }
+}
+document.querySelectorAll('[data-btab]').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('[data-btab]').forEach(x=>x.classList.toggle('active',x===t));
+    boardTab=t.dataset.btab; openBoard();
+  });
+});
+
+/* ----- دوستان ----- */
+function friendsData(){ if(!Array.isArray(PROG.friends))PROG.friends=[]; return PROG.friends; }
+function openFriends(){
+  const mine=friendsData();
+  const box=$('#friendList'); if(!box)return;
+  const my=$('#frMyId'); if(my)my.textContent=fa(ensureUserId());
+  const cap=$('#frCap'); if(cap)cap.textContent='ظرفیت لیست دوستان: '+fa(mine.length)+' از ۵۰ نفر';
+  box.innerHTML='';
+  if(!mine.length){
+    box.innerHTML='<div class="card-box" style="text-align:center"><div style="font-size:40px">👥</div>'
+      +'<p class="hint">هنوز دوستی اضافه نکرده‌ای. از تب «دوست‌یابی» با شناسه دوست اضافه کن.</p></div>';
+    return;
+  }
+  mine.forEach(f=>{
+    const row=document.createElement('div'); row.className='pl-row';
+    row.innerHTML='<span class="pl-ava">👤<span class="pl-lvl">'+fa(f.l||1)+'</span></span>'
+      +'<span class="pl-info"><span class="pl-name">'+esc(f.n||'بازیکن')+'</span>'
+      +'<span class="pl-id">#'+esc(f.id)+'</span></span>'
+      +'<span class="pl-score">🏆 '+fa(f.t||0)+'</span>';
+    const del=document.createElement('button'); del.className='pl-del'; del.textContent='🗑';
+    del.onclick=()=>{
+      PROG.friends=friendsData().filter(x=>x.id!==f.id);
+      progSave(); openFriends(); toast('از فهرست دوستان حذف شد');
+    };
+    row.appendChild(del); box.appendChild(row);
+  });
+}
+document.querySelectorAll('[data-ftab]').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('[data-ftab]').forEach(x=>x.classList.toggle('active',x===t));
+    const sec=t.dataset.ftab;
+    document.querySelectorAll('[data-fsec]').forEach(s2=>{ s2.style.display=(s2.dataset.fsec===sec)?'block':'none'; });
+    const cap=$('#frCap'); if(cap)cap.style.display=sec==='mine'?'block':'none';
+  });
+});
+{
+  const fb=document.getElementById('frFindBtn');
+  if(fb)fb.onclick=async()=>{
+    const msg=$('#frFindMsg'), v=($('#frFindInput').value||'').trim();
+    if(!v){ msg.textContent='شناسه را وارد کن'; return; }
+    if(v===ensureUserId()){ msg.textContent='این شناسهٔ خودت است 🙂'; return; }
+    const mine=friendsData();
+    if(mine.length>=50){ msg.textContent='ظرفیت فهرست دوستان پر است (۵۰ نفر)'; return; }
+    if(mine.some(x=>x.id===v)){ msg.textContent='این دوست از قبل در فهرست توست'; return; }
+    msg.textContent='در حال جستجو…';
+    let info=null;
+    if(firebaseConfigured()){
+      try{
+        const r=await fetch(FIREBASE_DB_URL+'/users/'+encodeURIComponent(v)+'.json');
+        info=await r.json();
+      }catch(e){}
+    }
+    if(!info){ msg.textContent='بازیکنی با این شناسه پیدا نشد'; return; }
+    mine.push({id:v,n:info.name||'بازیکن',l:info.level||1,t:info.trophies||0});
+    progSave();
+    msg.textContent='✅ «'+(info.name||'بازیکن')+'» به دوستانت اضافه شد';
+    $('#frFindInput').value='';
+    openFriends();
+  };
 }
 
 /* ----- یکتایی نام‌کاربری ----- */
@@ -3681,11 +3903,33 @@ function applyVipUI(){
   const bt=$('#btnVip'); if(bt){ const t=bt.querySelector('.hud-vip-txt'); if(t)t.textContent=PROG.vip?'فعال':'اشتراک'; }
   const av=$('#menuAvatar'); if(av)av.style.borderColor=PROG.vip?'#ffd75e':'var(--gold)';
 }
+const VIP_PACKS=[
+  {m:1, sku:'vip_subscription',   price:'۱۹٬۹۰۰ تومان'},
+  {m:2, sku:'vip_subscription_2', price:'۲۹٬۹۰۰ تومان'},
+  {m:3, sku:'vip_subscription_3', price:'۳۹٬۹۰۰ تومان'},
+];
 function openVip(){
   const on=PROG.vip;
-  $('#vipState').textContent=on?'✅ اشتراک VIP تو فعال است — از همهٔ امتیازها بهره‌مندی':'با VIP، بازی را حرفه‌ای‌تر تجربه کن';
-  $('#btnBuyVip').style.display=on?'none':'flex';
-  $('#btnCancelVip').style.display=on?'flex':'none';
+  const w=$('#vipStateWord'); if(w)w.textContent=on?'فعال':'غیرفعال';
+  const bar=$('#vipStateBar'); if(bar)bar.style.cssText=on
+    ?'display:block;height:100%;border-radius:7px;background:linear-gradient(90deg,#2f7d5a,#7fe0b4)':'display:none';
+  $('#vipState').textContent=on?'اشتراک VIP تو فعال است — از همهٔ امتیازها بهره‌مندی':'شما هیچ اشتراک فعالی ندارید';
+  const cb=$('#btnCancelVip'); if(cb)cb.style.display=on?'flex':'none';
+  const pk=$('#vipPacks');
+  if(pk){
+    pk.innerHTML='';
+    VIP_PACKS.forEach(v=>{
+      const b=document.createElement('button'); b.className='vip-pack';
+      b.innerHTML='<div class="vp-medal"><span class="vp-num">'+fa(v.m)+'</span><span class="vp-unit">ماهه</span></div>'
+        +'<div class="vp-price">'+v.price+'</div>';
+      b.onclick=()=>{
+        const bridge=window.AndroidBilling||window.MyketBilling;
+        if(bridge&&bridge.buy){ try{ bridge.buy(v.sku); }catch(e){ toast('شروع خرید ممکن نشد؛ دوباره امتحان کن'); } }
+        else { grantVip(); }
+      };
+      pk.appendChild(b);
+    });
+  }
 }
 function grantVip(){
   PROG.vip=true;
@@ -3791,7 +4035,7 @@ $('#btnRedeemInvite').onclick=()=>{
 })();
 
 /* ----- دکمه‌های منو ----- */
-$('#btnFriends').onclick=()=>show('friends');
+$('#btnFriends').onclick=()=>{ openFriends(); show('friends'); };
 $('#btnSettings2').onclick=()=>{ openSettingsForm(); show('settings'); };
 $('#btnHall').onclick=()=>{ openHall(); show('hall'); };
 $('#btnInvite').onclick=()=>{ openInvite(); show('invite'); };
