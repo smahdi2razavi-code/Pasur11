@@ -24,9 +24,9 @@
   --ivory:#f8f2e2;      /* رنگ کارت */
   --ink:#232733;
   --crimson:#b3273b;
-  --cw:clamp(72px, 22vw, 118px);           /* عرض کارت دست */
+  --cw:clamp(52px, 16.5vw, 86px);          /* عرض کارت دست */
   --ch:calc(var(--cw)*1.4);   /* نسبت واقعی ورق بازی */
-  --tw:clamp(66px, 20vw, 106px);           /* عرض کارت روی میز */
+  --tw:clamp(44px, 13.5vw, 74px);          /* عرض کارت روی میز */
   --th:calc(var(--tw)*1.4);
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
@@ -365,19 +365,9 @@ body.is-vip .vip-emblem .ve-crown{filter:drop-shadow(0 2px 6px rgba(127,224,180,
 #tableArea .card{width:var(--tw); height:var(--th);}
 .table-empty-hint{width:100%; text-align:center; color:rgba(248,242,226,.45); font-size:14px;}
 #selHint{flex:0 0 auto; text-align:center; font-size:11.5px; color:#ffe9ad; min-height:18px; padding:0 20px; z-index:2; line-height:1.6;}
-/* دست بازیکن: چیدمان بادبزنی (کارت‌ها روی هم و کج) */
-#handRow{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 12px); min-height:calc(var(--ch) + 26px);
-  align-items:flex-end; gap:0; padding-top:14px;}
-#handRow .card{margin:0 calc(var(--cw) * -0.20); transition:transform .18s ease-out, margin .18s ease-out;
-  transform-origin:bottom center;
-  transform:rotate(var(--fan-rot,0deg)) translateY(var(--fan-y,0px));}
-#handRow .card:first-child{margin-right:0;}
-#handRow .card:last-child{margin-left:0;}
-#handRow .card.playable:active{
-  transform:rotate(var(--fan-rot,0deg)) translateY(calc(var(--fan-y,0px) - 16px)) scale(1.04); z-index:40 !important;}
-#handRow .card.selected{
-  transform:rotate(0deg) translateY(-18px) scale(1.06) !important; z-index:50 !important;
-  margin:0 4px;}
+#handRow{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 12px); min-height:calc(var(--ch) + 14px); align-items:flex-end;}
+#handRow .card{margin:0 2px; transition:transform .15s;}
+#handRow .card.playable:active{transform:translateY(-14px);}
 .card.selected{box-shadow:0 0 0 3px var(--gold), 0 0 14px 1px rgba(230,182,76,.65) !important; transform:translateY(-8px);}
 #tableArea .card.selected{transform:translateY(-6px);}
 .card.deal-in{animation:dealIn .45s cubic-bezier(.2,.85,.25,1) both;}
@@ -481,6 +471,13 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 .srow.total{font-weight:800; color:var(--gold-soft); border-bottom:none; font-size:16px; margin-top:4px;}
 .modal .btn{width:100%; margin-top:14px;}
 .modal p{font-size:14.5px; line-height:2; color:#dfe6f8;}
+/* ===== برش عکس پروفایل ===== */
+.crop-stage{position:relative; width:min(260px,72vw); height:min(260px,72vw); margin:0 auto;
+  border-radius:14px; overflow:hidden; background:#0d1428; touch-action:none;}
+.crop-stage canvas{display:block; width:100%; height:100%;}
+.crop-ring{position:absolute; inset:0; pointer-events:none;
+  box-shadow:0 0 0 999px rgba(5,9,20,.62) inset;
+  border-radius:50%; border:2px solid var(--gold);}
 /* ===== تب‌های بخش‌دار (دوستان / رتبه‌بندی) ===== */
 .seg-tabs{display:flex; gap:6px; margin-bottom:10px;}
 .seg-tab{flex:1 1 0; font-family:inherit; font-size:13px; font-weight:800; cursor:pointer;
@@ -647,19 +644,19 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
 
 /* ===================== سازگاری با ابعاد همهٔ گوشی‌ها (اندروید و آیفون) ===================== */
 @media (max-height:660px){
-  :root{--cw:clamp(60px,19vw,98px); --tw:clamp(54px,16.5vw,88px);}
+  :root{--cw:clamp(44px,14vw,70px); --tw:clamp(38px,11.5vw,60px);}
   .logo h1{font-size:clamp(34px,10vw,52px);}
   .menu-cards{margin-bottom:12px;}
   .ornament{margin:8px auto 12px;}
 }
 @media (max-height:560px){
-  :root{--cw:clamp(52px,16.5vw,80px); --tw:clamp(46px,14vw,68px);}
+  :root{--cw:clamp(38px,12vw,58px); --tw:clamp(32px,10vw,50px);}
   .menu-btns{gap:8px;}
   .btn{padding:10px 16px; font-size:15px;}
   .deckinfo,#surIndicator{font-size:10.5px;}
 }
 @media (min-width:760px){
-  :root{--cw:120px; --tw:106px;}
+  :root{--cw:92px; --tw:78px;}
   .menu-btns,.profile-chip{width:360px;}
 }
 
@@ -1369,6 +1366,24 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
   </div>
 </div>
 
+<!-- ============ کراپ عکس پروفایل ============ -->
+<div class="modal-wrap" id="cropWrap">
+  <div class="modal">
+    <h3>برش عکس پروفایل</h3>
+    <div class="crop-stage" id="cropStage">
+      <canvas id="cropCanvas"></canvas>
+      <div class="crop-ring"></div>
+    </div>
+    <div class="set-item" style="margin-top:10px">
+      <label class="title">بزرگ‌نمایی</label>
+      <input type="range" id="cropZoom" min="100" max="300" value="100">
+      <div class="hint" style="text-align:center">عکس را با انگشت جابه‌جا کن و با نوار بالا بزرگ/کوچک کن.</div>
+    </div>
+    <button class="btn primary" id="cropOk" style="width:100%">تأیید و ذخیره</button>
+    <button class="btn" id="cropCancel" style="width:100%">انصراف</button>
+  </div>
+</div>
+
 <!-- ============ مودال تأیید خروج (دکمهٔ برگشت) ============ -->
 <div class="modal-wrap" id="backWrap">
   <div class="modal">
@@ -1739,14 +1754,106 @@ function openProfileForm(){
     av2.dataset.pending=uri;
   });
 }
+/* ================= برش (کراپ) عکس پروفایل ================= */
+const CROP={img:null, zoom:1, x:0, y:0, size:0, done:null};
+function openCropper(file,onDone){
+  if(!file)return;
+  const fr=new FileReader();
+  fr.onload=()=>{
+    const im=new Image();
+    im.onload=()=>{
+      CROP.img=im; CROP.zoom=1; CROP.x=0; CROP.y=0; CROP.done=onDone;
+      const cv=document.getElementById('cropCanvas');
+      const box=document.getElementById('cropStage');
+      const px=Math.min(box.clientWidth||260, 320);
+      CROP.size=px;
+      cv.width=px; cv.height=px;
+      const z=document.getElementById('cropZoom'); if(z)z.value=100;
+      drawCrop();
+      document.getElementById('cropWrap').classList.add('show');
+    };
+    im.onerror=()=>toast('این فایل عکس معتبر نیست');
+    im.src=fr.result;
+  };
+  fr.onerror=()=>toast('خواندن فایل ممکن نشد');
+  fr.readAsDataURL(file);
+}
+function cropBaseScale(){
+  const im=CROP.img; if(!im)return 1;
+  return Math.max(CROP.size/im.naturalWidth, CROP.size/im.naturalHeight);  // پرکردن کامل کادر
+}
+function clampCrop(){
+  const im=CROP.img; if(!im)return;
+  const sc=cropBaseScale()*CROP.zoom;
+  const w=im.naturalWidth*sc, h=im.naturalHeight*sc;
+  const maxX=Math.max(0,(w-CROP.size)/2), maxY=Math.max(0,(h-CROP.size)/2);
+  CROP.x=Math.max(-maxX,Math.min(maxX,CROP.x));
+  CROP.y=Math.max(-maxY,Math.min(maxY,CROP.y));
+}
+function drawCrop(){
+  const cv=document.getElementById('cropCanvas'); if(!cv||!CROP.img)return;
+  const ctx=cv.getContext('2d');
+  const im=CROP.img, sc=cropBaseScale()*CROP.zoom;
+  const w=im.naturalWidth*sc, h=im.naturalHeight*sc;
+  clampCrop();
+  ctx.clearRect(0,0,CROP.size,CROP.size);
+  ctx.fillStyle='#0d1428'; ctx.fillRect(0,0,CROP.size,CROP.size);
+  ctx.drawImage(im, (CROP.size-w)/2+CROP.x, (CROP.size-h)/2+CROP.y, w, h);
+}
+{
+  const stage=document.getElementById('cropStage');
+  if(stage){
+    let drag=false, lx=0, ly=0;
+    const down=e=>{ drag=true; const t=e.touches?e.touches[0]:e; lx=t.clientX; ly=t.clientY; };
+    const move=e=>{
+      if(!drag)return;
+      const t=e.touches?e.touches[0]:e;
+      CROP.x+=t.clientX-lx; CROP.y+=t.clientY-ly;
+      lx=t.clientX; ly=t.clientY;
+      drawCrop(); e.preventDefault();
+    };
+    const up=()=>{ drag=false; };
+    stage.addEventListener('pointerdown',down);
+    stage.addEventListener('pointermove',move);
+    stage.addEventListener('pointerup',up);
+    stage.addEventListener('pointerleave',up);
+    stage.addEventListener('pointercancel',up);
+  }
+  const zoom=document.getElementById('cropZoom');
+  if(zoom)zoom.addEventListener('input',()=>{ CROP.zoom=(parseInt(zoom.value)||100)/100; drawCrop(); });
+  const cc=document.getElementById('cropCancel');
+  if(cc)cc.onclick=()=>{ document.getElementById('cropWrap').classList.remove('show'); CROP.img=null; };
+  const ok=document.getElementById('cropOk');
+  if(ok)ok.onclick=()=>{
+    if(!CROP.img)return;
+    // خروجی نهایی: دایرهٔ برش‌خورده روی بوم ۲۵۶×۲۵۶
+    const out=document.createElement('canvas'); out.width=256; out.height=256;
+    const ctx=out.getContext('2d');
+    const im=CROP.img, sc=(256/CROP.size)*cropBaseScale()*CROP.zoom;
+    const w=im.naturalWidth*sc, h=im.naturalHeight*sc;
+    const dx=(256-w)/2+CROP.x*(256/CROP.size), dy=(256-h)/2+CROP.y*(256/CROP.size);
+    ctx.fillStyle='#131e40'; ctx.fillRect(0,0,256,256);
+    ctx.save();
+    ctx.beginPath(); ctx.arc(128,128,128,0,Math.PI*2); ctx.closePath(); ctx.clip();
+    ctx.drawImage(im,dx,dy,w,h);
+    ctx.restore();
+    let uri;
+    try{ uri=out.toDataURL('image/jpeg',0.85); }catch(e){ toast('ساخت عکس ممکن نشد'); return; }
+    document.getElementById('cropWrap').classList.remove('show');
+    if(typeof CROP.done==='function')CROP.done(uri);
+    CROP.img=null;
+  };
+}
 $('#profAvatarFile').addEventListener('change',e=>{
-  const f=e.target.files&&e.target.files[0]; if(!f)return;
-  readImageScaled(f,256,256,dataUrl=>{
-    const av=$('#profAvatarEdit');
-    av.style.backgroundImage='url("'+dataUrl+'")'; av.textContent='';
-    av.dataset.pending=dataUrl;
-  });
+  const f=e.target.files&&e.target.files[0];
   e.target.value='';
+  if(!f)return;
+  openCropper(f,uri=>{
+    const av=$('#profAvatarEdit');
+    av.style.backgroundImage='url("'+uri+'")'; av.textContent='';
+    av.dataset.pending=uri;
+    toast('عکس برش خورد ✔ برای ذخیره، «ذخیره» را بزن');
+  });
 });
 $('#btnAvatarRemove').onclick=()=>{
   SET.profileAvatar=null; persistSettings();
@@ -2656,17 +2763,11 @@ function render(){
   });
 
   const hand=$('#handRow'); hand.innerHTML='';
-  const n=G.p.length;
-  G.p.forEach((c,i)=>{
+  G.p.forEach(c=>{
     const el=cardEl(c,false);
     if(G.turn==='p'&&!anim)el.classList.add('playable');
     if(selectedHandCard&&selectedHandCard.id===c.id)el.classList.add('selected');
     if(SET.anims&&!prevHandIds.has(c.id))el.classList.add('deal-in');
-    // چیدمان بادبزنی: کارت‌ها روی هم و کمی کج، مثل دستِ واقعی
-    const mid=(n-1)/2, off=i-mid;
-    el.style.setProperty('--fan-rot', (off*5)+'deg');
-    el.style.setProperty('--fan-y',   (Math.abs(off)*Math.abs(off)*1.7)+'px');
-    el.style.zIndex=String(10+i);
     el.addEventListener('click',()=>onHandCardClick(c));
     bindLongPressPlace(el,c);
     hand.appendChild(el);
@@ -4034,6 +4135,29 @@ function presetSVG(bg1,bg2,glyph,gcolor){
     +'<text x="64" y="86" font-size="58" text-anchor="middle" fill="'+gcolor+'" font-family="Georgia,serif" font-weight="bold">'+glyph+'</text></svg>';
   return 'data:image/svg+xml;utf8,'+encodeURIComponent(svg);
 }
+/* آواتار شخصیتی (چهره + کلاه/مو) — بدون نیاز به اینترنت یا فایل بیرونی */
+function faceSVG(bg1,bg2,skin,hair,acc,accColor){
+  const A={
+    cap:'<path d="M30 44 q34 -26 68 0 v5 H30 Z" fill="'+accColor+'"/><path d="M92 44 q22 3 26 12 q-16 3 -26 -4 Z" fill="'+accColor+'"/>',
+    hat:'<ellipse cx="64" cy="47" rx="42" ry="7" fill="'+accColor+'"/><path d="M40 47 q24 -24 48 0 Z" fill="'+accColor+'"/>',
+    band:'<rect x="28" y="40" width="72" height="9" rx="4" fill="'+accColor+'"/>',
+    glass:'<g fill="none" stroke="'+accColor+'" stroke-width="4"><circle cx="50" cy="70" r="12"/><circle cx="80" cy="70" r="12"/><path d="M62 70 h6"/></g>',
+    none:''
+  };
+  const svg='<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">'
+    +'<defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1">'
+    +'<stop offset="0" stop-color="'+bg1+'"/><stop offset="1" stop-color="'+bg2+'"/></linearGradient></defs>'
+    +'<rect width="128" height="128" fill="url(#b)"/>'
+    +'<circle cx="64" cy="118" r="42" fill="'+hair+'"/>'                 // شانه‌ها
+    +'<path d="M36 62 q0 -32 28 -32 q28 0 28 32 v6 q0 30 -28 30 q-28 0 -28 -30 Z" fill="'+skin+'"/>'  // صورت
+    +'<path d="M36 58 q0 -30 28 -30 q28 0 28 30 q-10 -12 -28 -12 q-18 0 -28 12 Z" fill="'+hair+'"/>'  // مو
+    +'<circle cx="52" cy="70" r="3.6" fill="#20222c"/><circle cx="76" cy="70" r="3.6" fill="#20222c"/>'
+    +'<path d="M56 84 q8 6 16 0" stroke="#20222c" stroke-width="3" fill="none" stroke-linecap="round"/>'
+    +(A[acc]||'')
+    +'<rect x="2" y="2" width="124" height="124" rx="12" fill="none" stroke="#e6b64c" stroke-width="4"/>'
+    +'</svg>';
+  return 'data:image/svg+xml;utf8,'+encodeURIComponent(svg);
+}
 /* آواتارهای رایگان */
 const AV_PRESETS=[
   presetSVG('#1c2b52','#0f1a38','♠','#e6b64c'),
@@ -4048,6 +4172,15 @@ const AV_PRESETS=[
   presetSVG('#4a3410','#241906','☀','#ffe9ad'),
   presetSVG('#2d1a3d','#160c20','❋','#e6b64c'),
   presetSVG('#123326','#081a13','❖','#f3d489'),
+  // آواتارهای شخصیتی
+  faceSVG('#1c2b52','#0f1a38','#f0c9a0','#3a2a1a','none',''),
+  faceSVG('#4a1220','#2a0a12','#e8b98c','#1e1a18','cap','#d43a3a'),
+  faceSVG('#123a4a','#0a2230','#f5d6b3','#5a3a1c','glass','#2b2b33'),
+  faceSVG('#143a2a','#0a2418','#d9a273','#241a12','hat','#2f7d5a'),
+  faceSVG('#3a2a06','#1f1502','#f0c9a0','#6b4a22','band','#e6b64c'),
+  faceSVG('#26386b','#131e40','#e8b98c','#2a2a35','cap','#3a5fd0'),
+  faceSVG('#402a52','#221232','#f5d6b3','#4a2a5a','glass','#b6a2ff'),
+  faceSVG('#0f5148','#0a3a34','#d9a273','#1a1a1a','hat','#0f5148'),
 ];
 /* آواتارهای ویژه (با سکه باز می‌شوند) */
 const AV_PREMIUM=[
