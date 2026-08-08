@@ -70,12 +70,22 @@ function readBody(req) {
 }
 // مسیرهای سازگار با Firebase: /leaderboard/ali.json → ['leaderboard','ali']
 function parsePath(url) {
-  const clean = url.split('?')[0].replace(/\.json$/, '');
-  return clean.split('/').filter(Boolean).map(decodeURIComponent);
+  const clean = String(url || '').split('?')[0].replace(/\.json$/, '');
+  return clean.split('/').filter(Boolean).map(p => {
+    try { return decodeURIComponent(p); } catch (e) { return p; }   // آدرس خراب سرور را نیندازد
+  });
 }
+// خواندن امن پارامتر ?key=
+function getKey(url) {
+  try { return new URL(url, 'http://x').searchParams.get('key'); } catch (e) { return null; }
+}
+// هیچ خطای پیش‌بینی‌نشده‌ای نباید سرور را از کار بیندازد
+process.on('uncaughtException',  e => console.error('uncaughtException:', e && e.message));
+process.on('unhandledRejection', e => console.error('unhandledRejection:', e && e.message));
 
 /* ---------- سرور ---------- */
 const server = http.createServer(async (req, res) => {
+ try {
   if (req.method === 'OPTIONS') return sendJSON(res, 200, null);
 
   const parts  = parsePath(req.url);
@@ -137,7 +147,7 @@ const server = http.createServer(async (req, res) => {
     if (method === 'GET' && a)  return sendJSON(res, 200, DB.users[a] || null);
     if (method === 'GET' && !a) {
       // فهرست کامل کاربران فقط با کلید مدیریت
-      const key = new URL(req.url, 'http://x').searchParams.get('key');
+      const key = getKey(req.url);
       if (key !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
       return sendJSON(res, 200, DB.users);
     }
@@ -148,7 +158,7 @@ const server = http.createServer(async (req, res) => {
     // نوشتن دستور مدیریتی: از سمت بازی فقط صفرکردن مجاز است؛ بقیه کلید می‌خواهد
     if (method === 'PUT' && a && b) {
       const body = await readBody(req);
-      const key  = new URL(req.url, 'http://x').searchParams.get('key');
+      const key  = getKey(req.url);
       const clearing = (body === 0 || body === false || body === '0' || body === 'false');
       if (!clearing && key !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
       DB.control[a] = DB.control[a] || {};
@@ -158,6 +168,11 @@ const server = http.createServer(async (req, res) => {
   }
 
   return sendJSON(res, 404, { error: 'not found' });
+ } catch (e) {
+  console.error('request error:', e && e.message);
+  try { sendJSON(res, 500, { error: 'server error' }); } catch (e2) {}
+ }
 });
+server.on('clientError', (err, socket) => { try { socket.destroy(); } catch (e) {} });
 
 server.listen(PORT, () => console.log('سرور پاسور ۱۱ روی پورت ' + PORT + ' اجرا شد'));
