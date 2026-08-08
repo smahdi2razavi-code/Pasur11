@@ -8,12 +8,15 @@ APP_DIR="/opt/pasur11"
 RAW="https://raw.githubusercontent.com/smahdi2razavi-code/Pasur11/claude/gallant-planck-ofe9g8/server/server.js"
 
 echo "[1/4] Downloading latest server..."
-curl -fsSL "$RAW" -o "$APP_DIR/server.js.new"
-if [ ! -s "$APP_DIR/server.js.new" ]; then
+TMP="/tmp/pasur11-new-server.js"
+curl -fsSL "$RAW" -o "$TMP"
+if [ ! -s "$TMP" ]; then
   echo "ERROR: download failed"; exit 1
 fi
-node --check "$APP_DIR/server.js.new"
-mv "$APP_DIR/server.js.new" "$APP_DIR/server.js"
+node --check "$TMP" || { echo "ERROR: downloaded file is invalid"; exit 1; }
+mkdir -p "$APP_DIR"
+cp "$TMP" "$APP_DIR/server.js"
+rm -f "$TMP"
 
 echo "[2/4] Restarting app..."
 cd "$APP_DIR"
