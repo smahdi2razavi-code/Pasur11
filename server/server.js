@@ -147,6 +147,16 @@ const server = http.createServer(async (req, res) => {
       saveDB(); return sendJSON(res, 200, body);
     }
     if (method === 'GET' && a)  return sendJSON(res, 200, DB.users[a] || null);
+    // حذف کامل اکانت (فقط با کلید مدیریت)
+    if (method === 'DELETE' && a) {
+      if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+      const u = DB.users[a];
+      delete DB.users[a];
+      delete DB.control[a];
+      if (DB.friendreq) delete DB.friendreq[a];
+      if (u && u.user) { delete DB.leaderboard[u.user]; delete DB.usernames[u.user]; }
+      saveDB(); return sendJSON(res, 200, { deleted: true });
+    }
     if (method === 'GET' && !a) {
       // فهرست کامل کاربران فقط با کلید مدیریت
       const key = getKey(req.url);

@@ -96,10 +96,23 @@ tr:hover td{background:rgba(255,255,255,.03);}
     <div style="height:9px"></div>
     <label>تعداد سکهٔ هدیه</label>
     <input id="coins" type="number" value="500" min="1">
+    <button class="btn-gold" id="btnCoins" style="width:100%">🪙 هدیهٔ سکه</button>
+
+    <div style="height:12px"></div>
+    <label>امتیاز (جام) — برای کم‌کردن، عدد منفی بنویس</label>
+    <input id="score" type="number" value="100">
+    <button class="btn-gold" id="btnScore" style="width:100%">🏆 افزودن امتیاز</button>
+
+    <div style="height:12px"></div>
+    <label>پیام به کاربر (در صندوق پستی بازی نشان داده می‌شود)</label>
+    <input id="msg" placeholder="مثلاً: از گزارش شما ممنونیم!">
+    <button class="btn-ghost" id="btnMsg" style="width:100%">✉️ ارسال پیام</button>
+
+    <div style="height:12px"></div>
     <div class="row">
-      <button class="btn-gold" id="btnCoins">🪙 هدیهٔ سکه</button>
       <button class="btn-bad" id="btnBan">⛔ مسدودکردن</button>
       <button class="btn-ghost" id="btnUnban">✅ رفع مسدودی</button>
+      <button class="btn-bad" id="btnDelete">🗑 حذف کامل اکانت</button>
     </div>
     <div class="status" id="opMsg"></div>
   </div>
@@ -258,6 +271,35 @@ async function setControl(field,value,okText){
 $('#btnVip').onclick=()=>setControl('vipGrant',true,'👑 VIP برای این کاربر ثبت شد. با باز کردن بعدی بازی فعال می‌شود.');
 $('#btnBan').onclick=()=>{ if(confirm('این کاربر مسدود شود؟'))setControl('banned',true,'⛔ کاربر مسدود شد.'); };
 $('#btnUnban').onclick=()=>setControl('banned',false,'✅ مسدودی برداشته شد.');
+$('#btnScore').onclick=async()=>{
+  const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
+  const n=parseInt($('#score').value)||0;
+  if(!n){ msg($('#opMsg'),'مقدار امتیاز را وارد کن',false); return; }
+  try{
+    const c=await api('/control/'+encodeURIComponent(id)+'.json');
+    const cur=(c&&typeof c.scoreGrant==='number')?c.scoreGrant:0;
+    await setControl('scoreGrant',cur+n,'🏆 '+fa(Math.abs(n))+' جام '+(n>0?'اضافه':'کم')+' شد (جمع در انتظار: '+fa(cur+n)+').');
+  }catch(e){ msg($('#opMsg'),'انجام نشد',false); }
+};
+$('#btnMsg').onclick=async()=>{
+  const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
+  const t=($('#msg').value||'').trim();
+  if(!t){ msg($('#opMsg'),'متن پیام را بنویس',false); return; }
+  await setControl('msg',t,'✉️ پیام ثبت شد. با باز کردن بعدی بازی، در صندوق پستی کاربر نشان داده می‌شود.');
+  $('#msg').value='';
+};
+$('#btnDelete').onclick=async()=>{
+  const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
+  if(!confirm('اکانت '+id+' کاملاً حذف شود؟\n\nاطلاعات کاربر، رکورد رتبه‌بندی و نام‌کاربری‌اش پاک می‌شود.\nاین کار برگشت‌پذیر نیست.'))return;
+  if(!confirm('بار دوم تأیید می‌کنی؟ حذف قطعی است.'))return;
+  try{
+    const r=await fetch(SRV.replace(/\/$/,'')+adminUrl('/users/'+encodeURIComponent(id)+'.json'),{method:'DELETE'});
+    const j=await r.json();
+    if(j&&j.error)throw new Error('کلید مدیریت اشتباه است');
+    msg($('#opMsg'),'🗑 اکانت '+id+' کاملاً حذف شد.',true);
+    $('#uid').value=''; loadUsers();
+  }catch(e){ msg($('#opMsg'),'حذف ممکن نشد: '+(e.message||''),false); }
+};
 $('#btnCoins').onclick=async()=>{
   const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
   const n=parseInt($('#coins').value)||0;

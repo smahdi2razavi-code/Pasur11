@@ -24,9 +24,9 @@
   --ivory:#f8f2e2;      /* رنگ کارت */
   --ink:#232733;
   --crimson:#b3273b;
-  --cw:clamp(52px, 16.5vw, 86px);          /* عرض کارت دست */
+  --cw:clamp(68px, 21.5vw, 112px);          /* عرض کارت دست */
   --ch:calc(var(--cw)*1.4);   /* نسبت واقعی ورق بازی */
-  --tw:clamp(44px, 13.5vw, 74px);          /* عرض کارت روی میز */
+  --tw:clamp(57px, 17.5vw, 96px);          /* عرض کارت روی میز */
   --th:calc(var(--tw)*1.4);
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
@@ -471,6 +471,15 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 .srow.total{font-weight:800; color:var(--gold-soft); border-bottom:none; font-size:16px; margin-top:4px;}
 .modal .btn{width:100%; margin-top:14px;}
 .modal p{font-size:14.5px; line-height:2; color:#dfe6f8;}
+/* ===== صندوق پستی ===== */
+.mail-item{display:flex; gap:11px; align-items:flex-start; padding:13px; margin-bottom:9px;
+  background:rgba(255,255,255,.05); border:1px solid var(--line,#2c3d72); border-radius:14px;}
+.mail-item.unread{border-color:var(--gold); background:rgba(230,182,76,.1);}
+.mail-ic{font-size:26px; flex:0 0 auto;}
+.mail-body{flex:1 1 auto; min-width:0;}
+.mail-title{font-size:14.5px; font-weight:800; color:var(--gold-soft); margin-bottom:3px;}
+.mail-text{font-size:13px; color:#dfe6f8; line-height:1.9;}
+.mail-time{font-size:11px; color:#8d9bc4; margin-top:4px;}
 /* ===== برش عکس پروفایل ===== */
 .crop-stage{position:relative; width:min(260px,72vw); height:min(260px,72vw); margin:0 auto;
   border-radius:14px; overflow:hidden; background:#0d1428; touch-action:none;}
@@ -644,19 +653,19 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
 
 /* ===================== سازگاری با ابعاد همهٔ گوشی‌ها (اندروید و آیفون) ===================== */
 @media (max-height:660px){
-  :root{--cw:clamp(44px,14vw,70px); --tw:clamp(38px,11.5vw,60px);}
+  :root{--cw:clamp(57px,18vw,91px); --tw:clamp(49px,15vw,78px);}
   .logo h1{font-size:clamp(34px,10vw,52px);}
   .menu-cards{margin-bottom:12px;}
   .ornament{margin:8px auto 12px;}
 }
 @media (max-height:560px){
-  :root{--cw:clamp(38px,12vw,58px); --tw:clamp(32px,10vw,50px);}
+  :root{--cw:clamp(49px,15.5vw,75px); --tw:clamp(42px,13vw,65px);}
   .menu-btns{gap:8px;}
   .btn{padding:10px 16px; font-size:15px;}
   .deckinfo,#surIndicator{font-size:10.5px;}
 }
 @media (min-width:760px){
-  :root{--cw:92px; --tw:78px;}
+  :root{--cw:120px; --tw:101px;}
   .menu-btns,.profile-chip{width:360px;}
 }
 
@@ -901,6 +910,7 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
   <div class="dock">
     <button class="dock-btn" id="btnShop"><span class="dk-circle">🛒</span><span class="dk-tx">فروشگاه</span></button>
     <button class="dock-btn" id="btnHub"><span class="dk-circle">🏅<span class="dock-badge" id="hubBadge"></span></span><span class="dk-tx">پیشرفت</span></button>
+    <button class="dock-btn" id="btnInbox"><span class="dk-circle">📬<span class="dock-badge" id="inboxBadge"></span></span><span class="dk-tx">صندوق</span></button>
     <button class="dock-btn" id="btnGuide"><span class="dk-circle">📖</span><span class="dk-tx">راهنما</span></button>
     <button class="dock-btn" id="btnContact"><span class="dk-circle">✉️</span><span class="dk-tx">ارتباط با ما</span></button>
   </div>
@@ -1348,6 +1358,14 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
   </div>
 </div>
 
+<!-- ============ صندوق پستی ============ -->
+<div class="screen" id="inbox">
+  <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>📬 صندوق پستی</h2></div>
+  <div class="scroll">
+    <div id="inboxList"></div>
+  </div>
+</div>
+
 <!-- ============ ارتباط با ما ============ -->
 <div class="screen" id="contact">
   <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>✉️ ارتباط با ما</h2></div>
@@ -1668,6 +1686,8 @@ function show(id){
 document.querySelectorAll('[data-to]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.to)));
 $('#btnGuide').onclick=()=>show('guide');
 { const _ab=document.getElementById('btnAbout'); if(_ab)_ab.onclick=()=>show('about'); }
+{ const _ib=document.getElementById('btnInbox');
+  if(_ib)_ib.onclick=()=>{ openInbox(); show('inbox'); }; }
 /* ارتباط با ما */
 {
   const CONTACT_MAIL='smr2.ff@gmail.com';
@@ -2865,7 +2885,7 @@ function handleBack(){
   if(id==='mpHost'||id==='mpJoin'){ mpTeardown(); show('mpHub'); return; }
   if(id==='mpHub'||id==='exit'){ show('menu'); return; }
   if(id==='settings'){ leaveSettings(); return; }   // تنظیمات: تأیید تغییرات
-  if(id==='vip'||id==='hall'||id==='invite'||id==='friends'||id==='contact'){ show('menu'); return; }
+  if(id==='vip'||id==='hall'||id==='invite'||id==='friends'||id==='contact'||id==='inbox'){ show('menu'); return; }
   show('menu');
 }
 $('#backStay').onclick=()=>$('#backWrap').classList.remove('show');
@@ -3051,6 +3071,48 @@ function showBanModal(){
     $('#modalWrap').classList.add('show');
   }catch(e){}
 }
+/* ================= صندوق پستی ================= */
+function mailsData(){ if(!Array.isArray(PROG.mails))PROG.mails=[]; return PROG.mails; }
+function addMail(icon,title,text){
+  const m=mailsData();
+  m.unshift({i:icon,t:title,x:text,ts:Date.now(),r:false});
+  if(m.length>50)m.length=50;
+  progSave(); updateInboxBadge();
+}
+function unreadMails(){ return mailsData().filter(m=>!m.r).length; }
+function updateInboxBadge(){
+  const el=document.getElementById('inboxBadge'); if(!el)return;
+  const n=unreadMails();
+  if(n>0){ el.textContent=fa(n); el.classList.add('show'); }
+  else{ el.classList.remove('show'); el.textContent=''; }
+}
+function timeAgo(ts){
+  const d=Math.max(0,Date.now()-ts), h=Math.floor(d/3600000), dd=Math.floor(h/24);
+  if(dd>0)return fa(dd)+' روز پیش';
+  if(h>0)return fa(h)+' ساعت پیش';
+  const mi=Math.floor(d/60000);
+  return mi>0?(fa(mi)+' دقیقه پیش'):'همین الان';
+}
+function openInbox(){
+  const box=$('#inboxList'); if(!box)return;
+  const m=mailsData();
+  if(!m.length){
+    box.innerHTML='<div class="card-box" style="text-align:center;padding:36px 18px">'
+      +'<div style="font-size:46px;margin-bottom:8px">📭</div>'
+      +'<h3>صندوق پستی خالی است</h3>'
+      +'<p class="hint">هدیه‌ها و پیام‌های پشتیبانی اینجا نشان داده می‌شوند.</p></div>';
+  } else {
+    box.innerHTML=m.map(x=>'<div class="mail-item'+(x.r?'':' unread')+'">'
+      +'<span class="mail-ic">'+(x.i||'✉️')+'</span>'
+      +'<div class="mail-body"><div class="mail-title">'+esc(x.t||'')+'</div>'
+      +'<div class="mail-text">'+esc(x.x||'')+'</div>'
+      +'<div class="mail-time">'+timeAgo(x.ts||Date.now())+'</div></div></div>').join('');
+  }
+  // با باز کردن، همه خوانده‌شده می‌شوند
+  m.forEach(x=>{ x.r=true; });
+  progSave(); updateInboxBadge();
+}
+
 async function syncUserWithServer(){
   if(!firebaseConfigured())return;
   const uid=encodeURIComponent(ensureUserId());
@@ -3066,12 +3128,22 @@ async function syncUserWithServer(){
     if(!c)return;
     if(c.coinGrant){
       addCoins(c.coinGrant);
+      addMail('🪙','هدیهٔ سکه','مدیریت بازی '+fa(c.coinGrant)+' سکه به حساب تو اضافه کرد. از همراهی‌ات ممنونیم!');
       toast('🎁 هدیهٔ '+fa(c.coinGrant)+' سکه از پشتیبانی دریافت شد',true);
       fetch(FIREBASE_DB_URL+'/control/'+uid+'/coinGrant.json',{method:'PUT',body:'0'}).catch(()=>{});
     }
     if(c.vipGrant){
-      if(!PROG.vip)grantVip();
+      if(!PROG.vip){ grantVip(); addMail('👑','اشتراک VIP فعال شد','اشتراک ویژهٔ VIP برای حساب تو فعال شد. از همهٔ امتیازها لذت ببر!'); }
       fetch(FIREBASE_DB_URL+'/control/'+uid+'/vipGrant.json',{method:'PUT',body:'false'}).catch(()=>{});
+    }
+    if(c.msg&&typeof c.msg==='string'&&c.msg.trim()){
+      addMail('✉️','پیام از پشتیبانی',c.msg.trim());
+      fetch(FIREBASE_DB_URL+'/control/'+uid+'/msg.json',{method:'PUT',body:'0'}).catch(()=>{});
+    }
+    if(typeof c.scoreGrant==='number'&&c.scoreGrant){
+      PROG.trophies=Math.max(0,PROG.trophies+c.scoreGrant); progSave(); renderProgChip();
+      addMail('🏆','امتیاز هدیه',fa(c.scoreGrant)+' جام به حساب تو اضافه شد.');
+      fetch(FIREBASE_DB_URL+'/control/'+uid+'/scoreGrant.json',{method:'PUT',body:'0'}).catch(()=>{});
     }
     USER_BANNED=!!c.banned;
     if(USER_BANNED)showBanModal();
@@ -3352,7 +3424,7 @@ const PROG=Object.assign({
   games:0, wins:0, losses:0, highScore:0, surTotal:0, jackSweeps:0,
   missions:{date:'',list:[]}, achClaimed:[], owned:['back-default','tbl-classic','fr-none'],
   activeBack:'back-default', activeTable:'tbl-classic', activeFrame:'fr-none', activeTitle:'t_none', iap:[],
-  vip:false, invitedBy:'', inviteRedeemed:false, friends:[]
+  vip:false, invitedBy:'', inviteRedeemed:false, friends:[], mails:[]
 }, loadJSON('pasur11_prog')||{});
 function progSave(){ saveJSONSafe('pasur11_prog',PROG); }
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -4449,6 +4521,7 @@ function init(){
     }
   });
   setTimeout(()=>{ try{ refreshFriendBadge(); }catch(e){} }, 3500);
+  try{ updateInboxBadge(); }catch(e){}
   setInterval(()=>{ try{ refreshFriendBadge(); }catch(e){} }, 120000);
 
   // تلاش برای قفل جهت عمودی (فقط در حالت نصب‌شده/تمام‌صفحه توسط مرورگر مجاز است)
