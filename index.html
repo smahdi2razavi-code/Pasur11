@@ -386,10 +386,10 @@ body.is-vip .vip-emblem .ve-crown{filter:drop-shadow(0 2px 6px rgba(127,224,180,
 
 /* ===================== کارت‌ها ===================== */
 .card{
-  width:var(--cw); height:var(--ch); border-radius:10px; position:relative; flex:0 0 auto;
-  background:linear-gradient(160deg,#fffdf4,var(--ivory) 60%,#efe6cd);
-  box-shadow:0 5px 14px rgba(0,0,0,.45), inset 0 0 0 1px #fff;
-  border:1px solid #d8cfae;
+  width:var(--cw); height:var(--ch); border-radius:9px; position:relative; flex:0 0 auto;
+  background:#fff;                        /* ورق واقعی: سفید تمیز */
+  box-shadow:0 4px 12px rgba(0,0,0,.5), 0 0 0 1px rgba(0,0,0,.14);
+  border:none; overflow:hidden;
 }
 body.custom-front .card:not(.back){
   background-image:linear-gradient(rgba(248,242,226,.62),rgba(248,242,226,.62)), var(--custom-front-image);
@@ -397,21 +397,31 @@ body.custom-front .card:not(.back){
   background-position:center, var(--custom-front-pos,center);
   background-repeat:no-repeat;
 }
-.card .frame{position:absolute; inset:4px; border:1px solid rgba(0,0,0,.10); border-radius:7px;}
-.card .corner{position:absolute; top:5px; left:6px; display:flex; flex-direction:column; align-items:center; line-height:1;}
-.card .corner.b{top:auto; left:auto; bottom:5px; right:6px; transform:rotate(180deg);}
-.card .corner .r{font-size:calc(var(--cw)*.24); font-weight:800; font-family:Georgia,'Times New Roman',serif;}
-.card .corner .s{font-size:calc(var(--cw)*.20); margin-top:1px;}
+.card .frame{display:none;}
+/* گوشه‌ها: رتبه و خال، مثل ورق واقعی */
+.card .corner{position:absolute; top:calc(var(--cw)*.055); left:calc(var(--cw)*.075);
+  display:flex; flex-direction:column; align-items:center; line-height:.95;}
+.card .corner.b{top:auto; left:auto; bottom:calc(var(--cw)*.055); right:calc(var(--cw)*.075); transform:rotate(180deg);}
+.card .corner .r{font-size:calc(var(--cw)*.30); font-weight:700; font-family:'Arial Black',Arial,Helvetica,sans-serif;
+  letter-spacing:-.5px;}
+.card .corner .s{font-size:calc(var(--cw)*.22); margin-top:calc(var(--cw)*.01);}
 .card .mid{position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-  font-size:calc(var(--cw)*.52); }
-.card.red{color:var(--crimson);}
-.card.black{color:var(--ink);}
+  font-size:calc(var(--cw)*.52);}
+.card.red{color:#d40000;}                 /* قرمز واقعی ورق */
+.card.black{color:#111;}
+/* چیدمان خال‌ها مثل ورق واقعی */
+.card .pips{position:absolute; inset:calc(var(--cw)*.26) calc(var(--cw)*.17);
+  display:grid; grid-template-columns:repeat(3,1fr); align-items:center; justify-items:center;}
+.card .pips i{font-style:normal; font-size:calc(var(--cw)*.26); line-height:1;}
+.card .pips i.flip{transform:rotate(180deg);}
+/* کارت‌های صورت‌دار: قاب دولایه و حرف بزرگ */
 .card .mid .court{
-  font-family:Georgia,serif; font-weight:800; font-size:calc(var(--cw)*.42);
-  width:66%; height:72%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
-  border:1.5px solid currentColor; border-radius:8px; background:rgba(230,182,76,.14);
+  font-family:Georgia,'Times New Roman',serif; font-weight:800; font-size:calc(var(--cw)*.46);
+  width:62%; height:70%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+  border:2px solid currentColor; border-radius:5px; background:rgba(0,0,0,.03);
+  box-shadow:inset 0 0 0 2px #fff, inset 0 0 0 3.5px currentColor;
 }
-.card .mid .court .cs{font-size:calc(var(--cw)*.28); font-family:inherit;}
+.card .mid .court .cs{font-size:calc(var(--cw)*.3); font-family:inherit; margin-top:2px;}
 .card.back{
   background:
     repeating-linear-gradient(45deg, rgba(243,212,137,.16) 0 6px, transparent 6px 12px),
@@ -502,6 +512,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
   padding:10px 14px calc(env(safe-area-inset-bottom,0px) + 12px);
   background:linear-gradient(180deg,rgba(16,26,51,.7),rgba(10,16,34,.97)); backdrop-filter:blur(6px);
   border-top:1px solid var(--gold);}
+.req-dot{display:none; width:8px; height:8px; border-radius:50%; background:#e0333f;
+  margin-right:4px; vertical-align:middle; box-shadow:0 0 6px rgba(224,51,63,.9);}
 .fr-cap{text-align:center; font-size:12.5px; color:var(--gold-soft); font-weight:700;
   background:rgba(230,182,76,.1); border:1px solid rgba(230,182,76,.35);
   border-radius:11px; padding:8px; margin-bottom:10px;}
@@ -889,7 +901,7 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
     <button class="dock-btn" id="btnShop"><span class="dk-circle">🛒</span><span class="dk-tx">فروشگاه</span></button>
     <button class="dock-btn" id="btnHub"><span class="dk-circle">🏅<span class="dock-badge" id="hubBadge"></span></span><span class="dk-tx">پیشرفت</span></button>
     <button class="dock-btn" id="btnGuide"><span class="dk-circle">📖</span><span class="dk-tx">راهنما</span></button>
-    <button class="dock-btn" id="btnAbout"><span class="dk-circle">ℹ️</span><span class="dk-tx">درباره</span></button>
+    <button class="dock-btn" id="btnContact"><span class="dk-circle">✉️</span><span class="dk-tx">ارتباط با ما</span></button>
   </div>
 
   <!-- دکمه‌های مخفی برای سازگاری کد (تنظیمات و خروج از مسیرهای دیگر صدا زده می‌شوند) -->
@@ -1252,7 +1264,6 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
       <div class="vip-row"><span class="vr-ic">🪙</span><span>جایزهٔ ورود روزانهٔ <b>دوبرابر</b></span></div>
       <div class="vip-row"><span class="vr-ic">🎡</span><span>چرخ شانس رایگان <b>روزی ۳ بار</b></span></div>
       <div class="vip-row"><span class="vr-ic">🏆</span><span><b>۵۰٪</b> پاداش بیشتر در پایان مسابقه</span></div>
-      <div class="vip-row"><span class="vr-ic">🚫</span><span>تجربهٔ <b>بدون تبلیغات</b></span></div>
       <div class="vip-row"><span class="vr-ic">👑</span><span>نشان و قاب <b>طلایی</b> کنار نامت</span></div>
       <div class="vip-row"><span class="vr-ic">🎁</span><span>هدیهٔ خوش‌آمد <b>۲۰۰۰ سکه</b></span></div>
     </div>
@@ -1306,16 +1317,20 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
     <div class="seg-tabs">
       <button class="seg-tab active" data-ftab="mine">دوستان من</button>
       <button class="seg-tab" data-ftab="find">دوست‌یابی</button>
+      <button class="seg-tab" data-ftab="req">درخواست‌ها <span class="req-dot" id="frReqDot"></span></button>
     </div>
     <div class="fr-cap" id="frCap">ظرفیت لیست دوستان حداکثر ۵۰ نفر است</div>
     <div class="fr-sec" data-fsec="mine">
       <div class="list-head"><span>عملیات</span><span>امتیاز</span><span class="lh-name">بازیکن</span></div>
       <div id="friendList"></div>
     </div>
+    <div class="fr-sec" data-fsec="req" style="display:none">
+      <div id="reqList"></div>
+    </div>
     <div class="fr-sec" data-fsec="find" style="display:none">
       <div class="card-box">
         <label class="title">شناسهٔ دوستت را وارد کن</label>
-        <input type="text" id="frFindInput" placeholder="مثلاً: 11-123456" style="width:100%;direction:ltr;text-align:center;font-family:inherit;font-size:17px;padding:11px;border-radius:10px;border:1px solid #3a4f8e;background:#131e40;color:var(--ivory)">
+        <input type="text" id="frFindInput" inputmode="numeric" pattern="[0-9-]*" autocomplete="off" placeholder="11-123456" style="width:100%;direction:ltr;text-align:center;font-family:inherit;font-size:19px;letter-spacing:2px;padding:12px;border-radius:10px;border:1px solid #3a4f8e;background:#131e40;color:var(--ivory)">
         <button class="btn primary" id="frFindBtn" style="width:100%;margin-top:10px">جستجو و افزودن</button>
         <div class="hint" id="frFindMsg" style="text-align:center;margin-top:8px"></div>
       </div>
@@ -1323,6 +1338,27 @@ body.table-night   #game{background:radial-gradient(1200px 760px at 50% -8%,#222
         <div class="hint">شناسهٔ خودت (برای دادن به دوستانت):</div>
         <div class="invite-code" id="frMyId">۱۱-------</div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ ارتباط با ما ============ -->
+<div class="screen" id="contact">
+  <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>✉️ ارتباط با ما</h2></div>
+  <div class="scroll">
+    <div class="card-box" style="text-align:center">
+      <div style="font-size:48px;margin-bottom:6px">✉️</div>
+      <h3>با ما در تماس باش</h3>
+      <p class="hint">هر پیشنهاد، انتقاد یا مشکلی داشتی، برایمان بنویس. خوشحال می‌شویم بشنویم.</p>
+      <div class="invite-code" id="contactMail" style="font-size:17px;letter-spacing:0">smr2.ff@gmail.com</div>
+      <button class="btn primary" id="btnCopyMail" style="width:100%">کپی ایمیل</button>
+      <button class="btn" id="btnOpenMail" style="width:100%">ارسال ایمیل</button>
+    </div>
+    <div class="card-box">
+      <h3>هنگام پیام‌دادن این‌ها را بنویس</h3>
+      <div class="srow"><span>شناسهٔ کاربری شما</span><span id="contactUid">—</span></div>
+      <div class="srow"><span>نسخهٔ بازی</span><span>۱.۰</span></div>
+      <div class="hint" style="margin-top:8px">با داشتن شناسه، سریع‌تر می‌توانیم کمکت کنیم.</div>
     </div>
   </div>
 </div>
@@ -1605,7 +1641,24 @@ function show(id){
 }
 document.querySelectorAll('[data-to]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.to)));
 $('#btnGuide').onclick=()=>show('guide');
-$('#btnAbout').onclick=()=>show('about');
+{ const _ab=document.getElementById('btnAbout'); if(_ab)_ab.onclick=()=>show('about'); }
+/* ارتباط با ما */
+{
+  const CONTACT_MAIL='smr2.ff@gmail.com';
+  const _cb=document.getElementById('btnContact');
+  if(_cb)_cb.onclick=()=>{
+    const u=$('#contactUid'); if(u)u.textContent=fa(ensureUserId());
+    show('contact');
+  };
+  const _cp=document.getElementById('btnCopyMail');
+  if(_cp)_cp.onclick=()=>{ copyText(CONTACT_MAIL); toast('ایمیل کپی شد ✔'); };
+  const _om=document.getElementById('btnOpenMail');
+  if(_om)_om.onclick=()=>{
+    const sub=encodeURIComponent('پاسور ۱۱ — شناسه: '+ensureUserId());
+    try{ location.href='mailto:'+CONTACT_MAIL+'?subject='+sub; }
+    catch(e){ copyText(CONTACT_MAIL); toast('ایمیل کپی شد ✔'); }
+  };
+}
 $('#btnSettings').onclick=()=>{ openSettingsForm(); show('settings'); };
 $('#btnExit').onclick=()=>{ show('exit'); try{window.close()}catch(e){} };
 $('#profileChip').onclick=()=>{ openProfileForm(); show('profile'); };
@@ -2495,6 +2548,30 @@ function probeRepoCards(){
   });
 }
 
+/* چیدمان خال‌ها روی کارت‌های عددی، مثل ورق واقعی
+   شبکهٔ ۳ ستون × ۷ ردیف؛ هر عدد جای مخصوص خودش را دارد */
+const PIP_MAP={
+  2:[[2,1],[6,1,1]],
+  3:[[2,1],[4,1],[6,1,1]],
+  4:[[2,0],[2,2],[6,0,1],[6,2,1]],
+  5:[[2,0],[2,2],[4,1],[6,0,1],[6,2,1]],
+  6:[[2,0],[2,2],[4,0],[4,2],[6,0,1],[6,2,1]],
+  7:[[2,0],[2,2],[3,1],[4,0],[4,2],[6,0,1],[6,2,1]],
+  8:[[2,0],[2,2],[3,1],[4,0],[4,2],[5,1,1],[6,0,1],[6,2,1]],
+  9:[[2,0],[2,2],[3,0],[3,2],[4,1],[5,0,1],[5,2,1],[6,0,1],[6,2,1]],
+  10:[[2,0],[2,2],[3,0],[3,2],[2.6,1],[5,0,1],[5,2,1],[6,0,1],[6,2,1],[5.4,1,1]]
+};
+function pipsHTML(rank,suit){
+  const spots=PIP_MAP[rank];
+  if(!spots)return suit;
+  return '<div class="pips" style="grid-template-rows:repeat(7,1fr)">'
+    + spots.map(sp=>{
+        const row=sp[0], col=sp[1], flip=sp[2];
+        return '<i class="'+(flip?'flip':'')+'" style="grid-row:'+Math.round(row)
+          +';grid-column:'+(col+1)+'">'+suit+'</i>';
+      }).join('')
+    + '</div>';
+}
 /* ================= رندر ================= */
 function cardEl(c,back){
   const el=document.createElement('div');
@@ -2511,13 +2588,14 @@ function cardEl(c,back){
     el.style.backgroundImage='url("'+REPO_CARDS.src.get(c.id)+'")';
     return el;
   }
-  el.innerHTML='<div class="frame"></div>';
+  el.innerHTML='';
   if(!back&&c){
     const r=rankLabel(c.r), s=SUIT[c.s];
     let mid;
-    if(c.r>=11)mid=`<div class="court">${r}<span class="cs">${s}</span></div>`;
-    else mid=s;
-    el.innerHTML+=`
+    if(c.r>=11)      mid=`<div class="court">${r}<span class="cs">${s}</span></div>`;
+    else if(c.r===1) mid=`<span style="font-size:calc(var(--cw)*.62)">${s}</span>`;
+    else             mid=pipsHTML(c.r,s);
+    el.innerHTML=`
       <div class="corner"><span class="r">${r}</span><span class="s">${s}</span></div>
       <div class="mid">${mid}</div>
       <div class="corner b"><span class="r">${r}</span><span class="s">${s}</span></div>`;
@@ -2657,7 +2735,7 @@ function handleBack(){
   if(id==='mpHost'||id==='mpJoin'){ mpTeardown(); show('mpHub'); return; }
   if(id==='mpHub'||id==='exit'){ show('menu'); return; }
   if(id==='settings'){ leaveSettings(); return; }   // تنظیمات: تأیید تغییرات
-  if(id==='vip'||id==='hall'||id==='invite'||id==='friends'){ show('menu'); return; }
+  if(id==='vip'||id==='hall'||id==='invite'||id==='friends'||id==='contact'){ show('menu'); return; }
   show('menu');
 }
 $('#backStay').onclick=()=>$('#backWrap').classList.remove('show');
@@ -3728,31 +3806,98 @@ document.querySelectorAll('[data-ftab]').forEach(t=>{
     const cap=$('#frCap'); if(cap)cap.style.display=sec==='mine'?'block':'none';
   });
 });
+/* تبدیل ارقام فارسی/عربی به انگلیسی (برای ورودی شناسه) */
+function toEnDigits(str){
+  return String(str||'')
+    .replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+    .replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+}
+function normalizeUid(v){
+  v=toEnDigits(v).replace(/[^0-9-]/g,'');
+  if(/^\d{8}$/.test(v))v=v.slice(0,2)+'-'+v.slice(2);   // ۱۱۱۲۳۴۵۶ → 11-123456
+  return v;
+}
+/* ارسال درخواست دوستی (طرف مقابل باید تأیید کند) */
 {
   const fb=document.getElementById('frFindBtn');
   if(fb)fb.onclick=async()=>{
-    const msg=$('#frFindMsg'), v=($('#frFindInput').value||'').trim();
+    const msg=$('#frFindMsg');
+    const v=normalizeUid($('#frFindInput').value);
     if(!v){ msg.textContent='شناسه را وارد کن'; return; }
     if(v===ensureUserId()){ msg.textContent='این شناسهٔ خودت است 🙂'; return; }
     const mine=friendsData();
     if(mine.length>=50){ msg.textContent='ظرفیت فهرست دوستان پر است (۵۰ نفر)'; return; }
-    if(mine.some(x=>x.id===v)){ msg.textContent='این دوست از قبل در فهرست توست'; return; }
+    if(mine.some(x=>x.id===v)){ msg.textContent='این بازیکن از قبل در فهرست دوستان توست'; return; }
+    if(!firebaseConfigured()){ msg.textContent='برای افزودن دوست باید به اینترنت وصل باشی'; return; }
     msg.textContent='در حال جستجو…';
     let info=null;
-    if(firebaseConfigured()){
-      try{
-        const r=await fetch(FIREBASE_DB_URL+'/users/'+encodeURIComponent(v)+'.json');
-        info=await r.json();
-      }catch(e){}
-    }
+    try{
+      const r=await fetch(FIREBASE_DB_URL+'/users/'+encodeURIComponent(v)+'.json');
+      info=await r.json();
+    }catch(e){}
     if(!info){ msg.textContent='بازیکنی با این شناسه پیدا نشد'; return; }
-    mine.push({id:v,n:info.name||'بازیکن',l:info.level||1,t:info.trophies||0});
-    progSave();
-    msg.textContent='✅ «'+(info.name||'بازیکن')+'» به دوستانت اضافه شد';
-    $('#frFindInput').value='';
-    openFriends();
+    try{
+      await fetch(FIREBASE_DB_URL+'/friendreq/'+encodeURIComponent(v)+'/'+encodeURIComponent(ensureUserId())+'.json',
+        {method:'PUT',body:JSON.stringify({n:SET.pName||'بازیکن',l:PROG.level,t:PROG.trophies})});
+      msg.textContent='✅ درخواست دوستی برای «'+(info.name||'بازیکن')+'» فرستاده شد؛ منتظر تأیید او باش.';
+      $('#frFindInput').value='';
+    }catch(e){ msg.textContent='ارسال درخواست ممکن نشد؛ دوباره تلاش کن'; }
   };
+  const fi=document.getElementById('frFindInput');
+  if(fi)fi.addEventListener('input',()=>{ fi.value=normalizeUid(fi.value); });
 }
+/* دریافت و نمایش درخواست‌های دوستی */
+async function loadFriendRequests(){
+  const box=$('#reqList'), dot=$('#frReqDot');
+  if(!box)return;
+  if(!firebaseConfigured()){
+    box.innerHTML='<div class="card-box"><p class="hint">برای دیدن درخواست‌ها باید به اینترنت وصل باشی.</p></div>';
+    return;
+  }
+  let data=null;
+  try{
+    const r=await fetch(FIREBASE_DB_URL+'/friendreq/'+encodeURIComponent(ensureUserId())+'.json');
+    data=await r.json();
+  }catch(e){}
+  const items=data?Object.keys(data):[];
+  if(dot)dot.style.display=items.length?'inline-block':'none';
+  box.innerHTML='';
+  if(!items.length){
+    box.innerHTML='<div class="card-box" style="text-align:center"><div style="font-size:38px">📭</div>'
+      +'<p class="hint">درخواست دوستی جدیدی نداری.</p></div>';
+    return;
+  }
+  items.forEach(fromId=>{
+    const f=data[fromId]||{};
+    const row=document.createElement('div'); row.className='pl-row';
+    row.innerHTML='<span class="pl-ava">👤<span class="pl-lvl">'+fa(f.l||1)+'</span></span>'
+      +'<span class="pl-info"><span class="pl-name">'+esc(f.n||'بازیکن')+'</span>'
+      +'<span class="pl-id">#'+esc(fromId)+'</span></span>';
+    const ok=document.createElement('button'); ok.className='small-btn claim-ready'; ok.style.margin='0'; ok.textContent='تأیید';
+    const no=document.createElement('button'); no.className='pl-del'; no.textContent='✕';
+    const clear=()=>fetch(FIREBASE_DB_URL+'/friendreq/'+encodeURIComponent(ensureUserId())+'/'+encodeURIComponent(fromId)+'.json',
+      {method:'DELETE'}).catch(()=>{});
+    ok.onclick=async()=>{
+      const mine=friendsData();
+      if(mine.length>=50){ toast('ظرفیت فهرست دوستان پر است'); return; }
+      if(!mine.some(x=>x.id===fromId)){
+        mine.push({id:fromId,n:f.n||'بازیکن',l:f.l||1,t:f.t||0});
+        progSave();
+      }
+      // دوستی دوطرفه: برای طرف مقابل هم یک درخواست تأییدشده می‌فرستیم
+      try{
+        await fetch(FIREBASE_DB_URL+'/friendreq/'+encodeURIComponent(fromId)+'/'+encodeURIComponent(ensureUserId())+'.json',
+          {method:'PUT',body:JSON.stringify({n:SET.pName||'بازیکن',l:PROG.level,t:PROG.trophies,accepted:true})});
+      }catch(e){}
+      await clear();
+      toast('«'+(f.n||'بازیکن')+'» به دوستانت اضافه شد 🎉');
+      loadFriendRequests(); openFriends();
+    };
+    no.onclick=async()=>{ await clear(); toast('درخواست رد شد'); loadFriendRequests(); };
+    row.appendChild(ok); row.appendChild(no); box.appendChild(row);
+  });
+}
+
 
 /* ----- یکتایی نام‌کاربری ----- */
 function deviceId(){
@@ -3778,7 +3923,11 @@ async function claimUsername(u){
     if(owner&&owner!==deviceId())return{ok:false,msg:'این نام‌کاربری قبلاً گرفته شده؛ یکی دیگر انتخاب کن'};
     await fetch(FIREBASE_DB_URL+'/usernames/'+encodeURIComponent(u)+'.json',{method:'PUT',body:JSON.stringify(deviceId())});
     const old=SET.profileUsername;
-    if(old&&old!==u)fetch(FIREBASE_DB_URL+'/usernames/'+encodeURIComponent(old)+'.json',{method:'DELETE'}).catch(()=>{});
+    if(old&&old!==u){
+      fetch(FIREBASE_DB_URL+'/usernames/'+encodeURIComponent(old)+'.json',{method:'DELETE'}).catch(()=>{});
+      // رکورد قدیمی جدول رتبه‌بندی هم پاک شود تا اکانت دوتا نشود
+      fetch(FIREBASE_DB_URL+'/leaderboard/'+encodeURIComponent(old)+'.json',{method:'DELETE'}).catch(()=>{});
+    }
     return{ok:true};
   }catch(e){ return{ok:true,offline:true}; } // بدون اینترنت: پذیرفته می‌شود و با اولین اتصال ثبت می‌شود
 }
@@ -4036,7 +4185,7 @@ $('#btnRedeemInvite').onclick=()=>{
 })();
 
 /* ----- دکمه‌های منو ----- */
-$('#btnFriends').onclick=()=>{ openFriends(); show('friends'); };
+$('#btnFriends').onclick=()=>{ openFriends(); try{loadFriendRequests();}catch(e){} show('friends'); };
 $('#btnSettings2').onclick=()=>{ openSettingsForm(); show('settings'); };
 $('#btnHall').onclick=()=>{ openHall(); show('hall'); };
 $('#btnInvite').onclick=()=>{ openInvite(); show('invite'); };

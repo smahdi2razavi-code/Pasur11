@@ -20,7 +20,7 @@ const ADMIN_KEY = process.env.ADMIN_KEY || 'CHANGE_ME_SECRET';  // برای رب
 const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, 'data.json');
 
 /* ---------- ذخیره‌سازی ساده روی فایل ---------- */
-let DB = { sessions:{}, leaderboard:{}, usernames:{}, users:{}, control:{} };
+let DB = { sessions:{}, leaderboard:{}, usernames:{}, users:{}, control:{}, friendreq:{} };
 try { if (fs.existsSync(DATA_FILE)) DB = Object.assign(DB, JSON.parse(fs.readFileSync(DATA_FILE,'utf8'))); }
 catch (e) { console.error('خواندن داده‌ها ناموفق بود:', e.message); }
 
@@ -125,6 +125,8 @@ const server = http.createServer(async (req, res) => {
     }
     if (method === 'GET' && !a) return sendJSON(res, 200, DB.leaderboard);
     if (method === 'GET' && a)  return sendJSON(res, 200, DB.leaderboard[a] || null);
+    // حذف رکورد قدیمی هنگام تغییر نام‌کاربری (جلوگیری از اکانت تکراری)
+    if (method === 'DELETE' && a) { delete DB.leaderboard[a]; saveDB(); return sendJSON(res, 200, null); }
   }
 
   /* ===== ۳) یکتایی نام‌کاربری ===== */
@@ -150,6 +152,22 @@ const server = http.createServer(async (req, res) => {
       const key = getKey(req.url);
       if (key !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
       return sendJSON(res, 200, DB.users);
+    }
+  }
+
+  /* ===== ۵) درخواست‌های دوستی: /friendreq/<گیرنده>/<فرستنده> ===== */
+  if (root === 'friendreq') {
+    DB.friendreq = DB.friendreq || {};
+    if (method === 'GET' && a && !b) return sendJSON(res, 200, DB.friendreq[a] || null);
+    if (method === 'PUT' && a && b) {
+      const body = await readBody(req);
+      DB.friendreq[a] = DB.friendreq[a] || {};
+      DB.friendreq[a][b] = Object.assign({}, body, { ts: Date.now() });
+      saveDB(); return sendJSON(res, 200, body);
+    }
+    if (method === 'DELETE' && a && b) {
+      if (DB.friendreq[a]) delete DB.friendreq[a][b];
+      saveDB(); return sendJSON(res, 200, null);
     }
   }
 
