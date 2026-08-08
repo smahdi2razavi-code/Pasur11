@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>پنل مدیریت پاسور ۱۱</title>
+<style>
+*{box-sizing:border-box;}
+:root{
+  --bg1:#101a33; --bg2:#1c2b52; --gold:#e6b64c; --gold-soft:#f3d489;
+  --ivory:#f8f2e2; --line:#2c3d72; --ok:#3ecb6a; --bad:#e0333f;
+}
+body{margin:0; font-family:"Vazirmatn","Segoe UI",Tahoma,Arial,sans-serif;
+  background:radial-gradient(1200px 700px at 50% -10%, var(--bg2), var(--bg1) 70%);
+  color:var(--ivory); min-height:100vh; padding:18px;}
+.wrap{max-width:960px; margin:0 auto;}
+h1{font-size:24px; color:var(--gold-soft); text-align:center; margin:6px 0 4px;}
+.sub{text-align:center; color:#96a5cf; font-size:13px; margin-bottom:18px;}
+.box{background:rgba(255,255,255,.05); border:1px solid var(--line); border-radius:16px;
+  padding:16px; margin-bottom:14px;}
+.box h2{font-size:16px; color:var(--gold-soft); margin:0 0 12px;}
+label{display:block; font-size:13px; font-weight:700; margin-bottom:6px; color:#c3d0f0;}
+input,select{width:100%; font-family:inherit; font-size:15px; padding:11px 12px; border-radius:10px;
+  border:1px solid #3a4f8e; background:#131e40; color:var(--ivory); margin-bottom:10px;}
+input:focus,select:focus{outline:none; border-color:var(--gold);}
+button{font-family:inherit; font-size:14px; font-weight:800; cursor:pointer; border:none;
+  border-radius:11px; padding:11px 16px; transition:filter .15s, transform .12s;}
+button:active{transform:scale(.97);}
+button:hover{filter:brightness(1.08);}
+.btn-gold{background:linear-gradient(180deg,#f3d489,#c8952e); color:#3a2a06;}
+.btn-ghost{background:#22305d; color:var(--ivory); border:1px solid #3a4f8e;}
+.btn-bad{background:#5d1827; color:#ffb9c6; border:1px solid #a53a50;}
+.btn-ok{background:linear-gradient(180deg,#3ecb6a,#1f9f4a); color:#fff;}
+.row{display:flex; gap:9px; flex-wrap:wrap;}
+.row>*{flex:1 1 130px;}
+.status{font-size:13px; padding:9px 12px; border-radius:10px; margin-top:10px; display:none; line-height:1.8;}
+.status.show{display:block;}
+.status.ok{background:rgba(62,203,106,.14); border:1px solid var(--ok); color:#b6ffcf;}
+.status.err{background:rgba(224,51,63,.14); border:1px solid var(--bad); color:#ffc2c8;}
+.dot{display:inline-block; width:9px; height:9px; border-radius:50%; background:#666; margin-left:6px;}
+.dot.on{background:var(--ok); box-shadow:0 0 8px var(--ok);}
+.dot.off{background:var(--bad);}
+table{width:100%; border-collapse:collapse; font-size:13.5px;}
+th{background:rgba(230,182,76,.12); color:var(--gold-soft); padding:10px 8px; text-align:right; font-size:12.5px;}
+td{padding:10px 8px; border-bottom:1px solid var(--line);}
+tr:hover td{background:rgba(255,255,255,.03);}
+.tbl-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch;}
+.tag{font-size:11px; font-weight:800; border-radius:6px; padding:2px 8px; white-space:nowrap;}
+.tag.vip{background:linear-gradient(180deg,#f6dd9a,#c8952e); color:#3a2a06;}
+.tag.ban{background:#5d1827; color:#ffb9c6;}
+.hint{font-size:12px; color:#8d9bc4; line-height:1.9;}
+.stat-row{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;}
+.stat{flex:1 1 120px; background:rgba(255,255,255,.05); border:1px solid var(--line);
+  border-radius:14px; padding:13px; text-align:center;}
+.stat b{display:block; font-size:24px; color:var(--gold-soft);}
+.stat span{font-size:12px; color:#96a5cf;}
+.mono{direction:ltr; text-align:left; font-family:"Courier New",monospace;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>👑 پنل مدیریت پاسور ۱۱</h1>
+  <div class="sub">این پنل روی لپ‌تاپ خودت اجرا می‌شود و مستقیم با سرور بازی حرف می‌زند</div>
+
+  <!-- اتصال -->
+  <div class="box">
+    <h2>اتصال به سرور <span class="dot" id="dot"></span></h2>
+    <label>آدرس سرور</label>
+    <input id="srv" class="mono" value="http://94.184.36.13" placeholder="http://94.184.36.13">
+    <label>کلید مدیریت</label>
+    <input id="key" class="mono" type="password" placeholder="کلید ADMIN_KEY">
+    <div class="row">
+      <button class="btn-gold" id="btnConnect">اتصال و ذخیره</button>
+      <button class="btn-ghost" id="btnForget">فراموش کن</button>
+    </div>
+    <div class="status" id="connMsg"></div>
+  </div>
+
+  <!-- آمار -->
+  <div class="stat-row" id="stats" style="display:none">
+    <div class="stat"><b id="stUsers">۰</b><span>کاربر</span></div>
+    <div class="stat"><b id="stVip">۰</b><span>کاربر VIP</span></div>
+    <div class="stat"><b id="stBoard">۰</b><span>در جدول رتبه‌بندی</span></div>
+    <div class="stat"><b id="stBan">۰</b><span>مسدود</span></div>
+  </div>
+
+  <!-- عملیات روی کاربر -->
+  <div class="box" id="opsBox" style="display:none">
+    <h2>مدیریت کاربر</h2>
+    <label>شناسهٔ کاربر (مثل 11-123456)</label>
+    <input id="uid" class="mono" placeholder="11-123456">
+    <div class="row">
+      <button class="btn-ghost" id="btnInfo">مشاهدهٔ اطلاعات</button>
+      <button class="btn-ok" id="btnVip">فعال‌کردن VIP</button>
+    </div>
+    <div style="height:9px"></div>
+    <label>تعداد سکهٔ هدیه</label>
+    <input id="coins" type="number" value="500" min="1">
+    <div class="row">
+      <button class="btn-gold" id="btnCoins">🪙 هدیهٔ سکه</button>
+      <button class="btn-bad" id="btnBan">⛔ مسدودکردن</button>
+      <button class="btn-ghost" id="btnUnban">✅ رفع مسدودی</button>
+    </div>
+    <div class="status" id="opMsg"></div>
+  </div>
+
+  <!-- فهرست کاربران -->
+  <div class="box" id="listBox" style="display:none">
+    <h2>کاربران</h2>
+    <div class="row" style="margin-bottom:10px">
+      <button class="btn-ghost" id="btnUsers">بارگذاری کاربران</button>
+      <button class="btn-ghost" id="btnBoard">جدول رتبه‌بندی</button>
+    </div>
+    <input id="search" placeholder="جستجو در نام یا شناسه…">
+    <div class="tbl-wrap"><table id="tbl"></table></div>
+    <div class="hint" id="listHint"></div>
+  </div>
+
+  <div class="hint" style="text-align:center">
+    نکته: کلید مدیریت فقط در همین مرورگر ذخیره می‌شود و به هیچ جای دیگری فرستاده نمی‌شود.
+  </div>
+</div>
+
+<script>
+"use strict";
+const $=q=>document.querySelector(q);
+const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+const esc=s=>String(s==null?'':s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+let SRV='', KEY='', USERS={}, CONTROL={};
+
+function msg(el,text,ok){
+  el.textContent=text;
+  el.className='status show '+(ok?'ok':'err');
+}
+function api(path,opts){
+  return fetch(SRV.replace(/\/$/,'')+path,opts).then(r=>r.json());
+}
+function adminUrl(path){
+  return path+(path.includes('?')?'&':'?')+'key='+encodeURIComponent(KEY);
+}
+
+/* ---------- اتصال ---------- */
+async function connect(){
+  SRV=$('#srv').value.trim();
+  KEY=$('#key').value.trim();
+  if(!SRV||!KEY){ msg($('#connMsg'),'آدرس سرور و کلید مدیریت را پر کن',false); return; }
+  msg($('#connMsg'),'در حال بررسی…',true);
+  try{
+    const h=await api('/health.json');
+    if(!h||!h.ok)throw new Error('پاسخ نامعتبر');
+    // بررسی درستی کلید
+    const u=await api(adminUrl('/users.json'));
+    if(u&&u.error){ throw new Error('کلید مدیریت اشتباه است'); }
+    localStorage.setItem('pasur_admin',JSON.stringify({s:SRV,k:KEY}));
+    $('#dot').className='dot on';
+    msg($('#connMsg'),'✅ متصل شد. سرور سالم است.',true);
+    $('#opsBox').style.display='block';
+    $('#listBox').style.display='block';
+    $('#stats').style.display='flex';
+    loadUsers();
+  }catch(e){
+    $('#dot').className='dot off';
+    msg($('#connMsg'),'❌ اتصال ناموفق: '+(e.message||'سرور در دسترس نیست'),false);
+  }
+}
+$('#btnConnect').onclick=connect;
+$('#btnForget').onclick=()=>{
+  localStorage.removeItem('pasur_admin');
+  $('#key').value=''; $('#dot').className='dot';
+  $('#opsBox').style.display='none'; $('#listBox').style.display='none'; $('#stats').style.display='none';
+  msg($('#connMsg'),'اطلاعات ذخیره‌شده پاک شد',true);
+};
+
+/* ---------- کاربران ---------- */
+async function loadUsers(){
+  try{
+    USERS=await api(adminUrl('/users.json'))||{};
+    if(USERS.error){ msg($('#connMsg'),'کلید مدیریت اشتباه است',false); return; }
+    let vip=0;
+    Object.values(USERS).forEach(u=>{ if(u&&u.vip)vip++; });
+    $('#stUsers').textContent=fa(Object.keys(USERS).length);
+    $('#stVip').textContent=fa(vip);
+    renderUsers();
+    // شمارش مسدودها
+    let ban=0;
+    await Promise.all(Object.keys(USERS).slice(0,200).map(async id=>{
+      try{ const c=await api('/control/'+encodeURIComponent(id)+'.json'); if(c&&c.banned)ban++; }catch(e){}
+    }));
+    $('#stBan').textContent=fa(ban);
+  }catch(e){ msg($('#connMsg'),'دریافت کاربران ممکن نشد',false); }
+}
+function renderUsers(){
+  const q=($('#search').value||'').trim().toLowerCase();
+  const ids=Object.keys(USERS).filter(id=>{
+    if(!q)return true;
+    const u=USERS[id]||{};
+    return id.toLowerCase().includes(q)||String(u.name||'').toLowerCase().includes(q)
+      ||String(u.user||'').toLowerCase().includes(q);
+  }).sort((a,b)=>(USERS[b].ts||0)-(USERS[a].ts||0));
+  const t=$('#tbl');
+  t.innerHTML='<tr><th>شناسه</th><th>نام</th><th>سطح</th><th>سکه</th><th>جام</th><th>وضعیت</th><th></th></tr>'
+    +ids.slice(0,200).map(id=>{
+      const u=USERS[id]||{};
+      return '<tr><td class="mono">'+esc(id)+'</td><td>'+esc(u.name||'—')
+        +(u.user?' <span class="hint mono">@'+esc(u.user)+'</span>':'')+'</td>'
+        +'<td>'+fa(u.level||1)+'</td><td>'+fa(u.coins||0)+'</td><td>'+fa(u.trophies||0)+'</td>'
+        +'<td>'+(u.vip?'<span class="tag vip">VIP</span>':'—')+'</td>'
+        +'<td><button class="btn-ghost" data-pick="'+esc(id)+'" style="padding:6px 10px;font-size:12px">انتخاب</button></td></tr>';
+    }).join('');
+  $('#listHint').textContent='نمایش '+fa(Math.min(ids.length,200))+' از '+fa(ids.length)+' کاربر';
+  t.querySelectorAll('[data-pick]').forEach(b=>{
+    b.onclick=()=>{ $('#uid').value=b.dataset.pick; window.scrollTo({top:0,behavior:'smooth'}); showInfo(); };
+  });
+}
+$('#search').addEventListener('input',renderUsers);
+$('#btnUsers').onclick=loadUsers;
+
+/* ---------- جدول رتبه‌بندی ---------- */
+$('#btnBoard').onclick=async()=>{
+  try{
+    const d=await api('/leaderboard.json')||{};
+    const rows=Object.values(d).filter(x=>x&&x.u).sort((a,b)=>(b.t||0)-(a.t||0));
+    $('#stBoard').textContent=fa(rows.length);
+    $('#tbl').innerHTML='<tr><th>رتبه</th><th>بازیکن</th><th>نام‌کاربری</th><th>سطح</th><th>جام</th></tr>'
+      +rows.slice(0,100).map((x,i)=>'<tr><td>'+fa(i+1)+'</td><td>'+esc(x.n||'—')+'</td>'
+        +'<td class="mono">@'+esc(x.u)+'</td><td>'+fa(x.l||1)+'</td><td>🏆 '+fa(x.t||0)+'</td></tr>').join('');
+    $('#listHint').textContent='جدول رتبه‌بندی — '+fa(rows.length)+' بازیکن';
+  }catch(e){ $('#listHint').textContent='دریافت جدول ممکن نشد'; }
+};
+
+/* ---------- عملیات ---------- */
+function uid(){ return ($('#uid').value||'').trim(); }
+async function showInfo(){
+  const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
+  try{
+    const u=await api('/users/'+encodeURIComponent(id)+'.json');
+    const c=await api('/control/'+encodeURIComponent(id)+'.json');
+    if(!u){ msg($('#opMsg'),'کاربری با این شناسه پیدا نشد',false); return; }
+    msg($('#opMsg'),
+      'نام: '+(u.name||'—')+'  |  نام‌کاربری: @'+(u.user||'—')+'\n'
+      +'سطح: '+fa(u.level||1)+'  |  سکه: '+fa(u.coins||0)+'  |  جام: '+fa(u.trophies||0)+'\n'
+      +'VIP: '+(u.vip?'بله':'خیر')+'  |  مسدود: '+((c&&c.banned)?'بله':'خیر')
+      +((c&&c.coinGrant)?('\nسکهٔ در انتظار دریافت: '+fa(c.coinGrant)):''), true);
+  }catch(e){ msg($('#opMsg'),'دریافت اطلاعات ممکن نشد',false); }
+}
+$('#btnInfo').onclick=showInfo;
+
+async function setControl(field,value,okText){
+  const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
+  try{
+    const r=await fetch(SRV.replace(/\/$/,'')+adminUrl('/control/'+encodeURIComponent(id)+'/'+field+'.json'),
+      {method:'PUT',body:JSON.stringify(value)});
+    const j=await r.json();
+    if(j&&j.error)throw new Error('کلید مدیریت اشتباه است');
+    msg($('#opMsg'),okText,true);
+  }catch(e){ msg($('#opMsg'),'انجام نشد: '+(e.message||''),false); }
+}
+$('#btnVip').onclick=()=>setControl('vipGrant',true,'👑 VIP برای این کاربر ثبت شد. با باز کردن بعدی بازی فعال می‌شود.');
+$('#btnBan').onclick=()=>{ if(confirm('این کاربر مسدود شود؟'))setControl('banned',true,'⛔ کاربر مسدود شد.'); };
+$('#btnUnban').onclick=()=>setControl('banned',false,'✅ مسدودی برداشته شد.');
+$('#btnCoins').onclick=async()=>{
+  const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
+  const n=parseInt($('#coins').value)||0;
+  if(n<=0){ msg($('#opMsg'),'تعداد سکه را درست وارد کن',false); return; }
+  try{
+    const c=await api('/control/'+encodeURIComponent(id)+'.json');
+    const cur=(c&&typeof c.coinGrant==='number')?c.coinGrant:0;
+    await setControl('coinGrant',cur+n,'🪙 '+fa(n)+' سکه ثبت شد (جمع در انتظار: '+fa(cur+n)+'). با باز کردن بعدی بازی اضافه می‌شود.');
+  }catch(e){ msg($('#opMsg'),'انجام نشد',false); }
+};
+
+/* ---------- بازیابی تنظیمات ذخیره‌شده ---------- */
+(function(){
+  try{
+    const s=JSON.parse(localStorage.getItem('pasur_admin')||'null');
+    if(s&&s.s&&s.k){ $('#srv').value=s.s; $('#key').value=s.k; connect(); }
+  }catch(e){}
+})();
+</script>
+</body>
+</html>
