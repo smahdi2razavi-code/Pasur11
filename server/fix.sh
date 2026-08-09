@@ -40,10 +40,29 @@ fi
 # ---------- 3) app files ----------
 say "3. Application files"
 mkdir -p "$APP_DIR"
-if [ -s "$APP_DIR/server.js" ]; then ok "server.js exists"
+# Always fetch the newest server.js - an OLD file is the most common cause of
+# "feature missing" problems, and a present-but-outdated file must be replaced.
+TMP="/tmp/pasur11-server-new.js"
+if curl -fsSL --max-time 30 "$BASE/server.js" -o "$TMP" && [ -s "$TMP" ] && node --check "$TMP" 2>/dev/null; then
+  if [ -s "$APP_DIR/server.js" ] && cmp -s "$TMP" "$APP_DIR/server.js"; then
+    ok "server.js is already the latest version"
+  else
+    bad "server.js was old or missing - updating to the latest"
+    # snapshot the data before swapping the code
+    if [ -s "$APP_DIR/data.json" ]; then
+      mkdir -p "$APP_DIR/backups"
+      gzip -c "$APP_DIR/data.json" > "$APP_DIR/backups/data-before-fix.json.gz" 2>/dev/null
+      echo "  data snapshot -> backups/data-before-fix.json.gz"
+    fi
+    [ -s "$APP_DIR/server.js" ] && cp "$APP_DIR/server.js" "$APP_DIR/server.js.prev"
+    cp "$TMP" "$APP_DIR/server.js"
+    echo "  updated"
+  fi
+  rm -f "$TMP"
+elif [ -s "$APP_DIR/server.js" ]; then
+  ok "could not download (no internet?) - keeping the existing server.js"
 else
-  bad "server.js missing - downloading"
-  curl -fsSL "$BASE/server.js" -o "$APP_DIR/server.js"
+  bad "server.js missing and download failed - cannot continue"
 fi
 if [ -s "$APP_DIR/admin_key.txt" ]; then
   ok "admin key found"
@@ -165,8 +184,10 @@ echo ""
 echo "========================================"
 if echo "$P" | grep -q '"ok"'; then
   echo " RESULT: SERVER IS UP"
-  echo " Test in your browser:"
-  echo "   http://$(curl -s --max-time 5 ifconfig.me 2>/dev/null || echo '94.184.36.13')/health"
+  # find the public IP without printing junk if the lookup is blocked
+  IP="$(ip -4 route get 1.1.1.1 2>/dev/null | grep -oE 'src [0-9.]+' | awk '{print $2}')"
+  echo "$IP" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' || IP="94.184.36.13"
+  echo " Test in your browser:  http://$IP/health"
 else
   echo " RESULT: STILL BROKEN - send a photo of this screen"
 fi
