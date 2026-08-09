@@ -16,6 +16,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.webkit.WebViewAssetLoader
 
 class MainActivity : ComponentActivity() {
@@ -41,6 +44,22 @@ class MainActivity : ComponentActivity() {
         webView = WebView(this)
         setContentView(webView)
         webView.setBackgroundColor(0xFF0A0A0C.toInt())
+
+        // اندروید ۱۵ به بعد، پنجره به‌طور پیش‌فرض تا زیر نوار وضعیت و نوار
+        // ناوبری کشیده می‌شود (edge-to-edge). بدون این کد، کارت‌های پایین
+        // بازی زیر نوار ناوبری می‌روند و بریده دیده می‌شوند.
+        // اینجا به‌اندازهٔ نوارهای سیستم (و بریدگی دوربین) فاصله می‌گذاریم،
+        // و وقتی صفحه‌کلید باز شود، پایین صفحه به‌اندازهٔ آن جمع می‌شود.
+        ViewCompat.setOnApplyWindowInsetsListener(webView) { v, insets ->
+            val bars = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
+            v.setPadding(bars.left, bars.top, bars.right, maxOf(bars.bottom, ime.bottom))
+            insets
+        }
+        // آیکن‌های نوار وضعیت روشن باشند تا روی پس‌زمینهٔ تیرهٔ بازی دیده شوند
+        WindowInsetsControllerCompat(window, webView).isAppearanceLightStatusBars = false
 
         webView.settings.apply {
             javaScriptEnabled = true
