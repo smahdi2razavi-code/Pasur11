@@ -66,6 +66,26 @@ echo "[11] Nginx error log (last 5):"
 tail -5 /var/log/nginx/error.log 2>/dev/null || echo "  no log"
 
 echo ""
+echo "[12] Server VERSION - which features are installed:"
+for ep in "tickets/11-000000" "stats" "control" "audit"; do
+  R=$(curl -s --max-time 5 "http://127.0.0.1:3000/$ep.json?key=$(cat /opt/pasur11/admin_key.txt 2>/dev/null)")
+  case "$R" in
+    *"not found"*) echo "  MISSING  /$ep   <-- server is OLD, run update.sh" ;;
+    "")            echo "  NO REPLY /$ep   <-- app may be down" ;;
+    *)             echo "  OK       /$ep" ;;
+  esac
+done
+
+echo ""
+echo "[13] Daily backup:"
+if crontab -l 2>/dev/null | grep -q 'pasur11/backup.sh'; then
+  echo "  cron: INSTALLED"
+else
+  echo "  cron: MISSING  <-- run update.sh"
+fi
+ls -1 /opt/pasur11/backups/*.gz 2>/dev/null | tail -3 || echo "  no backups yet"
+
+echo ""
 echo "======================================"
 echo " Send a photo of this screen"
 echo "======================================"

@@ -1892,10 +1892,16 @@ $('#btnGuide').onclick=()=>show('guide');
         // سرور خودش جواب داد؛ متن در کادر می‌ماند تا کاربر بعداً بفرستد
         out.style.color='#ffb9c6'; out.textContent=e.message;
       } else {
-        // مشکل اینترنت: پیام گم نمی‌شود و خودکار بعداً فرستاده می‌شود
+        // اینترنت یا سرور در دسترس نیست: پیام گم نمی‌شود
         queueTicket(kind,txt);
         out.style.color='#ffe9ad';
-        out.textContent='📥 اینترنت وصل نیست؛ پیامت ذخیره شد و به‌محض وصل‌شدن فرستاده می‌شود.';
+        out.innerHTML='📥 پیامت ذخیره شد و به‌محض برقراری ارتباط خودکار فرستاده می‌شود.'
+          +'<br>اگر عجله داری، همین حالا با ایمیل بفرست:';
+        const b=document.createElement('button');
+        b.className='btn'; b.style.cssText='width:100%;margin-top:8px';
+        b.textContent='✉️ ارسال همین پیام با ایمیل';
+        b.onclick=()=>sendTicketByMail(kind,txt);
+        out.appendChild(b);
         $('#tkText').value=''; $('#tkCount').textContent=fa(0);
         loadMyTickets();
       }
@@ -3337,7 +3343,11 @@ async function sendTicket(kind,text){
     {method:'PUT',body:JSON.stringify(body)});
   const j=await r.json();
   if(j&&j.error){
-    // پاسخ خودِ سرور: پیام نباید در صف بیفتد وگرنه تکراری فرستاده می‌شود
+    // «not found» یعنی سرور هنوز نسخهٔ تازه را ندارد — پیام باید در صف بماند
+    if(j.error==='not found'||r.status===404){
+      const e=new Error('سرور آمادهٔ دریافت پیام نیست'); e.retry=true; throw e;
+    }
+    // بقیه پاسخ‌های سرور: پیام نباید در صف بیفتد وگرنه تکراری فرستاده می‌شود
     const e=new Error(
       j.error==='wait' ? 'لطفاً چند دقیقه صبر کن و دوباره بفرست' :
       j.error==='too many open tickets' ? 'چند پیام باز داری؛ تا پاسخ آن‌ها صبر کن' :
@@ -3400,6 +3410,25 @@ async function loadMyTickets(){
       +'</div></div>';
   });
   box.innerHTML=out||'<div class="hint">هنوز پیامی نفرستاده‌ای.</div>';
+}
+/* راه دوم: اگر سرور در دسترس نبود، همان پیام با ایمیل فرستاده شود */
+function sendTicketByMail(kind,text){
+  const MAIL='smr2.ff@gmail.com';
+  const subject='پاسور ۱۱ — '+(TICKET_KINDS[kind]||'پشتیبانی')+' ('+ensureUserId()+')';
+  const body='موضوع: '+(TICKET_KINDS[kind]||'—')+'\n'
+    +'—————————————\n'
+    +'شناسهٔ کاربری: '+ensureUserId()+'\n'
+    +'نام‌کاربری: '+(SET.profileUsername?('@'+SET.profileUsername):'—')+'\n'
+    +'نام نمایشی: '+(SET.pName||'—')+'\n'
+    +'سطح: '+PROG.level+' | سکه: '+PROG.coins+' | جام: '+PROG.trophies+'\n'
+    +'VIP: '+(PROG.vip?'بله':'خیر')+' | نسخهٔ بازی: ۱.۰\n'
+    +'—————————————\n\n'+text;
+  if(window.AndroidApp&&window.AndroidApp.sendMail){
+    try{ window.AndroidApp.sendMail(MAIL,subject,body); return; }catch(e){}
+  }
+  try{ window.location.href='mailto:'+MAIL+'?subject='+encodeURIComponent(subject)
+    +'&body='+encodeURIComponent(body); }
+  catch(e){ copyText(MAIL+'\n\n'+body); toast('ایمیل و متن کپی شد ✔'); }
 }
 function faDate(ts){
   try{ return new Date(ts).toLocaleDateString('fa-IR'); }catch(e){ return ''; }
