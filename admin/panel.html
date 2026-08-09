@@ -239,7 +239,7 @@ tr:hover td{background:rgba(255,255,255,.03);}
               <option value="coinGrant">🪙 هدیهٔ سکه</option>
               <option value="scoreGrant">🏆 افزودن جام</option>
               <option value="msg">✉️ پیام</option>
-              <option value="vipGrant">👑 فعال‌کردن VIP</option>
+              <option value="vipGrant">👑 VIP (مقدار = تعداد ماه)</option>
               <option value="banned">⛔ مسدودکردن</option>
             </select></div>
           <div style="flex:1 1 130px"><label>مقدار</label><input id="bulkValue" value="500"></div>
@@ -262,8 +262,17 @@ tr:hover td{background:rgba(255,255,255,.03);}
       <datalist id="uidList"></datalist>
       <div class="row tight">
         <button class="btn-ghost" id="btnInfo">👁 مشاهدهٔ اطلاعات</button>
-        <button class="btn-ok" id="btnVip">👑 فعال‌کردن VIP</button>
         <button class="btn-ghost" id="btnClearPend">🧹 لغو دستورهای در انتظار</button>
+      </div>
+      <div class="row" style="margin-top:9px">
+        <div style="flex:0 1 150px"><label>مدت اشتراک VIP</label>
+          <select id="vipMonths">
+            <option value="1">۱ ماه</option>
+            <option value="2">۲ ماه</option>
+            <option value="3">۳ ماه</option>
+            <option value="12">۱۲ ماه</option>
+          </select></div>
+        <div style="align-self:end"><button class="btn-ok" id="btnVip" style="width:100%;margin-bottom:10px">👑 فعال‌کردن VIP</button></div>
       </div>
       <div class="status" id="opMsg"></div>
 
@@ -892,6 +901,8 @@ $('#btnBulk').onclick=async()=>{
     if(!value){ toast('مقدار عددی را وارد کن',true); return; }
   } else if(field==='msg'){
     value=raw; if(!value){ toast('متن پیام را بنویس',true); return; }
+  } else if(field==='vipGrant'){
+    value=parseInt(raw)||1;              // تعداد ماه
   } else value=true;
   const names={coinGrant:'هدیهٔ سکه',scoreGrant:'افزودن جام',msg:'ارسال پیام',
     vipGrant:'فعال‌کردن VIP',banned:'مسدودکردن'};
@@ -980,7 +991,10 @@ async function clearPending(id){
 }
 $('#btnClearPend').onclick=()=>clearPending();
 
-$('#btnVip').onclick=()=>setControl('vipGrant',true,'👑 VIP ثبت شد. با باز کردن بعدی بازی فعال می‌شود.');
+$('#btnVip').onclick=()=>{
+  const mo=parseInt($('#vipMonths').value)||1;
+  setControl('vipGrant',mo,'👑 اشتراک '+fa(mo)+' ماههٔ VIP ثبت شد. با باز کردن بعدی بازی فعال می‌شود.');
+};
 $('#btnBan').onclick=()=>{ if(confirm('این کاربر مسدود شود؟'))setControl('banned',true,'⛔ کاربر مسدود شد.'); };
 $('#btnUnban').onclick=()=>setControl('banned',false,'✅ مسدودی برداشته شد.');
 $('#btnCoins').onclick=async()=>{

@@ -146,7 +146,12 @@ class MainActivity : ComponentActivity() {
 
         // آماده‌سازی درگاه مایکت
         iab = IabHelper(this, RSA_KEY)
-        iab?.startSetup { result -> iabReady = result.isSuccess }
+        iab?.startSetup { result ->
+            iabReady = result.isSuccess
+            // اگر خریدی انجام شده ولی به دست کاربر نرسیده (مثلاً اپ وسط کار بسته
+            // شده یا اینترنت قطع شده)، همین‌جا جبران می‌شود تا پول کسی نسوزد.
+            if (iabReady) recoverPendingPurchases()
+        }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -173,19 +178,47 @@ class MainActivity : ComponentActivity() {
                     return@OnIabPurchaseFinishedListener
                 }
                 if (purchase.sku != sku) return@OnIabPurchaseFinishedListener
-                if (sku == "vip_subscription") {
-                    grantVipJs()                                  // VIP: مصرف نمی‌شود
-                } else {
-                    helper.consumeAsync(purchase) { _, _ -> grantPurchaseJs(sku) } // سکه: مصرف می‌شود
+                // هر سه بستهٔ VIP باید شناخته شوند، نه فقط اولی.
+                // همه مصرف می‌شوند تا کاربر بتواند دوباره بخرد یا تمدید کند؛
+                // اگر مصرف نشود، مایکت بار دوم می‌گوید «قبلاً خریده‌اید».
+                helper.consumeAsync(purchase) { _, _ ->
+                    if (sku.startsWith("vip_subscription")) grantVipJs(sku)
+                    else grantPurchaseJs(sku)
                 }
             }, "")
     }
 
-    private fun grantPurchaseJs(sku: String) {
-        webView.post { webView.evaluateJavascript("window.grantPurchase('$sku')", null) }
+    /** خریدهای پرداخت‌شده ولی تحویل‌نشده را پیدا و تحویل می‌دهد */
+    private fun recoverPendingPurchases() {
+        val helper = iab ?: return
+        try {
+            helper.queryInventoryAsync { result, inv ->
+                if (result == null || result.isFailure || inv == null) return@queryInventoryAsync
+                val skus = listOf("coins_500", "coins_1500", "coins_4000",
+                    "vip_subscription", "vip_subscription_2", "vip_subscription_3")
+                for (sku in skus) {
+                    val purchase = try { inv.getPurchase(sku) } catch (e: Exception) { null } ?: continue
+                    try {
+                        helper.consumeAsync(purchase) { _, _ ->
+                            if (sku.startsWith("vip_subscription")) grantVipJs(sku)
+                            else grantPurchaseJs(sku)
+                        }
+                    } catch (e: Exception) { /* دفعهٔ بعد دوباره تلاش می‌شود */ }
+                }
+            }
+        } catch (e: Exception) { /* اگر نشد، خرید عادی همچنان کار می‌کند */ }
     }
-    private fun grantVipJs() {
-        webView.post { webView.evaluateJavascript("window.grantVip()", null) }
+
+    private fun jsArg(s: String) = s.replace("\\", "").replace("'", "")
+
+    private fun grantPurchaseJs(sku: String) {
+        val s = jsArg(sku)
+        webView.post { webView.evaluateJavascript("window.grantPurchase('$s')", null) }
+    }
+    /** شناسهٔ بسته فرستاده می‌شود تا بازی بداند چند ماه اعتبار بدهد */
+    private fun grantVipJs(sku: String) {
+        val s = jsArg(sku)
+        webView.post { webView.evaluateJavascript("window.grantVip('$s')", null) }
     }
 
     override fun onDestroy() {
