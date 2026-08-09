@@ -1,3 +1,10 @@
+/* ⚠️ خط «package» زیر باید دقیقاً با مقدار namespace در build.gradle.kts یکی باشد.
+ *    اگر پروژهٔ تو نام دیگری دارد، همین یک خط را عوض کن.
+ *
+ *    ❗ نام بستهٔ فروشگاه (applicationId) چیز دیگری است و باید با نام بسته‌ای
+ *    که در پنل مایکت ثبت کرده‌ای یکی باشد. آن را در build.gradle.kts تنظیم کن،
+ *    نه اینجا. توضیح کامل: رفع-خطای-نام-بسته-مایکت.md
+ */
 package com.smahdi2razavi.pasur11
 
 import android.annotation.SuppressLint
