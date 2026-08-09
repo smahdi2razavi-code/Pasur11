@@ -28,7 +28,7 @@ const MAX_TROPHIES  = 1000000;
 const MAX_LEVEL     = 500;
 
 /* ---------- ذخیره‌سازی ساده روی فایل ---------- */
-let DB = { sessions:{}, leaderboard:{}, usernames:{}, users:{}, control:{}, friendreq:{}, backup:{}, broadcast:null, broadcastLog:[] };
+let DB = { sessions:{}, leaderboard:{}, usernames:{}, users:{}, control:{}, friendreq:{}, backup:{}, broadcast:null, broadcastLog:[], tickets:{} };
 try { if (fs.existsSync(DATA_FILE)) DB = Object.assign(DB, JSON.parse(fs.readFileSync(DATA_FILE,'utf8'))); }
 catch (e) { console.error('خواندن داده‌ها ناموفق بود:', e.message); }
 
@@ -438,6 +438,8 @@ const server = http.createServer(async (req, res) => {
     } catch (e) {}
     rollWeek();
     return sendJSON(res, 200, {
+      tickets: Object.keys(DB.tickets || {}).length,
+      ticketsNew: Object.values(DB.tickets || {}).filter(t => t && t.status === 'new').length,
       metrics: DB.metrics || {},
       backupLast, backupCount,
       week: DB.weekly.week, weekEndsAt: weekEnd(DB.weekly.week), lastTop: DB.weekly.top || [],
@@ -454,6 +456,86 @@ const server = http.createServer(async (req, res) => {
       uptime: Math.floor(process.uptime()),
       time: now
     });
+  }
+
+  /* ===== ۸الف) تیکت پشتیبانی =====
+     بازیکن مستقیم از داخل بازی شکایت/پیام می‌فرستد؛ نیازی به ایمیل نیست. */
+  if (root === 'tickets') {
+    DB.tickets = DB.tickets || {};
+    // ثبت تیکت تازه از سمت بازی (بدون کلید مدیریت)
+    if (method === 'PUT' && a && !b) {
+      if (!isId(a)) return sendJSON(res, 400, { error: 'bad id' });
+      if (dataTooBig) return sendJSON(res, 507, { error: 'storage full' });
+      const body = await readBody(req) || {};
+      const text = String(body.text || '').slice(0, 1500).trim();
+      if (!text) return sendJSON(res, 400, { error: 'empty' });
+      // ضد اسپم: حداکثر ۵ تیکت باز از هر کاربر، و یکی در هر ۲ دقیقه
+      const mine = Object.values(DB.tickets).filter(t => t && t.uid === a);
+      const open = mine.filter(t => t.status !== 'done');
+      if (open.length >= 5) return sendJSON(res, 429, { error: 'too many open tickets' });
+      const last = mine.reduce((m, t) => Math.max(m, t.ts || 0), 0);
+      if (Date.now() - last < 120000) return sendJSON(res, 429, { error: 'wait' });
+      if (Object.keys(DB.tickets).length >= 20000) return sendJSON(res, 507, { error: 'full' });
+
+      const u = DB.users[a] || {};
+      const id = String(Date.now()).slice(-8) + Math.floor(Math.random() * 90 + 10);
+      DB.tickets[id] = {
+        id, uid: a, ts: Date.now(), status: 'new',
+        kind: String(body.kind || 'other').slice(0, 24),
+        text,
+        // اطلاعات حساب، خودکار همراه تیکت می‌آید تا پشتیبانی سریع‌تر کمک کند
+        name: String(body.name || u.name || '').slice(0, 24),
+        user: String(body.user || u.user || '').slice(0, 32),
+        level: clampInt(body.level, MAX_LEVEL),
+        coins: clampInt(body.coins, 1e9),
+        trophies: clampInt(body.trophies, MAX_TROPHIES),
+        vip: !!body.vip,
+        games: clampInt(body.games, 1e7),
+        wins: clampInt(body.wins, 1e7),
+        ver: String(body.ver || '').slice(0, 16),
+        dev: String(body.dev || '').slice(0, 120),
+        banned: !!((DB.control[a] || {}).banned)
+      };
+      saveDB();
+      return sendJSON(res, 200, { ok: true, id });
+    }
+    // پیگیری تیکت‌های خودِ کاربر (فقط تیکت‌های همان شناسه)
+    if (method === 'GET' && a === 'mine' && b) {
+      if (!isId(b)) return sendJSON(res, 400, { error: 'bad id' });
+      const mine = Object.values(DB.tickets).filter(t => t && t.uid === b)
+        .sort((x, y) => y.ts - x.ts).slice(0, 20)
+        .map(t => ({ id: t.id, ts: t.ts, kind: t.kind, text: t.text,
+                     status: t.status, reply: t.reply || '', replyTs: t.replyTs || 0 }));
+      return sendJSON(res, 200, mine);
+    }
+    // فهرست کامل برای پنل
+    if (method === 'GET' && !a) {
+      if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
+      return sendJSON(res, 200, DB.tickets);
+    }
+    // پاسخ/تغییر وضعیت از پنل
+    if (method === 'PUT' && a && b === 'reply') {
+      if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
+      const t = DB.tickets[a];
+      if (!t) return sendJSON(res, 404, { error: 'not found' });
+      const body = await readBody(req) || {};
+      const reply = String(body.reply || '').slice(0, 1500).trim();
+      if (reply) {
+        t.reply = reply; t.replyTs = Date.now(); t.status = 'done';
+        // پاسخ در صندوق پستی بازیکن نشان داده می‌شود
+        DB.control[t.uid] = DB.control[t.uid] || {};
+        DB.control[t.uid].msg = reply;
+      }
+      if (body.status) t.status = String(body.status).slice(0, 10);
+      audit(req, 'ticket:reply', t.uid, reply.slice(0, 80));
+      saveDB(); return sendJSON(res, 200, { ok: true });
+    }
+    if (method === 'DELETE' && a) {
+      if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
+      delete DB.tickets[a];
+      audit(req, 'ticket:delete', a, '');
+      saveDB(); return sendJSON(res, 200, { ok: true });
+    }
   }
 
   /* ===== ۸ب) شمارندهٔ قیف (بازی هر مرحله را یک‌بار می‌فرستد) ===== */

@@ -145,6 +145,7 @@ tr:hover td{background:rgba(255,255,255,.03);}
     <button class="tab active" data-p="dash">📊 داشبورد</button>
     <button class="tab" data-p="users">👥 کاربران</button>
     <button class="tab" data-p="one">🎯 مدیریت کاربر</button>
+    <button class="tab" data-p="tk">🎫 تیکت‌ها <span id="tkBadge"></span></button>
     <button class="tab" data-p="bc">📢 اعلان</button>
     <button class="tab" data-p="live">🌐 آنلاین</button>
     <button class="tab" data-p="tools">🧰 ابزار</button>
@@ -325,6 +326,37 @@ tr:hover td{background:rgba(255,255,255,.03);}
     </div>
   </div>
 
+
+  <!-- ================= تیکت‌ها ================= -->
+  <div class="page" id="p-tk">
+    <div class="box">
+      <h2>🎫 پیام‌های کاربران</h2>
+      <div class="hint" style="margin-bottom:10px">کاربران مستقیم از داخل بازی پیام می‌فرستند.
+        اطلاعات حسابشان خودکار همراه پیام می‌آید. پاسخ تو در صندوق پیام بازی به آن‌ها نشان داده می‌شود.</div>
+      <div class="row tight" style="margin-bottom:10px">
+        <button class="btn-ghost" id="btnTk">🔄 به‌روزرسانی</button>
+        <select id="tkFilter" style="flex:0 1 170px;margin:0">
+          <option value="open">تازه و در حال بررسی</option>
+          <option value="new">فقط تازه‌ها</option>
+          <option value="done">پاسخ داده‌شده</option>
+          <option value="all">همه</option>
+        </select>
+        <select id="tkKindF" style="flex:0 1 190px;margin:0">
+          <option value="">همهٔ موضوع‌ها</option>
+          <option value="ban">⛔ اعتراض به مسدودی</option>
+          <option value="buy">💳 مشکل خرید</option>
+          <option value="bug">🐞 ایراد فنی</option>
+          <option value="cheat">🚩 گزارش تقلب</option>
+          <option value="account">👤 مشکل حساب</option>
+          <option value="idea">💡 پیشنهاد</option>
+          <option value="other">✉️ دیگر</option>
+        </select>
+      </div>
+      <div id="tkList"></div>
+      <div class="status" id="tkMsg"></div>
+    </div>
+  </div>
+
   <!-- ================= اعلان ================= -->
   <div class="page" id="p-bc">
     <div class="box">
@@ -401,7 +433,7 @@ tr:hover td{background:rgba(255,255,255,.03);}
     <div class="box">
       <h2>⌨️ میان‌برهای صفحه‌کلید</h2>
       <div class="hint">
-        <b>۱ تا ۶</b> — رفتن بین تب‌ها &nbsp;•&nbsp;
+        <b>۱ تا ۷</b> — رفتن بین تب‌ها &nbsp;•&nbsp;
         <b>R</b> — به‌روزرسانی &nbsp;•&nbsp;
         <b>/</b> — پرش به کادر جستجو &nbsp;•&nbsp;
         <b>Esc</b> — بستن پیام‌ها
@@ -518,6 +550,7 @@ function showPage(p){
   $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.p===p));
   $$('.page').forEach(e=>e.classList.toggle('active',e.id==='p-'+p));
   try{ localStorage.setItem('pasur_admin_tab',p); }catch(e){}
+  if(p==='tk')loadTickets();
   if(p==='live')loadLive();
   if(p==='bc')loadBcLog();
   if(p==='tools'){ renderServer(); loadAudit(); }
@@ -566,18 +599,20 @@ $('#btnForget').onclick=()=>{
 /* ---------- بارگذاری همه چیز ---------- */
 async function refreshAll(){
   const t0=Date.now();
-  const [u,c,s,b]=await Promise.all([
+  const [u,c,s,tk,b]=await Promise.all([
     api(('/users.json')).catch(()=>null),
     api(('/control.json')).catch(()=>null),
     api(('/stats.json')).catch(()=>null),
+    api(('/tickets.json')).catch(()=>null),
     api('/leaderboard.json').catch(()=>null)
   ]);
   if(u&&!u.error)USERS=u;
   CONTROL=(c&&!c.error)?c:{};
   BOARD=(b&&!b.error)?b:{};
+  TICKETS=(tk&&!tk.error)?tk:{};
   STATS=(s&&!s.error&&typeof s.users==='number')?s:localStats();
   renderStats(); renderChart(); renderTop(); renderPending();
-  renderFunnel(); renderLeague();
+  renderFunnel(); renderLeague(); tkBadge();
   renderUsers(); renderRecent(); renderServer(); fillDatalist();
   $('#connLive').textContent='آخرین به‌روزرسانی: '+new Date().toLocaleTimeString('fa-IR')
     +' • '+fa(Date.now()-t0)+' میلی‌ثانیه';
@@ -646,6 +681,107 @@ function renderChart(){
   $('#chartHint').textContent='بیشترین در یک روز: '+num(max)+' • کاربر تازه در ۱۴ روز: '+num(tot)
     +(STATS&&STATS.local?' • (محاسبه‌شده در همین مرورگر — سرور را به‌روز کن تا دقیق‌تر شود)':'');
 }
+
+
+/* ---------- تیکت‌های پشتیبانی ---------- */
+let TICKETS={};
+const TK_KINDS={ban:'⛔ اعتراض به مسدودی',buy:'💳 مشکل خرید',bug:'🐞 ایراد فنی',
+  cheat:'🚩 گزارش تقلب',account:'👤 مشکل حساب',idea:'💡 پیشنهاد',other:'✉️ موضوع دیگر'};
+async function loadTickets(){
+  try{
+    const d=await api('/tickets.json');
+    if(!d||d.error)throw new Error('x');
+    TICKETS=d; renderTickets();
+  }catch(e){
+    $('#tkList').innerHTML='<div class="hint">این بخش نیاز به نسخهٔ تازهٔ سرور دارد.</div>';
+  }
+}
+function tkBadge(){
+  const n=Object.values(TICKETS).filter(t=>t&&t.status==='new').length;
+  const b=$('#tkBadge');
+  if(b)b.innerHTML=n?'<span class="tag ban" style="margin-right:4px">'+fa(n)+'</span>':'';
+}
+function renderTickets(){
+  const f=$('#tkFilter').value, kf=$('#tkKindF').value;
+  let rows=Object.values(TICKETS).filter(t=>t&&t.id);
+  if(f==='open')rows=rows.filter(t=>t.status!=='done');
+  else if(f==='new')rows=rows.filter(t=>t.status==='new');
+  else if(f==='done')rows=rows.filter(t=>t.status==='done');
+  if(kf)rows=rows.filter(t=>t.kind===kf);
+  rows.sort((a,b)=>(b.ts||0)-(a.ts||0));
+  tkBadge();
+  if(!rows.length){ $('#tkList').innerHTML='<div class="hint">پیامی با این فیلتر نیست.</div>'; return; }
+  $('#tkList').innerHTML=rows.slice(0,100).map(t=>{
+    const st=t.status==='done'?'<span class="tag on">پاسخ داده شد</span>'
+      :(t.status==='read'?'<span class="tag pend">در حال بررسی</span>':'<span class="tag ban">تازه</span>');
+    return '<div class="box" style="margin-bottom:10px;background:rgba(255,255,255,.03)">'
+      +'<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;align-items:center">'
+      +'<div style="font-weight:800;color:var(--gold-soft)">'+esc(TK_KINDS[t.kind]||t.kind)+'</div>'
+      +'<div>'+st+' <span class="hint mono">#'+esc(t.id)+'</span> <span class="hint">'+esc(ago(t.ts))+'</span></div>'
+      +'</div>'
+      +'<div style="margin:9px 0;white-space:pre-wrap;line-height:1.9">'+esc(t.text)+'</div>'
+      +'<div class="hint" style="border-top:1px solid var(--line);padding-top:8px">'
+        +'👤 <b>'+esc(t.name||'—')+'</b>'+(t.user?' <span class="mono">@'+esc(t.user)+'</span>':'')
+        +' • <span class="mono">'+esc(t.uid)+'</span>'
+        +' • سطح '+fa(t.level||1)+' • 🪙 '+num(t.coins||0)+' • 🏆 '+num(t.trophies||0)
+        +(t.vip?' • <span class="tag vip">VIP</span>':'')
+        +(t.banned?' • <span class="tag ban">مسدود</span>':'')
+        +(t.games?(' • '+fa(t.games)+' بازی، '+fa(t.wins||0)+' برد'):'')
+        +(t.ver?(' • نسخهٔ '+esc(t.ver)):'')
+        +'</div>'
+      +(t.dev?'<div class="hint mono" style="font-size:10.5px;opacity:.7">'+esc(t.dev)+'</div>':'')
+      +(t.reply?'<div style="margin-top:9px;padding:8px;border-radius:9px;background:rgba(62,203,106,.1);border:1px solid var(--ok)">'
+          +'<b style="font-size:12.5px">پاسخ تو:</b> '+esc(t.reply)+'</div>':'')
+      +'<textarea data-rep="'+esc(t.id)+'" rows="2" placeholder="پاسخ خود را بنویس…" '
+        +'style="margin-top:9px">'+esc(t.reply||'')+'</textarea>'
+      +'<div class="row tight">'
+        +'<button class="btn-gold btn-sm" data-send="'+esc(t.id)+'">📨 ارسال پاسخ</button>'
+        +'<button class="btn-ghost btn-sm" data-read="'+esc(t.id)+'">👁 در حال بررسی</button>'
+        +'<button class="btn-ghost btn-sm" data-user="'+esc(t.uid)+'">🎯 مدیریت کاربر</button>'
+        +(t.banned?'<button class="btn-ok btn-sm" data-unban="'+esc(t.uid)+'">✅ رفع مسدودی</button>':'')
+        +'<button class="btn-bad btn-sm" data-del="'+esc(t.id)+'">🗑 حذف</button>'
+      +'</div></div>';
+  }).join('');
+
+  $('#tkList').querySelectorAll('[data-send]').forEach(b=>b.onclick=()=>tkReply(b.dataset.send));
+  $('#tkList').querySelectorAll('[data-read]').forEach(b=>b.onclick=()=>tkStatus(b.dataset.read,'read'));
+  $('#tkList').querySelectorAll('[data-user]').forEach(b=>b.onclick=()=>pickUser(b.dataset.user));
+  $('#tkList').querySelectorAll('[data-unban]').forEach(b=>b.onclick=async()=>{
+    if(await putControl(b.dataset.unban,'banned',false)){ toast('✅ مسدودی برداشته شد'); loadTickets(); }
+  });
+  $('#tkList').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>tkDelete(b.dataset.del));
+}
+async function tkReply(id){
+  const ta=$('[data-rep="'+id+'"]');
+  const reply=(ta&&ta.value||'').trim();
+  if(!reply){ toast('متن پاسخ را بنویس',true); return; }
+  try{
+    const r=await fetchA('/tickets/'+encodeURIComponent(id)+'/reply.json',
+      {method:'PUT',body:JSON.stringify({reply})});
+    const j=await r.json();
+    if(j&&j.error)throw new Error('انجام نشد');
+    msg($('#tkMsg'),'📨 پاسخ فرستاده شد. کاربر آن را در صندوق پیام بازی می‌بیند.',true);
+    toast('پاسخ فرستاده شد ✔');
+    await loadTickets();
+  }catch(e){ msg($('#tkMsg'),'ارسال پاسخ ممکن نشد',false); }
+}
+async function tkStatus(id,status){
+  try{
+    await fetchA('/tickets/'+encodeURIComponent(id)+'/reply.json',
+      {method:'PUT',body:JSON.stringify({status})});
+    await loadTickets(); toast('وضعیت تغییر کرد');
+  }catch(e){ toast('انجام نشد',true); }
+}
+async function tkDelete(id){
+  if(!confirm('این پیام حذف شود؟'))return;
+  try{
+    await fetchA('/tickets/'+encodeURIComponent(id)+'.json',{method:'DELETE'});
+    await loadTickets(); toast('حذف شد');
+  }catch(e){ toast('حذف ممکن نشد',true); }
+}
+$('#btnTk').onclick=loadTickets;
+$('#tkFilter').onchange=renderTickets;
+$('#tkKindF').onchange=renderTickets;
 
 /* ---------- قیف کاربران ---------- */
 const FUNNEL=[
@@ -1195,8 +1331,8 @@ document.addEventListener('keydown',e=>{
     if(e.key==='Escape')e.target.blur();
     return;
   }
-  const pages=['dash','users','one','bc','live','tools'];
-  if(e.key>='1'&&e.key<='6'){ showPage(pages[+e.key-1]); return; }
+  const pages=['dash','users','one','tk','bc','live','tools'];
+  if(e.key>='1'&&e.key<='7'){ showPage(pages[+e.key-1]); return; }
   if(e.key==='r'||e.key==='R'){ refreshAll().then(()=>toast('به‌روز شد ✔')); return; }
   if(e.key==='/'){ e.preventDefault(); showPage('users'); $('#search').focus(); return; }
   if(e.key==='Escape')clearMsgs();

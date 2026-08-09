@@ -295,6 +295,21 @@ body.is-vip .vip-emblem .ve-crown{filter:drop-shadow(0 2px 6px rgba(127,224,180,
   width:100%; font-family:inherit; font-size:16px; padding:11px 12px; border-radius:10px;
   border:1px solid #3a4f8e; background:#131e40; color:var(--ivory); outline:none;
 }
+/* ---- فرم پیام به پشتیبانی ---- */
+#ticket label{display:block; font-size:13.5px; font-weight:700; color:#c6d2f2; margin:12px 0 6px;}
+#ticket select, #ticket textarea{
+  width:100%; font-family:inherit; font-size:15.5px; padding:11px 12px; border-radius:10px;
+  border:1px solid #3a4f8e; background:#131e40; color:var(--ivory); outline:none;
+  display:block; -webkit-appearance:none; appearance:none;
+}
+#ticket select{background-image:linear-gradient(45deg,transparent 50%,#8ea0d0 50%),
+  linear-gradient(135deg,#8ea0d0 50%,transparent 50%);
+  background-position:14px calc(50% - 2px), 19px calc(50% - 2px);
+  background-size:5px 5px, 5px 5px; background-repeat:no-repeat; padding-left:32px;}
+#ticket select:focus, #ticket textarea:focus{border-color:var(--gold);}
+#ticket textarea{resize:vertical; min-height:120px; line-height:1.9;}
+#ticket .mission-row{align-items:flex-start;}
+#ticket .mission-row .mi{width:100%;}
 .set-item input[type=range]{width:100%; accent-color:var(--gold);}
 .set-item input[type=file]{width:100%; color:#c6d2f2; font-family:inherit; font-size:13px;}
 .switch-row{display:flex; align-items:center; justify-content:space-between; gap:12px;}
@@ -1448,9 +1463,17 @@ body.table-persian #game{background:radial-gradient(1200px 760px at 50% -8%,#5a1
   <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>✉️ ارتباط با ما</h2></div>
   <div class="scroll">
     <div class="card-box" style="text-align:center">
-      <div style="font-size:48px;margin-bottom:6px">✉️</div>
-      <h3>با ما در تماس باش</h3>
-      <p class="hint">هر پیشنهاد، انتقاد یا مشکلی داشتی، برایمان بنویس. خوشحال می‌شویم بشنویم.</p>
+      <div style="font-size:48px;margin-bottom:6px">📮</div>
+      <h3>پیام مستقیم به پشتیبانی</h3>
+      <p class="hint">سریع‌ترین راه: همین‌جا بنویس، بدون نیاز به ایمیل.
+        پاسخ را در صندوق پیام خودت می‌بینی.</p>
+      <button class="btn primary" id="btnTicket" style="width:100%">📮 ثبت شکایت یا پیام</button>
+    </div>
+
+    <div class="card-box" style="text-align:center">
+      <div style="font-size:40px;margin-bottom:6px">✉️</div>
+      <h3>یا از راه ایمیل</h3>
+      <p class="hint">اگر ترجیح می‌دهی ایمیل بزنی، از این گزینه‌ها استفاده کن.</p>
       <div class="invite-code" id="contactMail" style="font-size:17px;letter-spacing:0">smr2.ff@gmail.com</div>
       <button class="btn primary" id="btnCopyMail" style="width:100%">کپی ایمیل</button>
       <button class="btn" id="btnOpenMail" style="width:100%">ارسال ایمیل</button>
@@ -1464,6 +1487,42 @@ body.table-persian #game{background:radial-gradient(1200px 760px at 50% -8%,#5a1
       <div class="hint" style="margin-top:8px">با داشتن شناسه، سریع‌تر می‌توانیم کمکت کنیم.</div>
     </div>
     <button class="btn" id="btnAbout" style="width:100%">ℹ️ دربارهٔ برنامه</button>
+  </div>
+</div>
+
+<!-- ============ ثبت شکایت / پیام مستقیم به پشتیبانی ============ -->
+<div class="screen" id="ticket">
+  <div class="topbar"><button class="back" id="btnTicketBack">→ بازگشت</button><h2>📮 پیام به پشتیبانی</h2></div>
+  <div class="scroll">
+    <div class="card-box">
+      <p class="hint" style="margin-top:0">پیامت مستقیم به دست ما می‌رسد — نیازی به ایمیل نیست.
+        معمولاً کمتر از ۲۴ ساعت جواب می‌دهیم و پاسخ را در <b>صندوق پیام</b> می‌بینی.</p>
+      <label>موضوع</label>
+      <select id="tkKind">
+        <option value="ban">⛔ اعتراض به مسدودی حساب</option>
+        <option value="buy">💳 مشکل در خرید یا پرداخت</option>
+        <option value="bug">🐞 ایراد فنی یا باگ</option>
+        <option value="cheat">🚩 گزارش تقلب بازیکن دیگر</option>
+        <option value="account">👤 مشکل حساب کاربری</option>
+        <option value="idea">💡 پیشنهاد یا انتقاد</option>
+        <option value="other">✉️ موضوع دیگر</option>
+      </select>
+      <label>توضیح مشکل</label>
+      <textarea id="tkText" rows="6" maxlength="1500"
+        placeholder="هرچه کامل‌تر بنویسی، سریع‌تر حل می‌شود…"></textarea>
+      <div class="hint" style="text-align:left"><span id="tkCount">۰</span> / ۱۵۰۰</div>
+      <div class="hint" style="margin:6px 0 10px">
+        📎 شناسه و اطلاعات حساب شما (نام، سطح، سکه، وضعیت اشتراک) خودکار همراه پیام
+        فرستاده می‌شود تا لازم نباشد چیزی تایپ کنی.
+      </div>
+      <button class="btn primary" id="btnTkSend" style="width:100%">📨 ارسال به پشتیبانی</button>
+      <div id="tkMsg" class="hint" style="text-align:center;margin-top:8px"></div>
+    </div>
+
+    <div class="card-box">
+      <h3>🕘 پیگیری پیام‌های قبلی</h3>
+      <div id="tkList"><div class="hint">هنوز پیامی نفرستاده‌ای.</div></div>
+    </div>
   </div>
 </div>
 
@@ -1803,6 +1862,46 @@ $('#btnGuide').onclick=()=>show('guide');
   };
   const _cm=document.getElementById('btnCopyMsg');
   if(_cm)_cm.onclick=()=>{ copyText(contactBody()); toast('متن پیام کپی شد ✔'); };
+
+  /* ---- فرم شکایت/پیام مستقیم ---- */
+  const _tk=document.getElementById('btnTicket');
+  if(_tk)_tk.onclick=()=>openTicket('other');
+  const _tb=document.getElementById('btnTicketBack');
+  if(_tb)_tb.onclick=()=>show(USER_BANNED?'menu':'contact');
+  const _tt=document.getElementById('tkText');
+  if(_tt)_tt.addEventListener('input',()=>{
+    const c=document.getElementById('tkCount'); if(c)c.textContent=fa(_tt.value.length);
+  });
+  const _ts=document.getElementById('btnTkSend');
+  if(_ts)_ts.onclick=async()=>{
+    const txt=($('#tkText').value||'').trim();
+    const kind=$('#tkKind').value||'other';
+    const out=$('#tkMsg');
+    if(txt.length<10){ out.style.color='#ffb9c6'; out.textContent='لطفاً کمی کامل‌تر توضیح بده (حداقل ۱۰ حرف)'; return; }
+    _ts.disabled=true; out.style.color=''; out.textContent='در حال ارسال…';
+    try{
+      const id=await sendTicket(kind,txt);
+      out.style.color='#9dffc0';
+      out.textContent='✅ پیامت ثبت شد. کد پیگیری: '+fa(id)+' — پاسخ در صندوق پیام می‌آید.';
+      $('#tkText').value=''; $('#tkCount').textContent=fa(0);
+      addMail('📮','پیام تو ثبت شد',
+        'پیامت با کد پیگیری '+fa(id)+' برای پشتیبانی فرستاده شد. پاسخ را همین‌جا می‌بینی.');
+      loadMyTickets();
+    }catch(e){
+      if(e&&e.soft){
+        // سرور خودش جواب داد؛ متن در کادر می‌ماند تا کاربر بعداً بفرستد
+        out.style.color='#ffb9c6'; out.textContent=e.message;
+      } else {
+        // مشکل اینترنت: پیام گم نمی‌شود و خودکار بعداً فرستاده می‌شود
+        queueTicket(kind,txt);
+        out.style.color='#ffe9ad';
+        out.textContent='📥 اینترنت وصل نیست؛ پیامت ذخیره شد و به‌محض وصل‌شدن فرستاده می‌شود.';
+        $('#tkText').value=''; $('#tkCount').textContent=fa(0);
+        loadMyTickets();
+      }
+    }
+    _ts.disabled=false;
+  };
 }
 $('#btnSettings').onclick=()=>{ openSettingsForm(); show('settings'); };
 $('#btnExit').onclick=()=>{ show('exit'); try{window.close()}catch(e){} };
@@ -3206,10 +3305,104 @@ let USER_BANNED=false;
 function showBanModal(){
   try{
     $('#modalBox').innerHTML='<h3>⛔ حساب مسدود شده</h3>'
-      +'<p style="text-align:center">حساب شما توسط مدیریت مسدود شده است. برای پیگیری با پشتیبانی تماس بگیرید.</p>'
-      +'<p style="text-align:center;color:var(--gold-soft)">شناسهٔ شما: '+fa(ensureUserId())+'</p>';
+      +'<p style="text-align:center">حساب شما توسط مدیریت مسدود شده است.</p>'
+      +'<p style="text-align:center">اگر فکر می‌کنی اشتباهی رخ داده، همین‌جا برای ما توضیح بده تا بررسی کنیم.</p>'
+      +'<p style="text-align:center;color:var(--gold-soft)">شناسهٔ شما: '+fa(ensureUserId())+'</p>'
+      +'<button class="btn primary" id="banContact" style="width:100%">📮 توضیح می‌دهم / اعتراض دارم</button>';
     $('#modalWrap').classList.add('show');
+    const b=$('#banContact');
+    if(b)b.onclick=()=>{ $('#modalWrap').classList.remove('show'); openTicket('ban'); };
   }catch(e){}
+}
+
+/* ================= تیکت پشتیبانی =================
+   پیام مستقیم به پنل مدیریت می‌رود؛ اگر اینترنت نبود، در گوشی می‌ماند
+   و دفعهٔ بعد که وصل شد خودکار فرستاده می‌شود. */
+const TICKET_KINDS={ban:'اعتراض به مسدودی',buy:'مشکل خرید',bug:'ایراد فنی',
+  cheat:'گزارش تقلب',account:'مشکل حساب',idea:'پیشنهاد',other:'موضوع دیگر'};
+function ticketPayload(kind,text){
+  return {
+    kind:kind, text:text,
+    name:SET.pName||'', user:SET.profileUsername||'',
+    level:PROG.level||1, coins:PROG.coins||0, trophies:PROG.trophies||0,
+    vip:!!PROG.vip, games:PROG.games||0, wins:PROG.wins||0,
+    ver:'۱.۰', dev:(navigator.userAgent||'').slice(0,120)
+  };
+}
+async function sendTicket(kind,text){
+  const uid=ensureUserId();
+  const body=ticketPayload(kind,text);
+  if(!firebaseConfigured())throw new Error('offline');
+  const r=await fetch(FIREBASE_DB_URL+'/tickets/'+encodeURIComponent(uid)+'.json',
+    {method:'PUT',body:JSON.stringify(body)});
+  const j=await r.json();
+  if(j&&j.error){
+    // پاسخ خودِ سرور: پیام نباید در صف بیفتد وگرنه تکراری فرستاده می‌شود
+    const e=new Error(
+      j.error==='wait' ? 'لطفاً چند دقیقه صبر کن و دوباره بفرست' :
+      j.error==='too many open tickets' ? 'چند پیام باز داری؛ تا پاسخ آن‌ها صبر کن' :
+      j.error==='empty' ? 'متن پیام خالی است' : 'ثبت نشد');
+    e.soft=true; throw e;
+  }
+  return j.id;
+}
+function queueTicket(kind,text){
+  if(!Array.isArray(PROG.tkQueue))PROG.tkQueue=[];
+  PROG.tkQueue.push({kind:kind,text:text,ts:Date.now()});
+  if(PROG.tkQueue.length>10)PROG.tkQueue.shift();
+  progSave();
+}
+async function flushTicketQueue(){
+  if(!Array.isArray(PROG.tkQueue)||!PROG.tkQueue.length)return;
+  if(!firebaseConfigured())return;
+  const q=PROG.tkQueue.slice();
+  for(const t of q){
+    try{
+      await sendTicket(t.kind,t.text);
+      PROG.tkQueue=PROG.tkQueue.filter(x=>x!==t); progSave();
+    }catch(e){ break; }     // اینترنت هنوز مشکل دارد؛ دفعهٔ بعد
+  }
+}
+function openTicket(kind){
+  const k=$('#tkKind'); if(k&&kind)k.value=kind;
+  $('#tkText').value=''; $('#tkCount').textContent=fa(0);
+  $('#tkMsg').textContent='';
+  show('ticket');
+  loadMyTickets();
+}
+async function loadMyTickets(){
+  const box=$('#tkList'); if(!box)return;
+  const pend=(Array.isArray(PROG.tkQueue)?PROG.tkQueue:[]);
+  let rows=[];
+  try{
+    if(firebaseConfigured()){
+      const r=await fetch(FIREBASE_DB_URL+'/tickets/mine/'+encodeURIComponent(ensureUserId())+'.json');
+      const d=await r.json();
+      if(Array.isArray(d))rows=d;
+    }
+  }catch(e){}
+  let out='';
+  pend.forEach(t=>{
+    out+='<div class="mission-row"><div class="mi">'
+      +'<div class="mt">⏳ '+esc(TICKET_KINDS[t.kind]||'پیام')+'</div>'
+      +'<div class="hint">در انتظار اینترنت — به‌محض وصل‌شدن فرستاده می‌شود</div>'
+      +'<div class="hint">'+esc(String(t.text).slice(0,90))+'</div></div></div>';
+  });
+  rows.forEach(t=>{
+    const st=t.status==='done'?'<span style="color:#9dffc0">✅ پاسخ داده شد</span>'
+      :(t.status==='read'?'<span style="color:#ffe9ad">👁 در حال بررسی</span>'
+        :'<span class="hint">📨 ثبت شد</span>');
+    out+='<div class="mission-row"><div class="mi">'
+      +'<div class="mt">'+esc(TICKET_KINDS[t.kind]||'پیام')+' — کد '+fa(t.id)+'</div>'
+      +'<div class="hint">'+st+' • '+esc(faDate(t.ts))+'</div>'
+      +'<div class="hint">'+esc(String(t.text).slice(0,110))+'</div>'
+      +(t.reply?('<div class="hint" style="color:#ffe9ad;margin-top:4px">پاسخ: '+esc(t.reply)+'</div>'):'')
+      +'</div></div>';
+  });
+  box.innerHTML=out||'<div class="hint">هنوز پیامی نفرستاده‌ای.</div>';
+}
+function faDate(ts){
+  try{ return new Date(ts).toLocaleDateString('fa-IR'); }catch(e){ return ''; }
 }
 /* ================= صندوق پستی ================= */
 function mailsData(){ if(!Array.isArray(PROG.mails))PROG.mails=[]; return PROG.mails; }
@@ -3282,6 +3475,7 @@ function metric(name){
 }
 async function syncUserWithServer(){
   checkVipExpiry();
+  try{ flushTicketQueue(); }catch(e){}
   if(!firebaseConfigured())return;
   const uid=encodeURIComponent(ensureUserId());
   // ۱) ثبت/به‌روزرسانی اطلاعات کاربر روی سرور
