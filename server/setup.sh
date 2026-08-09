@@ -81,6 +81,18 @@ ADMIN_KEY="$ADMIN_KEY" DATA_FILE="$APP_DIR/data.json" PORT=3000 \
 pm2 save >/dev/null
 pm2 startup systemd -u root --hp /root >/dev/null 2>&1 || true
 
+# ---------- ۵ب) پشتیبان خودکار روزانه ----------
+echo "▶ نصب پشتیبان خودکار روزانه..."
+curl -fsSL "https://raw.githubusercontent.com/smahdi2razavi-code/Pasur11/claude/gallant-planck-ofe9g8/server/backup.sh" \
+  -o "$APP_DIR/backup.sh" 2>/dev/null && chmod +x "$APP_DIR/backup.sh"
+if [ -s "$APP_DIR/backup.sh" ]; then
+  CRON_LINE="20 3 * * * DATA_FILE=$APP_DIR/data.json /bin/bash $APP_DIR/backup.sh >> $APP_DIR/backup.log 2>&1"
+  ( crontab -l 2>/dev/null | grep -v 'pasur11/backup.sh' ; echo "$CRON_LINE" ) | crontab -
+  echo "   ✔ هر شب ساعت ۳:۲۰ پشتیبان گرفته می‌شود (۱۴ روز نگهداری)"
+else
+  echo "   ⚠️ دانلود backup.sh ناموفق بود — پشتیبان خودکار نصب نشد"
+fi
+
 # ---------- ۶) Nginx و گواهی SSL ----------
 echo "▶ گام ۶ از ۷: نصب Nginx و گواهی SSL..."
 apt-get install -y -qq nginx certbot python3-certbot-nginx

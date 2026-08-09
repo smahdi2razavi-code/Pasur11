@@ -11,13 +11,21 @@
  *  پس روی پلن رایگان لیارا هم بدون دردسر اجرا می‌شود.
  * ========================================================================== */
 
-const http = require('http');
-const fs   = require('fs');
-const path = require('path');
+const http   = require('http');
+const fs     = require('fs');
+const path   = require('path');
+const crypto = require('crypto');
 
 const PORT      = process.env.PORT || 3000;
-const ADMIN_KEY = process.env.ADMIN_KEY || 'CHANGE_ME_SECRET';  // برای ربات تلگرام
+const ADMIN_KEY = process.env.ADMIN_KEY || 'CHANGE_ME_SECRET';  // برای پنل مدیریت
 const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, 'data.json');
+
+/* ---------- سقف‌های ایمنی (جلوگیری از پرشدن دیسک و خرابکاری) ---------- */
+const MAX_USERS     = Number(process.env.MAX_USERS)     || 100000;
+const MAX_DATA_MB   = Number(process.env.MAX_DATA_MB)   || 100;
+const RATE_PER_MIN  = Number(process.env.RATE_PER_MIN)  || 300;   // درخواست در دقیقه از هر IP
+const MAX_TROPHIES  = 1000000;
+const MAX_LEVEL     = 500;
 
 /* ---------- ذخیره‌سازی ساده روی فایل ---------- */
 let DB = { sessions:{}, leaderboard:{}, usernames:{}, users:{}, control:{}, friendreq:{}, backup:{}, broadcast:null, broadcastLog:[] };
@@ -56,7 +64,8 @@ function sendJSON(res, code, obj) {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Key',
+    'Access-Control-Max-Age': '86400',
     'Cache-Control': 'no-store'
   });
   res.end(body);
@@ -75,9 +84,100 @@ function parsePath(url) {
     try { return decodeURIComponent(p); } catch (e) { return p; }   // آدرس خراب سرور را نیندازد
   });
 }
-// خواندن امن پارامتر ?key=
+/* ---------- کلید مدیریت ----------
+ * روش تازه: هدر  X-Admin-Key   (کلید در آدرس نمی‌افتد و در لاگ‌ها ثبت نمی‌شود)
+ * روش قدیمی: ?key=...          (برای سازگاری با پنل‌های قدیمی نگه داشته شده)     */
+function readKey(req) {
+  const h = req && req.headers && req.headers['x-admin-key'];
+  if (h) return String(h);
+  try { return new URL(req.url, 'http://x').searchParams.get('key'); } catch (e) { return null; }
+}
+// مقایسهٔ ثابت‌زمان تا کلید حرف‌به‌حرف حدس زده نشود
+function keyOk(req) {
+  const got = readKey(req);
+  if (typeof got !== 'string') return false;
+  const a = Buffer.from(got), b = Buffer.from(ADMIN_KEY);
+  if (a.length !== b.length) return false;
+  try { return crypto.timingSafeEqual(a, b); } catch (e) { return false; }
+}
+// getKey فقط برای سازگاری با کدهای قدیمی این فایل
 function getKey(url) {
   try { return new URL(url, 'http://x').searchParams.get('key'); } catch (e) { return null; }
+}
+
+/* ---------- محدودیت نرخ درخواست ---------- */
+const RATE = new Map();
+function clientIp(req) {
+  const f = req.headers['x-forwarded-for'];
+  if (f) return String(f).split(',')[0].trim();
+  return (req.socket && req.socket.remoteAddress) || '?';
+}
+function rateLimited(req) {
+  const ip = clientIp(req), now = Date.now();
+  let r = RATE.get(ip);
+  if (!r || now - r.t > 60000) { r = { n: 0, t: now }; RATE.set(ip, r); }
+  r.n++;
+  return r.n > RATE_PER_MIN;
+}
+setInterval(() => {                       // پاک‌سازی شمارنده‌های قدیمی
+  const now = Date.now();
+  for (const [ip, r] of RATE) if (now - r.t > 120000) RATE.delete(ip);
+}, 120000);
+
+/* ---------- اعتبارسنجی ورودی ---------- */
+const ID_RE = /^\d{1,3}-\d{4,12}$/;                   // مثل 11-123456
+const isId  = s => typeof s === 'string' && ID_RE.test(s);
+const isName = s => typeof s === 'string' && s.length >= 1 && s.length <= 32 && !/[\x00-\x1f\x7f]/.test(s);
+let dataTooBig = false;
+setInterval(() => {
+  try { dataTooBig = fs.statSync(DATA_FILE).size > MAX_DATA_MB * 1048576; } catch (e) {}
+}, 60000);
+// آیا اجازهٔ ساختن کلید تازه هست؟ (به‌روزرسانی کلید موجود همیشه مجاز است)
+function canCreate(bucket, key) {
+  if (bucket[key] !== undefined) return true;
+  if (dataTooBig) return false;
+  return Object.keys(bucket).length < MAX_USERS;
+}
+const clampInt = (v, max) => Math.max(0, Math.min(max, Math.floor(Number(v) || 0)));
+
+/* ---------- دفتر ثبت کارهای مدیریتی ---------- */
+function audit(req, action, target, detail) {
+  DB.audit = DB.audit || [];
+  DB.audit.push({ ts: Date.now(), ip: clientIp(req), action, target: target || '', detail: detail == null ? '' : detail });
+  if (DB.audit.length > 500) DB.audit = DB.audit.slice(-500);
+}
+
+/* ---------- لیگ هفتگی ---------- */
+const WEEK_MS    = 7 * 86400000;
+const WEEK_EPOCH = Date.UTC(2024, 0, 1);              // یک دوشنبه
+const weekOf = t => Math.floor((t - WEEK_EPOCH) / WEEK_MS);
+const weekEnd = w => WEEK_EPOCH + (w + 1) * WEEK_MS;
+const LEAGUE_REWARD = [3000, 2000, 1200, 800, 600, 500, 400, 300, 200, 150];
+// پایان هفته: جایزهٔ ده نفر برتر ثبت می‌شود و امتیاز هفتگی همه صفر می‌شود
+function rollWeek() {
+  const w = weekOf(Date.now());
+  DB.weekly = DB.weekly || { week: w, top: [] };
+  if (DB.weekly.week === w) return;
+  const prev = DB.weekly.week;
+  const rows = Object.values(DB.leaderboard)
+    .filter(x => x && x.u && x.w === prev && Number(x.wt) > 0)
+    .sort((x, y) => (y.wt || 0) - (x.wt || 0))
+    .slice(0, 10);
+  rows.forEach((x, i) => {
+    if (!isId(x.id)) return;
+    DB.control[x.id] = DB.control[x.id] || {};
+    DB.control[x.id].league = { rank: i + 1, coins: LEAGUE_REWARD[i], week: prev, ts: Date.now() };
+  });
+  DB.weekly = {
+    week: w, endedAt: Date.now(),
+    top: rows.map((x, i) => ({ rank: i + 1, u: x.u, n: x.n, wt: x.wt, coins: LEAGUE_REWARD[i] }))
+  };
+  for (const k of Object.keys(DB.leaderboard)) {
+    const x = DB.leaderboard[k];
+    if (x) { x.wt = 0; x.w = w; }
+  }
+  saveDB();
+  console.log('هفتهٔ ' + prev + ' بسته شد؛ ' + rows.length + ' نفر جایزه گرفتند');
 }
 // هیچ خطای پیش‌بینی‌نشده‌ای نباید سرور را از کار بیندازد
 process.on('uncaughtException',  e => console.error('uncaughtException:', e && e.message));
@@ -87,9 +187,11 @@ process.on('unhandledRejection', e => console.error('unhandledRejection:', e && 
 const server = http.createServer(async (req, res) => {
  try {
   if (req.method === 'OPTIONS') return sendJSON(res, 200, null);
+  if (rateLimited(req)) return sendJSON(res, 429, { error: 'too many requests' });
 
   const parts  = parsePath(req.url);
   const method = req.method;
+  const admin  = keyOk(req);
 
   // بررسی سلامت سرور
   if (parts.length === 0 || parts[0] === 'health') {
@@ -101,6 +203,8 @@ const server = http.createServer(async (req, res) => {
   /* ===== ۱) اتصال بازی دو نفره ===== */
   if (root === 'sessions') {
     if (method === 'PUT' && a && !b) {                 // میزبان: ثبت پیشنهاد اتصال
+      if (!/^\d{4,10}$/.test(a)) return sendJSON(res, 400, { error: 'bad code' });
+      if (!canCreate(DB.sessions, a)) return sendJSON(res, 507, { error: 'storage full' });
       const body = await readBody(req);
       DB.sessions[a] = Object.assign({}, body, { ts: Date.now() });
       saveDB(); return sendJSON(res, 200, body);
@@ -116,13 +220,33 @@ const server = http.createServer(async (req, res) => {
     if (method === 'DELETE' && a) { delete DB.sessions[a]; saveDB(); return sendJSON(res, 200, null); }
   }
 
-  /* ===== ۲) جدول رتبه‌بندی ===== */
+  /* ===== ۲) جدول رتبه‌بندی + لیگ هفتگی ===== */
   if (root === 'leaderboard') {
+    rollWeek();
     if (method === 'PUT' && a) {
-      const body = await readBody(req);
-      DB.leaderboard[a] = Object.assign({}, body, { ts: Date.now() });
-      saveDB(); return sendJSON(res, 200, body);
+      if (!isName(a)) return sendJSON(res, 400, { error: 'bad name' });
+      if (!canCreate(DB.leaderboard, a)) return sendJSON(res, 507, { error: 'storage full' });
+      const body = await readBody(req) || {};
+      const w = weekOf(Date.now());
+      // مقادیر غیرممکن پذیرفته نمی‌شوند (جلوگیری از دستکاری جدول)
+      DB.leaderboard[a] = {
+        u:  String(body.u || a).slice(0, 32),
+        n:  String(body.n || '').slice(0, 24),
+        id: isId(body.id) ? body.id : (DB.leaderboard[a] || {}).id,
+        t:  clampInt(body.t,  MAX_TROPHIES),
+        l:  clampInt(body.l,  MAX_LEVEL) || 1,
+        wt: clampInt(body.wt, MAX_TROPHIES),
+        w:  w,
+        v:  !!body.v,
+        ts: Date.now()
+      };
+      saveDB(); return sendJSON(res, 200, DB.leaderboard[a]);
     }
+    if (method === 'GET' && a === '_week')      // اطلاعات لیگ هفتگی
+      return sendJSON(res, 200, {
+        week: DB.weekly.week, endsAt: weekEnd(DB.weekly.week),
+        lastTop: DB.weekly.top || [], reward: LEAGUE_REWARD
+      });
     if (method === 'GET' && !a) return sendJSON(res, 200, DB.leaderboard);
     if (method === 'GET' && a)  return sendJSON(res, 200, DB.leaderboard[a] || null);
     // حذف رکورد قدیمی هنگام تغییر نام‌کاربری (جلوگیری از اکانت تکراری)
@@ -133,8 +257,11 @@ const server = http.createServer(async (req, res) => {
   if (root === 'usernames') {
     if (method === 'GET' && a) return sendJSON(res, 200, DB.usernames[a] || null);
     if (method === 'PUT' && a) {
+      if (!isName(a)) return sendJSON(res, 400, { error: 'bad name' });
+      if (!canCreate(DB.usernames, a)) return sendJSON(res, 507, { error: 'storage full' });
       const body = await readBody(req);
-      DB.usernames[a] = body; saveDB(); return sendJSON(res, 200, body);
+      DB.usernames[a] = typeof body === 'string' ? body.slice(0, 64) : body;
+      saveDB(); return sendJSON(res, 200, body);
     }
     if (method === 'DELETE' && a) { delete DB.usernames[a]; saveDB(); return sendJSON(res, 200, null); }
   }
@@ -142,31 +269,39 @@ const server = http.createServer(async (req, res) => {
   /* ===== ۴) کاربران و دستورهای مدیریتی ===== */
   if (root === 'users') {
     if (method === 'PUT' && a) {
-      const body = await readBody(req);
+      if (!isId(a)) return sendJSON(res, 400, { error: 'bad id' });
+      if (!canCreate(DB.users, a)) return sendJSON(res, 507, { error: 'storage full' });
+      const body = await readBody(req) || {};
       const prev = DB.users[a];
       // «first» = نخستین باری که این کاربر دیده شده (برای نمودار کاربران تازه)
-      DB.users[a] = Object.assign({}, body, {
+      DB.users[a] = {
+        name:     String(body.name || '').slice(0, 24),
+        user:     String(body.user || '').slice(0, 32),
+        level:    clampInt(body.level, MAX_LEVEL) || 1,
+        coins:    clampInt(body.coins, 1e9),
+        trophies: clampInt(body.trophies, MAX_TROPHIES),
+        vip:      !!body.vip,
         first: (prev && prev.first) || Date.now(),
         ts: Date.now()
-      });
-      saveDB(); return sendJSON(res, 200, body);
+      };
+      saveDB(); return sendJSON(res, 200, DB.users[a]);
     }
     if (method === 'GET' && a)  return sendJSON(res, 200, DB.users[a] || null);
     // حذف کامل اکانت (فقط با کلید مدیریت)
     if (method === 'DELETE' && a) {
-      if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+      if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
       const u = DB.users[a];
       delete DB.users[a];
       if (DB.friendreq) delete DB.friendreq[a];
       if (u && u.user) { delete DB.leaderboard[u.user]; delete DB.usernames[u.user]; }
       // نشانهٔ حذف باقی می‌ماند تا بازی روی گوشی هم داده‌های محلی را پاک کند
       DB.control[a] = { deleted: true, ts: Date.now() };
+      audit(req, 'user:delete', a, (u && u.name) || '');
       saveDB(); return sendJSON(res, 200, { deleted: true });
     }
     if (method === 'GET' && !a) {
       // فهرست کامل کاربران فقط با کلید مدیریت
-      const key = getKey(req.url);
-      if (key !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+      if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
       return sendJSON(res, 200, DB.users);
     }
   }
@@ -176,8 +311,13 @@ const server = http.createServer(async (req, res) => {
     DB.friendreq = DB.friendreq || {};
     if (method === 'GET' && a && !b) return sendJSON(res, 200, DB.friendreq[a] || null);
     if (method === 'PUT' && a && b) {
+      if (!isId(a) || !isId(b)) return sendJSON(res, 400, { error: 'bad id' });
+      if (!canCreate(DB.friendreq, a)) return sendJSON(res, 507, { error: 'storage full' });
       const body = await readBody(req);
       DB.friendreq[a] = DB.friendreq[a] || {};
+      // سقف ۵۰ درخواست برای هر کاربر (جلوگیری از اسپم)
+      if (Object.keys(DB.friendreq[a]).length >= 50 && !DB.friendreq[a][b])
+        return sendJSON(res, 429, { error: 'too many requests' });
       DB.friendreq[a][b] = Object.assign({}, body, { ts: Date.now() });
       saveDB(); return sendJSON(res, 200, body);
     }
@@ -190,22 +330,23 @@ const server = http.createServer(async (req, res) => {
   /* ===== ۶) اعلان همگانی ===== */
   if (root === 'broadcast') {
     if (method === 'GET' && a === 'log') {          // تاریخچهٔ اعلان‌ها
-      if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+      if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
       return sendJSON(res, 200, DB.broadcastLog || []);
     }
     if (method === 'GET') return sendJSON(res, 200, DB.broadcast || null);
     if (method === 'PUT') {
-      if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+      if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
       const body = await readBody(req);
       DB.broadcast = body ? Object.assign({}, body, { id: Date.now() }) : null;
       if (DB.broadcast) {                            // نگهداری ۲۰ اعلان اخیر
         DB.broadcastLog = (DB.broadcastLog || []).concat([DB.broadcast]).slice(-20);
       }
+      audit(req, 'broadcast', '', (body && body.title) || '');
       saveDB(); return sendJSON(res, 200, DB.broadcast);
     }
     if (method === 'DELETE') {
-      if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
-      DB.broadcast = null; saveDB(); return sendJSON(res, 200, null);
+      if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
+      DB.broadcast = null; audit(req, 'broadcast:clear', '', ''); saveDB(); return sendJSON(res, 200, null);
     }
   }
 
@@ -223,32 +364,34 @@ const server = http.createServer(async (req, res) => {
   if (root === 'control') {
     // فهرست کامل دستورها، یکجا (پنل با یک درخواست همه را می‌گیرد)
     if (method === 'GET' && !a) {
-      if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+      if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
       return sendJSON(res, 200, DB.control);
     }
     if (method === 'GET' && a && !b) return sendJSON(res, 200, DB.control[a] || null);
     // پاک‌کردن همهٔ دستورهای در انتظارِ یک کاربر
     if (method === 'DELETE' && a && !b) {
-      if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+      if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
       const c = DB.control[a];
-      if (c) ['coinGrant','vipGrant','msg','scoreGrant','setProgress'].forEach(k => delete c[k]);
+      if (c) ['coinGrant','vipGrant','msg','scoreGrant','setProgress','league'].forEach(k => delete c[k]);
+      audit(req, 'control:clear', a, '');
       saveDB(); return sendJSON(res, 200, { cleared: true });
     }
     // نوشتن دستور مدیریتی: از سمت بازی فقط صفرکردن مجاز است؛ بقیه کلید می‌خواهد
     if (method === 'PUT' && a && b) {
       const body = await readBody(req);
-      const key  = getKey(req.url);
       const clearing = (body === 0 || body === false || body === '0' || body === 'false');
-      if (!clearing && key !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+      if (!clearing && !admin) return sendJSON(res, 403, { error: 'forbidden' });
+      if (!clearing && !canCreate(DB.control, a)) return sendJSON(res, 507, { error: 'storage full' });
       DB.control[a] = DB.control[a] || {};
       DB.control[a][b] = body;
+      if (!clearing) audit(req, 'control:' + b, a, typeof body === 'object' ? JSON.stringify(body).slice(0, 120) : body);
       saveDB(); return sendJSON(res, 200, body);
     }
   }
 
   /* ===== ۸) آمار کلی برای پنل مدیریت ===== */
   if (root === 'stats' && method === 'GET') {
-    if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+    if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
     const now = Date.now(), DAY = 86400000;
     const ids = Object.keys(DB.users);
     let vip = 0, coins = 0, trophies = 0, levelSum = 0, a1 = 0, a7 = 0, a30 = 0;
@@ -282,7 +425,23 @@ const server = http.createServer(async (req, res) => {
     }
     let dataSize = 0;
     try { dataSize = fs.statSync(DATA_FILE).size; } catch (e) {}
+    // وضعیت پشتیبان روزانه
+    let backupLast = null, backupCount = 0;
+    try {
+      const dir = path.join(path.dirname(DATA_FILE), 'backups');
+      const fl = fs.readdirSync(dir).filter(f => /^data-.*\.gz$/.test(f));
+      backupCount = fl.length;
+      fl.forEach(f => {
+        const m = fs.statSync(path.join(dir, f)).mtimeMs;
+        if (!backupLast || m > backupLast) backupLast = m;
+      });
+    } catch (e) {}
+    rollWeek();
     return sendJSON(res, 200, {
+      metrics: DB.metrics || {},
+      backupLast, backupCount,
+      week: DB.weekly.week, weekEndsAt: weekEnd(DB.weekly.week), lastTop: DB.weekly.top || [],
+      canUndo: !!(DB.lastBulk && DB.lastBulk.prev),
       users: ids.length, vip, banned, pending,
       active1: a1, active7: a7, active30: a30,
       coins, trophies,
@@ -297,9 +456,24 @@ const server = http.createServer(async (req, res) => {
     });
   }
 
+  /* ===== ۸ب) شمارندهٔ قیف (بازی هر مرحله را یک‌بار می‌فرستد) ===== */
+  if (root === 'metric' && (method === 'PUT' || method === 'POST') && a) {
+    const OK = ['install', 'game1', 'game3', 'game10', 'shop', 'buy', 'profile', 'mp'];
+    if (OK.indexOf(a) < 0) return sendJSON(res, 400, { error: 'bad metric' });
+    DB.metrics = DB.metrics || {};
+    DB.metrics[a] = (Number(DB.metrics[a]) || 0) + 1;
+    saveDB(); return sendJSON(res, 200, { ok: true });
+  }
+
+  /* ===== ۸ج) دفتر ثبت کارهای مدیریتی ===== */
+  if (root === 'audit' && method === 'GET') {
+    if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
+    return sendJSON(res, 200, (DB.audit || []).slice(-200).reverse());
+  }
+
   /* ===== ۹) فهرست نشست‌های بازی دو نفره (زنده) ===== */
   if (root === 'sessions' && method === 'GET' && !a) {
-    if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+    if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
     const out = Object.keys(DB.sessions).map(code => {
       const s = DB.sessions[code] || {};
       return { code, ts: s.ts || 0, answered: !!s.answer };
@@ -309,7 +483,7 @@ const server = http.createServer(async (req, res) => {
 
   /* ===== ۱۰) عملیات گروهی: یک دستور برای چند کاربر ===== */
   if (root === 'bulk' && method === 'PUT') {
-    if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+    if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
     const body = await readBody(req) || {};
     const field = String(body.field || '');
     const ALLOWED = ['coinGrant', 'scoreGrant', 'vipGrant', 'msg', 'banned'];
@@ -318,6 +492,9 @@ const server = http.createServer(async (req, res) => {
     if (!ids.length) return sendJSON(res, 400, { error: 'no ids' });
     if (ids.length > 5000) ids = ids.slice(0, 5000);
     const add = (field === 'coinGrant' || field === 'scoreGrant') && body.mode !== 'set';
+    // مقادیر قبلی نگه داشته می‌شوند تا «برگرداندن» ممکن باشد
+    const prevMap = {};
+    for (const id of ids) if (typeof id === 'string') prevMap[id] = (DB.control[id] || {})[field];
     let n = 0;
     for (const id of ids) {
       if (typeof id !== 'string' || !id) continue;
@@ -330,13 +507,32 @@ const server = http.createServer(async (req, res) => {
       }
       n++;
     }
+    DB.lastBulk = { field, prev: prevMap, ts: Date.now(), count: n };
+    audit(req, 'bulk:' + field, n + ' کاربر', body.value);
     saveDB();
     return sendJSON(res, 200, { ok: true, count: n, field });
   }
 
+  /* ===== ۱۰ب) برگرداندن آخرین عملیات گروهی ===== */
+  if (root === 'bulk' && method === 'DELETE') {
+    if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
+    const lb = DB.lastBulk;
+    if (!lb || !lb.prev) return sendJSON(res, 404, { error: 'nothing to undo' });
+    let n = 0;
+    for (const id of Object.keys(lb.prev)) {
+      if (!DB.control[id]) continue;
+      if (lb.prev[id] === undefined) delete DB.control[id][lb.field];
+      else DB.control[id][lb.field] = lb.prev[id];
+      n++;
+    }
+    audit(req, 'bulk:undo', n + ' کاربر', lb.field);
+    DB.lastBulk = null; saveDB();
+    return sendJSON(res, 200, { ok: true, count: n });
+  }
+
   /* ===== ۱۱) خروجی کامل داده‌ها (پشتیبان) ===== */
   if (root === 'export' && method === 'GET') {
-    if (getKey(req.url) !== ADMIN_KEY) return sendJSON(res, 403, { error: 'forbidden' });
+    if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
     return sendJSON(res, 200, DB);
   }
 
@@ -348,4 +544,10 @@ const server = http.createServer(async (req, res) => {
 });
 server.on('clientError', (err, socket) => { try { socket.destroy(); } catch (e) {} });
 
+// اگر پورت اشغال باشد باید فوراً بمیریم تا pm2 خبردار شود؛
+// وگرنه فرایند زنده می‌ماند ولی هیچ درخواستی را جواب نمی‌دهد
+server.on('error', e => {
+  console.error('راه‌اندازی سرور ناموفق بود:', e && e.message);
+  process.exit(1);
+});
 server.listen(PORT, () => console.log('سرور پاسور ۱۱ روی پورت ' + PORT + ' اجرا شد'));

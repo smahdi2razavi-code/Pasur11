@@ -181,7 +181,19 @@ tr:hover td{background:rgba(255,255,255,.03);}
     </div>
 
     <div class="box">
-      <h2>🏆 ۱۰ بازیکن برتر</h2>
+      <h2>🔻 قیف کاربران — کجا بازی را رها می‌کنند</h2>
+      <div class="hint" style="margin-bottom:10px">هر مرحله فقط یک‌بار برای هر کاربر شمرده می‌شود.
+        اگر افت بین دو مرحله زیاد بود، مشکل همان‌جاست.</div>
+      <div id="funnel"></div>
+    </div>
+
+    <div class="box">
+      <h2>🏆 لیگ هفتگی</h2>
+      <div id="leagueBox"></div>
+    </div>
+
+    <div class="box">
+      <h2>🏆 ۱۰ بازیکن برتر (کل)</h2>
       <div class="tbl-wrap"><table id="topTbl"></table></div>
     </div>
 
@@ -365,8 +377,17 @@ tr:hover td{background:rgba(255,255,255,.03);}
         <button class="btn-ghost" id="btnPing">📡 تست سرعت سرور</button>
         <button class="btn-ghost" id="btnExport">⬇️ پشتیبان کامل (JSON)</button>
         <button class="btn-ghost" id="btnCsv2">⬇️ کاربران (CSV)</button>
+        <button class="btn-bad" id="btnUndo">↩️ برگرداندن آخرین عملیات گروهی</button>
       </div>
       <div class="status" id="toolMsg"></div>
+    </div>
+
+    <div class="box">
+      <h2>📒 دفتر ثبت کارها</h2>
+      <div class="hint" style="margin-bottom:8px">هر کاری که از این پنل انجام شود اینجا ثبت می‌شود.
+        اگر روزی کلیدت لو رفت، از اینجا می‌فهمی چه اتفاقی افتاده.</div>
+      <button class="btn-ghost" id="btnAudit" style="margin-bottom:10px">🔄 به‌روزرسانی</button>
+      <div class="tbl-wrap"><table id="auditTbl"></table></div>
     </div>
     <div class="box">
       <h2>⌨️ میان‌برهای صفحه‌کلید</h2>
@@ -410,10 +431,40 @@ function toast(t,bad){
 function msg(el,text,ok){ el.textContent=text; el.className='status show '+(ok?'ok':'err'); }
 function clearMsgs(){ $$('.status').forEach(e=>e.className='status'); }
 function base(){ return SRV.replace(/\/$/,''); }
-function adminUrl(path){ return path+(path.includes('?')?'&':'?')+'key='+encodeURIComponent(KEY); }
+/* ---------- ارسال کلید مدیریت ----------
+ * حالت تازه : کلید در هدر X-Admin-Key  → در آدرس و لاگ‌ها ثبت نمی‌شود
+ * حالت قدیمی: کلید در ?key=            → فقط اگر سرور هنوز به‌روز نشده باشد
+ * (سرور قدیمی هدر تازه را در CORS نمی‌پذیرد، پس اصلاً هدر را نمی‌فرستیم)   */
+let LEGACY=false;
+function adminUrl(path){
+  if(!LEGACY)return path;
+  return path+(path.includes('?')?'&':'?')+'key='+encodeURIComponent(KEY);
+}
+function withKey(opts){
+  const o=Object.assign({},opts||{});
+  if(!LEGACY)o.headers=Object.assign({},o.headers,{'X-Admin-Key':KEY});
+  return o;
+}
+function fetchA(path,opts){ return fetch(base()+adminUrl(path),withKey(opts)); }
 async function api(path,opts){
-  const r=await fetch(base()+path,opts);
+  const r=await fetch(base()+adminUrl(path),withKey(opts));
+  if(r.status===429)throw new Error('درخواست‌ها زیاد شد؛ چند لحظه صبر کن');
   return r.json();
+}
+// تشخیص خودکار: اول روش امن، اگر نشد روش قدیمی
+async function detectMode(){
+  LEGACY=false;
+  try{
+    const u=await api('/users.json');
+    if(u&&u.error)throw new Error('forbidden');
+    return true;                       // سرور تازه ✔
+  }catch(e){}
+  LEGACY=true;                         // شاید سرور قدیمی باشد
+  try{
+    const u=await api('/users.json');
+    if(u&&u.error)throw new Error('کلید مدیریت اشتباه است');
+    return true;
+  }catch(e){ LEGACY=false; throw e; }
 }
 function ago(ts){
   if(!ts)return '—';
@@ -460,7 +511,7 @@ function showPage(p){
   try{ localStorage.setItem('pasur_admin_tab',p); }catch(e){}
   if(p==='live')loadLive();
   if(p==='bc')loadBcLog();
-  if(p==='tools')renderServer();
+  if(p==='tools'){ renderServer(); loadAudit(); }
 }
 $$('.tab').forEach(t=>t.onclick=()=>showPage(t.dataset.p));
 
@@ -472,15 +523,19 @@ async function connect(){
   $('#connMsg').innerHTML='<span class="spin"></span> در حال بررسی…';
   $('#connMsg').className='status show ok';
   try{
-    const h=await api('/health.json');
+    // بررسی سلامت بدون کلید (نقطهٔ عمومی است و نباید هدر تازه بفرستیم،
+    // وگرنه سرور قدیمی همین‌جا درخواست را رد می‌کند)
+    const h=await (await fetch(base()+'/health.json')).json();
     if(!h||!h.ok)throw new Error('پاسخ نامعتبر');
-    const u=await api(adminUrl('/users.json'));
-    if(u&&u.error)throw new Error('کلید مدیریت اشتباه است');
+    await detectMode();
     localStorage.setItem('pasur_admin',JSON.stringify({s:SRV,k:KEY}));
     $('#dot').className='dot on';
-    msg($('#connMsg'),'✅ متصل شد. سرور سالم است.',true);
+    msg($('#connMsg'), LEGACY
+      ? '✅ متصل شد — ولی سرورت نسخهٔ قدیمی است.\n'
+        +'⚠️ کلید مدیریت در آدرس فرستاده می‌شود و چند قابلیت کار نمی‌کند.\n'
+        +'برای رفع: روی سرور update.sh را اجرا کن.'
+      : '✅ متصل شد. سرور سالم و به‌روز است.', true);
     $('#tabs').style.display='flex';
-    USERS=u||{};
     await refreshAll();
     try{ const t=localStorage.getItem('pasur_admin_tab'); if(t)showPage(t); }catch(e){}
   }catch(e){
@@ -503,9 +558,9 @@ $('#btnForget').onclick=()=>{
 async function refreshAll(){
   const t0=Date.now();
   const [u,c,s,b]=await Promise.all([
-    api(adminUrl('/users.json')).catch(()=>null),
-    api(adminUrl('/control.json')).catch(()=>null),
-    api(adminUrl('/stats.json')).catch(()=>null),
+    api(('/users.json')).catch(()=>null),
+    api(('/control.json')).catch(()=>null),
+    api(('/stats.json')).catch(()=>null),
     api('/leaderboard.json').catch(()=>null)
   ]);
   if(u&&!u.error)USERS=u;
@@ -513,6 +568,7 @@ async function refreshAll(){
   BOARD=(b&&!b.error)?b:{};
   STATS=(s&&!s.error&&typeof s.users==='number')?s:localStats();
   renderStats(); renderChart(); renderTop(); renderPending();
+  renderFunnel(); renderLeague();
   renderUsers(); renderRecent(); renderServer(); fillDatalist();
   $('#connLive').textContent='آخرین به‌روزرسانی: '+new Date().toLocaleTimeString('fa-IR')
     +' • '+fa(Date.now()-t0)+' میلی‌ثانیه';
@@ -581,6 +637,104 @@ function renderChart(){
   $('#chartHint').textContent='بیشترین در یک روز: '+num(max)+' • کاربر تازه در ۱۴ روز: '+num(tot)
     +(STATS&&STATS.local?' • (محاسبه‌شده در همین مرورگر — سرور را به‌روز کن تا دقیق‌تر شود)':'');
 }
+
+/* ---------- قیف کاربران ---------- */
+const FUNNEL=[
+  ['install','📱 بازی را باز کرد'],
+  ['profile','👤 پروفایل ساخت'],
+  ['game1',  '🎴 یک بازی کامل کرد'],
+  ['game3',  '🎯 سه بازی کرد'],
+  ['game10', '🔥 ده بازی کرد'],
+  ['shop',   '🛒 وارد فروشگاه شد'],
+  ['buy',    '💎 خرید کرد']
+];
+function renderFunnel(){
+  const m=(STATS&&STATS.metrics)||{};
+  const box=$('#funnel');
+  const top=Number(m.install)||0;
+  if(!top){
+    box.innerHTML='<div class="hint">هنوز داده‌ای جمع نشده.'
+      +' بعد از اینکه نسخهٔ تازهٔ بازی روی گوشی‌ها برود، اینجا پر می‌شود.</div>';
+    return;
+  }
+  let prev=top;
+  box.innerHTML=FUNNEL.map(([k,label],i)=>{
+    const v=Number(m[k])||0;
+    const pct=Math.round(v/top*100);
+    const drop=(i>0&&prev>0)?Math.round((prev-v)/prev*100):0;
+    const bad=drop>=50;
+    const r='<div style="margin-bottom:9px">'
+      +'<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">'
+      +'<span>'+label+'</span>'
+      +'<span style="font-weight:800;color:var(--gold-soft)">'+num(v)+' <span class="hint">('+fa(pct)+'٪)</span></span></div>'
+      +'<div style="height:10px;background:rgba(255,255,255,.06);border-radius:6px;overflow:hidden">'
+      +'<i style="display:block;height:100%;width:'+pct+'%;background:linear-gradient(90deg,#c8952e,#f3d489)"></i></div>'
+      +(i>0&&drop>0?'<div class="hint" style="color:'+(bad?'#ffb9c6':'')+'">↓ '+fa(drop)+'٪ اینجا ریزش کرد'
+        +(bad?' — اینجا را بررسی کن':'')+'</div>':'')
+      +'</div>';
+    prev=v;
+    return r;
+  }).join('');
+}
+
+/* ---------- لیگ هفتگی ---------- */
+function renderLeague(){
+  const s=STATS||{}, box=$('#leagueBox');
+  if(s.week==null){
+    box.innerHTML='<div class="hint">لیگ هفتگی نیاز به نسخهٔ تازهٔ سرور دارد.</div>';
+    return;
+  }
+  const ms=(s.weekEndsAt||0)-Date.now();
+  const d=Math.max(0,Math.floor(ms/86400000)), h=Math.max(0,Math.floor(ms%86400000/3600000));
+  let out='<div class="hint" style="margin-bottom:10px">هفتهٔ شمارهٔ <b>'+fa(s.week)+'</b>'
+    +' — تا پایان: <b>'+fa(d)+' روز و '+fa(h)+' ساعت</b>.'
+    +' در پایان هر هفته، ۱۰ نفر برتر خودکار جایزه می‌گیرند (۳٬۰۰۰ تا ۱۵۰ سکه)</div>';
+  // جدول زندهٔ هفتهٔ جاری
+  const live=Object.values(BOARD).filter(x=>x&&x.u&&x.w===s.week&&(x.wt||0)>0)
+    .sort((a,b)=>(b.wt||0)-(a.wt||0)).slice(0,10);
+  out+='<div class="tbl-wrap"><table>'
+    +'<tr><th>#</th><th>بازیکن</th><th>امتیاز این هفته</th><th>جایزهٔ فعلی</th></tr>'
+    +(live.length?live.map((x,i)=>'<tr><td>'+fa(i+1)+'</td><td>'+esc(x.n||x.u)+'</td>'
+        +'<td>🏆 '+num(x.wt)+'</td><td>🪙 '+num([3000,2000,1200,800,600,500,400,300,200,150][i]||0)+'</td></tr>').join('')
+      :'<tr><td colspan="4" class="hint">هنوز کسی این هفته امتیاز نگرفته</td></tr>')
+    +'</table></div>';
+  if(s.lastTop&&s.lastTop.length){
+    out+='<h3>برندگان هفتهٔ گذشته</h3><div class="tbl-wrap"><table>'
+      +'<tr><th>#</th><th>بازیکن</th><th>امتیاز</th><th>جایزه</th></tr>'
+      +s.lastTop.map(t=>'<tr><td>'+fa(t.rank)+'</td><td>'+esc(t.n||t.u)+'</td>'
+        +'<td>🏆 '+num(t.wt)+'</td><td>🪙 '+num(t.coins)+'</td></tr>').join('')
+      +'</table></div>';
+  }
+  box.innerHTML=out;
+}
+
+/* ---------- دفتر ثبت کارها ---------- */
+async function loadAudit(){
+  try{
+    const rows=await api('/audit.json');
+    if(!Array.isArray(rows))throw new Error('x');
+    $('#auditTbl').innerHTML=rows.length
+      ?'<tr><th>زمان</th><th>کار</th><th>روی</th><th>مقدار</th><th>از IP</th></tr>'
+        +rows.map(r=>'<tr><td class="hint">'+esc(ago(r.ts))+'</td>'
+          +'<td>'+esc(r.action)+'</td><td class="mono">'+esc(r.target)+'</td>'
+          +'<td style="white-space:normal">'+esc(String(r.detail).slice(0,80))+'</td>'
+          +'<td class="mono hint">'+esc(r.ip)+'</td></tr>').join('')
+      :'<tr><td class="hint">هنوز کاری ثبت نشده</td></tr>';
+  }catch(e){
+    $('#auditTbl').innerHTML='<tr><td class="hint">دفتر ثبت نیاز به نسخهٔ تازهٔ سرور دارد</td></tr>';
+  }
+}
+$('#btnAudit').onclick=loadAudit;
+$('#btnUndo').onclick=async()=>{
+  if(!confirm('آخرین عملیات گروهی برگردانده شود؟'))return;
+  try{
+    const r=await fetchA('/bulk.json',{method:'DELETE'});
+    const j=await r.json();
+    if(j&&j.error)throw new Error(j.error==='nothing to undo'?'عملیات گروهی‌ای برای برگرداندن نیست':'انجام نشد');
+    msg($('#toolMsg'),'↩️ روی '+fa(j.count)+' کاربر برگردانده شد.',true);
+    await refreshAll(); loadAudit();
+  }catch(e){ msg($('#toolMsg'),e.message||'انجام نشد',false); }
+};
 
 /* ---------- ۱۰ برتر ---------- */
 function renderTop(){
@@ -743,7 +897,7 @@ $('#btnBulk').onclick=async()=>{
     vipGrant:'فعال‌کردن VIP',banned:'مسدودکردن'};
   if(!confirm('«'+names[field]+'» برای '+ids.length+' کاربر اجرا شود؟\n\nاین کار قابل بازگشت نیست.'))return;
   try{
-    const r=await fetch(base()+adminUrl('/bulk.json'),{method:'PUT',
+    const r=await fetchA(('/bulk.json'),{method:'PUT',
       body:JSON.stringify({ids,field,value})});
     const j=await r.json();
     if(j&&j.error)throw new Error(j.error==='forbidden'?'کلید مدیریت اشتباه است':'سرور این قابلیت را ندارد — سرور را به‌روز کن');
@@ -769,7 +923,7 @@ async function quickGift(id){
 }
 async function putControl(id,field,value){
   try{
-    const r=await fetch(base()+adminUrl('/control/'+encodeURIComponent(id)+'/'+field+'.json'),
+    const r=await fetchA(('/control/'+encodeURIComponent(id)+'/'+field+'.json'),
       {method:'PUT',body:JSON.stringify(value)});
     const j=await r.json();
     if(j&&j.error)throw new Error('کلید مدیریت اشتباه است');
@@ -811,7 +965,7 @@ async function clearPending(id){
   if(!id){ toast('شناسه را وارد کن',true); return; }
   if(!confirm('همهٔ دستورهای در انتظارِ '+id+' لغو شود؟'))return;
   try{
-    const r=await fetch(base()+adminUrl('/control/'+encodeURIComponent(id)+'.json'),{method:'DELETE'});
+    const r=await fetchA(('/control/'+encodeURIComponent(id)+'.json'),{method:'DELETE'});
     const j=await r.json();
     if(j&&j.error)throw new Error('سرور این قابلیت را ندارد — سرور را به‌روز کن');
     toast('🧹 دستورهای در انتظار لغو شد');
@@ -868,7 +1022,7 @@ $('#btnDelete').onclick=async()=>{
   if(!confirm('اکانت '+id+' کاملاً حذف شود؟\n\nاطلاعات کاربر، رکورد رتبه‌بندی و نام‌کاربری‌اش پاک می‌شود.\nاین کار برگشت‌پذیر نیست.'))return;
   if(!confirm('بار دوم تأیید می‌کنی؟ حذف قطعی است.'))return;
   try{
-    const r=await fetch(base()+adminUrl('/users/'+encodeURIComponent(id)+'.json'),{method:'DELETE'});
+    const r=await fetchA(('/users/'+encodeURIComponent(id)+'.json'),{method:'DELETE'});
     const j=await r.json();
     if(j&&j.error)throw new Error('کلید مدیریت اشتباه است');
     msg($('#opMsg'),'🗑 اکانت '+id+' کاملاً حذف شد.',true);
@@ -892,7 +1046,7 @@ $('#btnBcSend').onclick=async()=>{
   if(!t){ msg($('#bcMsg'),'متن اعلان را بنویس',false); return; }
   if(!confirm('این اعلان برای همهٔ کاربران ('+fa((STATS&&STATS.users)||0)+' نفر) فرستاده شود؟'))return;
   try{
-    const r=await fetch(base()+adminUrl('/broadcast.json'),{method:'PUT',
+    const r=await fetchA(('/broadcast.json'),{method:'PUT',
       body:JSON.stringify({icon:($('#bcIcon').value||'📢').trim(),
         title:($('#bcTitle').value||'اطلاعیه').trim(),text:t})});
     const j=await r.json();
@@ -913,14 +1067,14 @@ $('#btnBcShow').onclick=async()=>{
 $('#btnBcClear').onclick=async()=>{
   if(!confirm('اعلان فعلی حذف شود؟'))return;
   try{
-    await fetch(base()+adminUrl('/broadcast.json'),{method:'DELETE'});
+    await fetchA('/broadcast.json',{method:'DELETE'});
     $('#bcText').value=''; $('#bcTitle').value=''; bcPreview();
     msg($('#bcMsg'),'اعلان حذف شد.',true);
   }catch(e){ msg($('#bcMsg'),'حذف ممکن نشد',false); }
 };
 async function loadBcLog(){
   try{
-    const log=await api(adminUrl('/broadcast/log.json'));
+    const log=await api(('/broadcast/log.json'));
     if(!Array.isArray(log))throw new Error('x');
     $('#bcLog').innerHTML=log.length
       ?'<tr><th>زمان</th><th>آیکن</th><th>عنوان</th><th>متن</th></tr>'
@@ -936,7 +1090,7 @@ async function loadBcLog(){
 /* ---------- آنلاین ---------- */
 async function loadLive(){
   try{
-    const s=await api(adminUrl('/sessions.json'));
+    const s=await api(('/sessions.json'));
     if(!Array.isArray(s))throw new Error('x');
     $('#liveTbl').innerHTML=s.length
       ?'<tr><th>کد اتصال</th><th>ساخته‌شده</th><th>وضعیت</th></tr>'
@@ -973,6 +1127,9 @@ function renderServer(){
     ['وضعیت',$('#dot').classList.contains('on')?'✅ سالم':'❌ قطع'],
     ['مدت روشن‌بودن',s.uptime==null?'— (نسخهٔ تازهٔ سرور لازم است)':dur(s.uptime)],
     ['حجم فایل داده',s.dataSize==null?'—':bytes(s.dataSize)],
+    ['آخرین پشتیبان خودکار', s.backupLast==null
+        ? '⚠️ هیچ پشتیبانی گرفته نشده — setup/update سرور را اجرا کن'
+        : (ago(s.backupLast)+'  ('+fa(s.backupCount)+' نسخه نگهداری می‌شود)')],
     ['کل کاربران',num(s.users)],
     ['بازی آنلاین فعال',s.sessions==null?'—':num(s.sessions)],
     ['درخواست دوستی در انتظار',s.friendreq==null?'—':num(s.friendreq)],
@@ -996,7 +1153,7 @@ $('#btnPing').onclick=async()=>{
 $('#btnExport').onclick=async()=>{
   msg($('#toolMsg'),'در حال دریافت…',true);
   try{
-    let d=await api(adminUrl('/export.json'));
+    let d=await api(('/export.json'));
     if(d&&d.error)d=null;
     if(!d)d={users:USERS,control:CONTROL,leaderboard:BOARD};   // سرور قدیمی
     download('pasur11-backup-'+new Date().toISOString().slice(0,10)+'.json',

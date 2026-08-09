@@ -1982,6 +1982,7 @@ $('#btnSaveProfile').onclick=async()=>{
   const pend=$('#profAvatarEdit').dataset.pending;
   if(pend)SET.profileAvatar=pend;
   SET.profileSet=true;
+  metric('profile');
   persistSettings(); refreshProfileWidget();
   boardSubmit();
   toast('پروفایل ذخیره شد ✔');
@@ -3265,6 +3266,18 @@ async function checkBroadcast(){
   }catch(e){}
 }
 
+/* ----- شمارندهٔ قیف -----
+   هر مرحله فقط یک‌بار در عمر این نصب فرستاده می‌شود؛ هیچ اطلاعات شخصی نمی‌رود،
+   فقط یک شمارنده روی سرور بالا می‌رود تا بدانیم کاربران کجا بازی را رها می‌کنند. */
+function metric(name){
+  try{
+    if(!firebaseConfigured())return;
+    if(!PROG.ev||typeof PROG.ev!=='object')PROG.ev={};
+    if(PROG.ev[name])return;
+    PROG.ev[name]=1; progSave();
+    fetch(FIREBASE_DB_URL+'/metric/'+encodeURIComponent(name)+'.json',{method:'PUT'}).catch(()=>{});
+  }catch(e){}
+}
 async function syncUserWithServer(){
   if(!firebaseConfigured())return;
   const uid=encodeURIComponent(ensureUserId());
@@ -3296,6 +3309,15 @@ async function syncUserWithServer(){
       PROG.trophies=Math.max(0,PROG.trophies+c.scoreGrant); progSave(); renderProgChip();
       addMail('🏆','امتیاز هدیه',fa(c.scoreGrant)+' جام به حساب تو اضافه شد.');
       fetch(FIREBASE_DB_URL+'/control/'+uid+'/scoreGrant.json',{method:'PUT',body:'0'}).catch(()=>{});
+    }
+    // 🏆 جایزهٔ لیگ هفتگی
+    if(c.league&&typeof c.league==='object'&&c.league.coins){
+      const L=c.league, medal=L.rank===1?'🥇':(L.rank===2?'🥈':(L.rank===3?'🥉':'🏅'));
+      addCoins(L.coins);
+      addMail(medal,'جایزهٔ لیگ هفتگی',
+        'در لیگ هفتهٔ گذشته رتبهٔ '+fa(L.rank)+' شدی! '+fa(L.coins)+' سکه جایزه گرفتی. آفرین 🎉');
+      toast(medal+' رتبهٔ '+fa(L.rank)+' لیگ هفتگی — '+fa(L.coins)+' سکه',true);
+      fetch(FIREBASE_DB_URL+'/control/'+uid+'/league.json',{method:'PUT',body:'0'}).catch(()=>{});
     }
     // حذف اکانت از پنل: داده‌های محلی هم پاک می‌شوند
     if(c.deleted){
@@ -3536,7 +3558,7 @@ function mpTeardown(){
   chatReset();
 }
 /* دکمه‌های رابط بازی دو نفره */
-$('#btnMp').onclick=()=>show('mpHub');
+$('#btnMp').onclick=()=>{ metric('mp'); show('mpHub'); };
 $('#btnMpHost').onclick=()=>{
   requireProfileName(()=>{
     show('mpHost');
@@ -3753,6 +3775,7 @@ function progRoundRewards(done){
     G.matchRewarded=true;
     const win=G.pScore>G.bScore;
     PROG.games++; if(win)PROG.wins++; else PROG.losses++;
+    try{ if(PROG.games>=1)metric('game1'); if(PROG.games>=3)metric('game3'); if(PROG.games>=10)metric('game10'); }catch(e){}
     if(G.pScore>PROG.highScore)PROG.highScore=G.pScore;
     const dT=win?20:-10;
     PROG.trophies=Math.max(0,PROG.trophies+dT);
@@ -4091,6 +4114,7 @@ function renderShopSkinList(box,list,activeKey,makePreview){
 /* پل خرید: نسخهٔ اندرویدی بعد از خرید موفق این تابع را صدا می‌زند */
 window.grantPurchase=function(sku){
   const p=IAP_PACKS.find(x=>x.sku===sku); if(!p)return;
+  metric('buy');
   const isFirst=!(PROG.iap&&PROG.iap.length);      // 🎁 پیشنهاد اولین خرید: ۵۰٪ سکهٔ بیشتر
   PROG.iap.push({sku:sku,ts:Date.now()});
   const amount=isFirst?Math.round(p.c*1.5):p.c;
@@ -4101,11 +4125,31 @@ window.grantPurchase=function(sku){
   try{ if($('#shop').classList.contains('active'))openShop(); }catch(e){}
 };
 
+/* ----- لیگ هفتگی -----
+   هفته‌ها با سرور یکی هستند. امتیاز هفتگی = جام‌هایی که از ابتدای هفته گرفته‌ای. */
+const WEEK_MS=7*86400000, WEEK_EPOCH=Date.UTC(2024,0,1);
+const weekNow=()=>Math.floor((Date.now()-WEEK_EPOCH)/WEEK_MS);
+const weekEndsAt=()=>WEEK_EPOCH+(weekNow()+1)*WEEK_MS;
+function weeklyScore(){
+  const w=weekNow();
+  if(PROG.wk!==w){ PROG.wk=w; PROG.wkBase=PROG.trophies||0; progSave(); }
+  if(typeof PROG.wkBase!=='number')PROG.wkBase=PROG.trophies||0;
+  return Math.max(0,(PROG.trophies||0)-PROG.wkBase);
+}
+function weekLeft(){
+  const ms=weekEndsAt()-Date.now();
+  if(ms<=0)return 'به‌زودی';
+  const d=Math.floor(ms/86400000), h=Math.floor(ms%86400000/3600000);
+  if(d>0)return fa(d)+' روز و '+fa(h)+' ساعت';
+  const m=Math.floor(ms%3600000/60000);
+  return fa(h)+' ساعت و '+fa(m)+' دقیقه';
+}
 /* ----- جدول رتبه‌بندی ----- */
 function boardSubmit(){
   if(!firebaseConfigured()||!SET.profileUsername)return Promise.resolve();
   return fetch(FIREBASE_DB_URL+'/leaderboard/'+encodeURIComponent(SET.profileUsername)+'.json',
     {method:'PUT',body:JSON.stringify({u:SET.profileUsername,n:SET.pName,t:PROG.trophies,
+      id:ensureUserId(), wt:weeklyScore(), w:weekNow(),
       l:PROG.level,v:!!PROG.vip,ts:Date.now()})}).catch(()=>{});
 }
 /* ----- جدول رتبه‌بندی (طراحی جدید) ----- */
@@ -4144,12 +4188,20 @@ async function openBoard(){
     let rows=Object.values(data).filter(x=>x&&x.u);
     if(boardTab==='vip')rows=rows.filter(x=>x.v);
     if(boardTab==='week'){
-      const wk=Date.now()-7*86400000;
-      rows=rows.filter(x=>(x.ts||0)>=wk);
+      // لیگ هفتگی واقعی: فقط جام‌های همین هفته، و هر دوشنبه از صفر
+      const w=weekNow();
+      rows=rows.filter(x=>x.w===w&&(x.wt||0)>0).map(x=>Object.assign({},x,{t:x.wt}));
+      rows.sort((a,b)=>(b.t||0)-(a.t||0));
+    } else {
+      rows.sort((a,b)=>(b.t||0)-(a.t||0));
     }
-    rows.sort((a,b)=>(b.t||0)-(a.t||0));
     rows=rows.slice(0,50);
-    st.textContent=rows.length?'':'هنوز کسی در این بخش ثبت نشده — تو اولین نفر باش!';
+    if(boardTab==='week'){
+      st.innerHTML='⏳ پایان هفته تا <b>'+weekLeft()+'</b> — ۱۰ نفر برتر تا ۳٬۰۰۰ سکه جایزه می‌گیرند'
+        +(rows.length?'':'<br>هنوز کسی امتیاز هفتگی ندارد — تو اولین نفر باش!');
+    } else {
+      st.textContent=rows.length?'':'هنوز کسی در این بخش ثبت نشده — تو اولین نفر باش!';
+    }
     list.innerHTML=rows.map((x,i)=>boardRowHTML(x,i,x.u&&x.u===meU)).join('');
     // رتبهٔ خودم
     const myIdx=rows.findIndex(x=>x.u&&x.u===meU);
@@ -4630,7 +4682,7 @@ $('#btnSettings2').onclick=()=>{ openSettingsForm(); show('settings'); };
 $('#btnHall').onclick=()=>{ openHall(); show('hall'); };
 $('#btnInvite').onclick=()=>{ openInvite(); show('invite'); };
 $('#btnHub').onclick=()=>{ openHub(); show('hub'); };
-$('#btnShop').onclick=async()=>{ openShop(); show('shop');
+$('#btnShop').onclick=async()=>{ metric('shop'); openShop(); show('shop');
   try{ await syncUserWithServer(); openShop(); }catch(e){} };
 /* جدول رتبه‌بندی (فعال روی صفحهٔ اصلی) */
 { const _bb=document.getElementById('btnBoard');
@@ -4687,6 +4739,7 @@ function init(){
   setTimeout(()=>{ try{ syncUserWithServer(); }catch(e){} }, 2500);
   setTimeout(()=>{ try{ checkBroadcast(); }catch(e){} }, 4200);
   // بررسی دوره‌ای تا هدیه‌ها بدون بستن بازی هم برسند
+  try{ metric('install'); }catch(e){}
   setInterval(()=>{ try{ if(!G||!$('#game').classList.contains('active'))syncUserWithServer(); }catch(e){} }, 45000);
   setInterval(()=>{ try{ checkBroadcast(); }catch(e){} }, 180000);
   document.addEventListener('visibilitychange',()=>{
