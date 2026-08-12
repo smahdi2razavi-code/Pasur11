@@ -57,6 +57,15 @@ body{
 /* ===================== منوی اصلی ===================== */
 #menu{align-items:stretch; justify-content:space-between; gap:0; text-align:center; overflow:hidden;
   padding:max(10px, env(safe-area-inset-top,0px)) 14px max(10px, env(safe-area-inset-bottom,0px));}
+/* اگر نسخهٔ اپ نوارهای سیستم را جبران نکند (اندروید ۱۵ به بعد، صفحهٔ لبه‌به‌لبه)،
+   خودمان فاصله می‌گذاریم تا نوار بالای بازی زیر ساعت و باتری نرود. */
+body.no-insets #menu{padding-top:calc(max(10px, env(safe-area-inset-top,0px)) + 26px);}
+body.no-insets #menu{padding-bottom:calc(max(10px, env(safe-area-inset-bottom,0px)) + 14px);}
+body.no-insets .hud{padding-top:calc(env(safe-area-inset-top,0px) + 36px);}
+body.no-insets .gamebtns{top:calc(env(safe-area-inset-top,0px) + 88px);}
+body.no-insets .topbar{padding-top:calc(env(safe-area-inset-top,0px) + 40px);}
+body.no-insets #handRow{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 34px);}
+body.no-insets .dock{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 20px);}
 .menu-fit{display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
   flex:1 1 auto; min-height:0; gap:clamp(10px,2.5vh,22px); width:100%;}
 
@@ -5029,6 +5038,13 @@ function init(){
   setTimeout(()=>{ try{ syncUserWithServer(); }catch(e){} }, 2500);
   setTimeout(()=>{ try{ checkBroadcast(); }catch(e){} }, 4200);
   // بررسی دوره‌ای تا هدیه‌ها بدون بستن بازی هم برسند
+  /* اگر داخل اپ هستیم ولی نسخهٔ اپ نوارهای سیستم را جبران نکرده،
+     حالت پشتیبان روشن می‌شود تا محتوا زیر ساعت و نوار ناوبری نرود. */
+  setTimeout(()=>{
+    try{
+      if(window.AndroidApp && !window.__insetsOK) document.body.classList.add('no-insets');
+    }catch(e){}
+  }, 1200);
   try{ metric('install'); }catch(e){}
   try{ checkAppUpdate(); }catch(e){}
   setInterval(()=>{ try{ if(!G||!$('#game').classList.contains('active'))syncUserWithServer(); }catch(e){} }, 45000);

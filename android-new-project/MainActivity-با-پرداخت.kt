@@ -83,6 +83,9 @@ class MainActivity : ComponentActivity() {
             )
             val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
             v.setPadding(bars.left, bars.top, bars.right, maxOf(bars.bottom, ime.bottom))
+            // به بازی خبر بده که فاصلهٔ نوارها اینجا اعمال شده تا خودش دوباره
+            // فاصله نگذارد (حالت پشتیبانِ داخل index.html)
+            markInsetsHandled()
             insets
         }
         // آیکن‌های نوار وضعیت روشن باشند تا روی پس‌زمینهٔ تیرهٔ بازی دیده شوند
@@ -107,6 +110,9 @@ class MainActivity : ComponentActivity() {
             .build()
 
         webView.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView, url: String) {
+                markInsetsHandled()          // بعد از هر بار بارگذاری دوباره اعلام شود
+            }
             override fun shouldInterceptRequest(
                 view: WebView,
                 request: WebResourceRequest
@@ -241,6 +247,10 @@ class MainActivity : ComponentActivity() {
                 }
             }
         } catch (e: Exception) { /* اگر نشد، خرید عادی همچنان کار می‌کند */ }
+    }
+
+    private fun markInsetsHandled() {
+        try { webView.evaluateJavascript("window.__insetsOK=1;", null) } catch (e: Exception) {}
     }
 
     private fun jsArg(s: String) = s.replace("\\", "").replace("'", "")
