@@ -562,7 +562,7 @@ function base(){ return SRV.replace(/\/$/,''); }
  *          اعتبار دارد، به IP گره خورده و روی سرور فقط در حافظه می‌ماند.
  * پشتیبان: هدر X-Admin-Key
  * قدیمی  : ?key=  (فقط اگر سرور هنوز به‌روز نشده باشد)                     */
-let LEGACY=false, TOKEN='';
+let LEGACY=false, TOKEN='', SRV_FEAT=[], SRV_OLD_PAY=false;
 function adminUrl(path){
   if(!LEGACY||TOKEN)return path;
   return path+(path.includes('?')?'&':'?')+'key='+encodeURIComponent(KEY);
@@ -754,6 +754,8 @@ async function doConnect(srv,key,remember,pin){
     // وگرنه سرور قدیمی همین‌جا درخواست را رد می‌کند)
     const h=await (await fetch(base()+'/health.json')).json();
     if(!h||!h.ok)throw new Error('پاسخ نامعتبر');
+    SRV_FEAT=Array.isArray(h.feat)?h.feat:[];
+    SRV_OLD_PAY=SRV_FEAT.indexOf('pay')<0;
     const mode=await getToken();       // اول توکن نشست
     await detectMode();
     if(remember)await saveSecret(SRV,KEY,pin);
@@ -955,10 +957,36 @@ function cardValid(c){
   }
   return sum%10===0;
 }
+/* اگر سرور قدیمی فیلدهای تازه را ذخیره نکرده باشد، از روی خودِ متن تیکت
+   درشان می‌آوریم — بازی این دو خط را ته متن هم می‌نویسد. */
+function fa2en(v){
+  return String(v||'').replace(/[\u06F0-\u06F9]/g,d=>String(d.charCodeAt(0)-0x06F0))
+                      .replace(/[\u0660-\u0669]/g,d=>String(d.charCodeAt(0)-0x0660));
+}
+function payOf(t){
+  let ref=String(t.ref||''), card=String(t.card||'');
+  if(!ref||!card){
+    const txt=fa2en(t.text||'');
+    if(!ref){ const m=txt.match(/پیگیری\s*[:：]\s*([0-9]{3,32})/); if(m)ref=m[1]; }
+    if(!card){ const m=txt.match(/کارت\s*[:：]\s*([0-9][0-9\-\s]{14,24})/);
+               if(m)card=m[1].replace(/\D/g,'').slice(0,16); }
+  }
+  return {ref:ref, card:card};
+}
 function payBox(t){
-  if(!t.ref&&!t.card)return t.kind==='buy'
-    ? '<div class="tk-pay tk-pay-none">💳 کاربر کد پیگیری و شمارهٔ کارت را وارد نکرده — '
-      +'با دکمهٔ «درخواست کد پیگیری» از او بخواه.</div>' : '';
+  const p=payOf(t);
+  t={...t, ref:p.ref, card:p.card};
+  if(!t.ref&&!t.card){
+    if(t.kind!=='buy')return '';
+    return '<div class="tk-pay tk-pay-none">💳 کد پیگیری و شمارهٔ کارت همراه این تیکت نیست.'
+      +(SRV_OLD_PAY
+        ? '<br>⚠️ <b>سرورت به‌روز نشده</b> — نسخهٔ فعلی سرور این دو را ذخیره نمی‌کند. '
+          +'روی سرور <span class="mono">fix.sh</span> را اجرا کن. اگر کاربر با نسخهٔ تازهٔ بازی '
+          +'فرستاده باشد، معمولاً ته متن پیامش هم نوشته شده.'
+        : '<br>اگر کاربر نسخهٔ قدیمی بازی را دارد این کادر برایش نمی‌آید؛ '
+          +'با دکمهٔ «💳 کد پیگیری» از او بخواه.')
+      +'</div>';
+  }
   const bank=cardBank(t.card), okc=t.card?cardValid(t.card):true;
   return '<div class="tk-pay">💳 <b>اطلاعات پرداخت</b>'
     +(t.ref?('<div>کد پیگیری: <span class="mono">'+esc(t.ref)+'</span> '

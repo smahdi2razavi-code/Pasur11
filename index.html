@@ -3422,8 +3422,21 @@ function ticketPayload(kind,text,extra){
     ver:APP_VERSION_NAME+' ('+APP_VERSION_CODE+') '+GAME_BUILD, dev:(navigator.userAgent||'').slice(0,120)
   };
 }
+/* اطلاعات پرداخت را به انتهای متن تیکت هم می‌چسبانیم.
+   این‌طوری حتی اگر سرور نسخهٔ قدیمی باشد و فیلدهای تازه را نشناسد،
+   اطلاعات کاربر گم نمی‌شود و در پنل دیده می‌شود. */
+function payLine(extra){
+  extra=extra||{};
+  if(!extra.ref&&!extra.card)return '';
+  let t='\n———';
+  if(extra.ref) t+='\nکد پیگیری: '+extra.ref;
+  if(extra.card)t+='\nشماره کارت: '+String(extra.card).replace(/(\d{4})(?=\d)/g,'$1-');
+  return t;
+}
 async function sendTicket(kind,text,extra){
   const uid=ensureUserId();
+  const tail=payLine(extra);
+  if(tail)text=String(text).slice(0,1500-tail.length)+tail;
   const body=ticketPayload(kind,text,extra);
   if(!firebaseConfigured())throw new Error('offline');
   const r=await fetch(FIREBASE_DB_URL+'/tickets/'+encodeURIComponent(uid)+'.json',

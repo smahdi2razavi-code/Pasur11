@@ -265,7 +265,9 @@ const server = http.createServer(async (req, res) => {
 
   // بررسی سلامت سرور
   if (parts.length === 0 || parts[0] === 'health') {
-    return sendJSON(res, 200, { ok: true, name: 'pasur11-server', time: Date.now() });
+    // feat: پنل از روی این می‌فهمد سرور چه قابلیت‌هایی دارد
+    return sendJSON(res, 200, { ok: true, name: 'pasur11-server', time: Date.now(),
+      feat: ['auth', 'pay', 'tickets', 'bulk', 'audit', 'appupdate', 'league'] });
   }
 
   const [root, a, b] = parts;
@@ -532,6 +534,13 @@ const server = http.createServer(async (req, res) => {
 
   /* ===== ۸الف) تیکت پشتیبانی =====
      بازیکن مستقیم از داخل بازی شکایت/پیام می‌فرستد؛ نیازی به ایمیل نیست. */
+  /* شمارهٔ کارت را در پاسخ‌های عمومی می‌پوشاند: 6037-99**-****-0250
+     نسخهٔ کامل فقط از نقطه‌های مدیریتی (با کلید) دیده می‌شود. */
+  function maskPay(text) {
+    return String(text == null ? '' : text).replace(
+      /\b(\d{4})[- ]?(\d{4})[- ]?(\d{4})[- ]?(\d{4})\b/g,
+      (m, a1, a2, a3, a4) => a1 + '-' + a2[0] + a2[1] + '**-****-' + a4);
+  }
   if (root === 'tickets') {
     DB.tickets = DB.tickets || {};
     // ثبت تیکت تازه از سمت بازی (بدون کلید مدیریت)
@@ -600,9 +609,10 @@ const server = http.createServer(async (req, res) => {
       if (!isId(b)) return sendJSON(res, 400, { error: 'bad id' });
       const mine = Object.values(DB.tickets).filter(t => t && t.uid === b)
         .sort((x, y) => y.ts - x.ts).slice(0, 20)
-        .map(t => ({ id: t.id, ts: t.ts, kind: t.kind, text: t.text,
+        .map(t => ({ id: t.id, ts: t.ts, kind: t.kind, text: maskPay(t.text),
                      status: t.status, reply: t.reply || '', replyTs: t.replyTs || 0,
-                     msgs: t.msgs || [{ who: 'user', text: t.text, ts: t.ts }] }));
+                     msgs: (t.msgs || [{ who: 'user', text: t.text, ts: t.ts }])
+                             .map(m => Object.assign({}, m, { text: maskPay(m.text) })) }));
       return sendJSON(res, 200, mine);
     }
     // فهرست کامل برای پنل
