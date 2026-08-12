@@ -133,18 +133,50 @@ tr:hover td{background:rgba(255,255,255,.03);}
   <!-- ================= اتصال ================= -->
   <div class="box" id="connBox">
     <h2>اتصال به سرور <span class="dot" id="dot"></span> <span class="hint" id="connLive"></span></h2>
-    <div class="row">
-      <div style="flex:2 1 240px"><label>آدرس سرور</label>
-        <input id="srv" class="mono" value="http://94.184.36.13" placeholder="http://94.184.36.13"></div>
-      <div style="flex:1 1 180px"><label>کلید مدیریت</label>
-        <input id="key" class="mono" type="password" placeholder="کلید ADMIN_KEY"></div>
+
+    <!-- حالت ۱: اولین بار — کلید و رمز عبور -->
+    <div id="setupBox">
+      <div class="row">
+        <div style="flex:2 1 240px"><label>آدرس سرور</label>
+          <input id="srv" class="mono" value="http://94.184.36.13" placeholder="http://94.184.36.13"></div>
+        <div style="flex:1 1 180px"><label>کلید مدیریت</label>
+          <input id="key" class="mono" type="password" placeholder="کلید ADMIN_KEY" autocomplete="off"></div>
+      </div>
+      <div class="row">
+        <div><label>رمز عبور این پنل (حداقل ۴ حرف)</label>
+          <input id="pin1" type="password" placeholder="یک رمز برای خودت بساز" autocomplete="new-password"></div>
+        <div><label>تکرار رمز</label>
+          <input id="pin2" type="password" placeholder="دوباره بنویس" autocomplete="new-password"></div>
+      </div>
+      <div class="hint" style="margin:-4px 0 10px">
+        🔐 کلید مدیریت با این رمز <b>رمزگذاری</b> و ذخیره می‌شود. از این به بعد فقط
+        همین رمز را می‌زنی. اگر کسی به لپ‌تاپت دسترسی پیدا کند، بدون رمز نمی‌تواند
+        کلید را بخواند.
+      </div>
+      <div class="row tight">
+        <button class="btn-gold" id="btnConnect">🔓 ورود و ذخیره</button>
+        <button class="btn-ghost" id="btnNoSave">فقط این بار (ذخیره نکن)</button>
+      </div>
     </div>
-    <div class="row tight">
-      <button class="btn-gold" id="btnConnect">اتصال و ذخیره</button>
-      <button class="btn-ghost" id="btnForget">فراموش کن</button>
+
+    <!-- حالت ۲: دفعه‌های بعد — فقط رمز -->
+    <div id="unlockBox" style="display:none">
+      <div class="row">
+        <div style="flex:2 1 240px"><label>رمز عبور پنل</label>
+          <input id="pin" type="password" placeholder="رمزی که ساخته‌ای" autocomplete="current-password"></div>
+        <div style="flex:0 1 130px;align-self:end">
+          <button class="btn-gold" id="btnUnlock" style="width:100%;margin-bottom:10px">🔓 باز کردن</button></div>
+      </div>
+      <div class="hint" id="srvShow" style="margin:-4px 0 10px"></div>
+    </div>
+
+    <div class="row tight" style="margin-top:4px">
+      <button class="btn-ghost" id="btnLock" style="display:none">🔒 قفل کردن</button>
+      <button class="btn-bad" id="btnForget">🗑 پاک کردن کلید ذخیره‌شده</button>
       <label class="chk" style="margin:0 6px"><input type="checkbox" id="autoRef"> به‌روزرسانی خودکار (۳۰ ثانیه)</label>
     </div>
     <div class="status" id="connMsg"></div>
+    <div class="status err show" id="httpWarn" style="display:none"></div>
   </div>
 
   <!-- ================= تب‌ها ================= -->
@@ -521,17 +553,19 @@ function msg(el,text,ok){ el.textContent=text; el.className='status show '+(ok?'
 function clearMsgs(){ $$('.status').forEach(e=>e.className='status'); }
 function base(){ return SRV.replace(/\/$/,''); }
 /* ---------- ارسال کلید مدیریت ----------
- * حالت تازه : کلید در هدر X-Admin-Key  → در آدرس و لاگ‌ها ثبت نمی‌شود
- * حالت قدیمی: کلید در ?key=            → فقط اگر سرور هنوز به‌روز نشده باشد
- * (سرور قدیمی هدر تازه را در CORS نمی‌پذیرد، پس اصلاً هدر را نمی‌فرستیم)   */
-let LEGACY=false;
+ * ترجیح  : توکن نشست (X-Admin-Token) — با یک بار ورود گرفته می‌شود، ۸ ساعت
+ *          اعتبار دارد، به IP گره خورده و روی سرور فقط در حافظه می‌ماند.
+ * پشتیبان: هدر X-Admin-Key
+ * قدیمی  : ?key=  (فقط اگر سرور هنوز به‌روز نشده باشد)                     */
+let LEGACY=false, TOKEN='';
 function adminUrl(path){
-  if(!LEGACY)return path;
+  if(!LEGACY||TOKEN)return path;
   return path+(path.includes('?')?'&':'?')+'key='+encodeURIComponent(KEY);
 }
 function withKey(opts){
   const o=Object.assign({},opts||{});
-  if(!LEGACY)o.headers=Object.assign({},o.headers,{'X-Admin-Key':KEY});
+  if(TOKEN)       o.headers=Object.assign({},o.headers,{'X-Admin-Token':TOKEN});
+  else if(!LEGACY)o.headers=Object.assign({},o.headers,{'X-Admin-Key':KEY});
   return o;
 }
 function fetchA(path,opts){ return fetch(base()+adminUrl(path),withKey(opts)); }
@@ -539,6 +573,23 @@ async function api(path,opts){
   const r=await fetch(base()+adminUrl(path),withKey(opts));
   if(r.status===429)throw new Error('درخواست‌ها زیاد شد؛ چند لحظه صبر کن');
   return r.json();
+}
+/* گرفتن توکن نشست؛ اگر سرور این قابلیت را نداشت، به روش قبلی برمی‌گردیم */
+async function getToken(){
+  TOKEN='';
+  let j=null;
+  try{
+    const r=await fetch(base()+'/auth.json',{method:'POST',body:JSON.stringify({key:KEY})});
+    j=await r.json();
+  }catch(e){ return 'legacy'; }
+  if(j&&j.token){ TOKEN=j.token; return 'token'; }
+  if(j&&j.error==='locked')
+    throw new Error('به‌خاطر تلاش‌های ناموفق، ورود تا '+fa(Math.ceil((j.retryIn||900)/60))+' دقیقه قفل است');
+  if(j&&j.error==='bad key')
+    throw new Error('کلید مدیریت اشتباه است'+(j.left!=null?(' — '+fa(j.left)+' تلاش دیگر تا قفل شدن'):''));
+  if(j&&j.error==='ip not allowed')
+    throw new Error('این دستگاه در فهرست IPهای مجاز سرور نیست');
+  return 'legacy';                     // سرور قدیمی: /auth ندارد
 }
 // تشخیص خودکار: اول روش امن، اگر نشد روش قدیمی
 async function detectMode(){
@@ -548,12 +599,95 @@ async function detectMode(){
     if(u&&u.error)throw new Error('forbidden');
     return true;                       // سرور تازه ✔
   }catch(e){}
+  if(TOKEN)throw new Error('توکن پذیرفته نشد');
   LEGACY=true;                         // شاید سرور قدیمی باشد
   try{
     const u=await api('/users.json');
     if(u&&u.error)throw new Error('کلید مدیریت اشتباه است');
     return true;
   }catch(e){ LEGACY=false; throw e; }
+}
+
+/* ---------- رمزگذاری کلید با رمز عبور خودت ----------
+ * کلید مدیریت هرگز خام در مرورگر ذخیره نمی‌شود: با PBKDF2 (۲۱۰٬۰۰۰ دور)
+ * از رمز تو کلید رمزنگاری ساخته و با AES-GCM رمز می‌شود.                */
+const SEC_STORE='pasur_admin_sec';
+const b64=b=>btoa(String.fromCharCode.apply(null,new Uint8Array(b)));
+const unb64=t=>Uint8Array.from(atob(t),c=>c.charCodeAt(0));
+async function pinKey(pin,salt){
+  const raw=await crypto.subtle.importKey('raw',new TextEncoder().encode(pin),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt:salt,iterations:210000,hash:'SHA-256'},
+    raw,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+}
+async function saveSecret(srv,key,pin){
+  const salt=crypto.getRandomValues(new Uint8Array(16));
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const k=await pinKey(pin,salt);
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv:iv},k,new TextEncoder().encode(key));
+  localStorage.setItem(SEC_STORE,JSON.stringify({v:1,s:srv,salt:b64(salt),iv:b64(iv),ct:b64(ct)}));
+}
+async function loadSecret(pin){
+  const raw=localStorage.getItem(SEC_STORE);
+  if(!raw)return null;
+  const d=JSON.parse(raw);
+  const k=await pinKey(pin,unb64(d.salt));
+  const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(d.iv)},k,unb64(d.ct));
+  return {srv:d.s, key:new TextDecoder().decode(pt)};
+}
+function hasSecret(){ return !!localStorage.getItem(SEC_STORE); }
+
+/* ---------- قفل خودکار پس از بی‌کاری ---------- */
+const IDLE_LOCK=15*60*1000;
+let lastAct=Date.now();
+['click','keydown','mousemove','touchstart'].forEach(function(e){
+  document.addEventListener(e,function(){ lastAct=Date.now(); },{passive:true});
+});
+setInterval(function(){
+  if(KEY&&Date.now()-lastAct>IDLE_LOCK)lockPanel('به‌خاطر بی‌کاری قفل شد');
+},30000);
+
+function lockPanel(why){
+  if(TOKEN){ try{ fetchA('/auth.json',{method:'DELETE'}); }catch(e){} }
+  KEY=''; TOKEN=''; USERS={}; CONTROL={}; TICKETS={}; STATS=null; SEL=new Set();
+  stopAuto(); const ar=$('#autoRef'); if(ar)ar.checked=false;
+  $('#dot').className='dot';
+  $('#tabs').style.display='none';
+  $$('.page').forEach(function(e){ e.classList.remove('active'); });
+  $('#p-dash').classList.add('active');
+  ['key','pin','pin1','pin2'].forEach(function(id){ const el=$('#'+id); if(el)el.value=''; });
+  showLoginUI();
+  if(why)msg($('#connMsg'),'🔒 '+why+'. برای ادامه رمز را وارد کن.',false);
+}
+function showLoginUI(){
+  const saved=hasSecret();
+  $('#setupBox').style.display  = saved?'none':'block';
+  $('#unlockBox').style.display = saved?'block':'none';
+  $('#btnLock').style.display   = 'none';
+  if(saved){
+    try{
+      const d=JSON.parse(localStorage.getItem(SEC_STORE));
+      $('#srvShow').textContent='سرور: '+(d.s||'');
+      $('#srv').value=d.s||'';
+    }catch(e){}
+    setTimeout(function(){ const p=$('#pin'); if(p)p.focus(); },100);
+  }
+}
+/* هشدار وقتی سرور بدون HTTPS است */
+function httpWarnCheck(){
+  const w=$('#httpWarn'); if(!w)return;
+  const s=$('#srv').value.trim();
+  if(/^http:\/\//i.test(s)&&!/^http:\/\/(localhost|127\.)/i.test(s)){
+    w.style.display='block';
+    w.textContent='⚠️ این سرور HTTPS ندارد. کلید مدیریت رمزگذاری‌نشده روی اینترنت می‌رود. '
+      +'اگر دامنه داری، در راهنمای سرور بخش «فعال کردن HTTPS» را انجام بده.';
+  }else w.style.display='none';
+}
+/* تأیید با تایپ کلمه — برای کارهایی که برگشت‌پذیر نیستند */
+function confirmPhrase(what,phrase){
+  const a=prompt(what+'\n\nاگر مطمئنی، کلمهٔ زیر را دقیقاً بنویس:\n'+phrase);
+  if(a===null)return false;
+  if(a.trim()!==phrase){ toast('کلمه درست نبود — کاری انجام نشد',true); return false; }
+  return true;
 }
 function ago(ts){
   if(!ts)return '—';
@@ -606,10 +740,8 @@ function showPage(p){
 $$('.tab').forEach(t=>t.onclick=()=>showPage(t.dataset.p));
 
 /* ---------- اتصال ---------- */
-async function connect(){
-  SRV=$('#srv').value.trim();
-  KEY=$('#key').value.trim();
-  if(!SRV||!KEY){ msg($('#connMsg'),'آدرس سرور و کلید مدیریت را پر کن',false); return; }
+async function doConnect(srv,key,remember,pin){
+  SRV=srv; KEY=key;
   $('#connMsg').innerHTML='<span class="spin"></span> در حال بررسی…';
   $('#connMsg').className='status show ok';
   try{
@@ -617,30 +749,69 @@ async function connect(){
     // وگرنه سرور قدیمی همین‌جا درخواست را رد می‌کند)
     const h=await (await fetch(base()+'/health.json')).json();
     if(!h||!h.ok)throw new Error('پاسخ نامعتبر');
+    const mode=await getToken();       // اول توکن نشست
     await detectMode();
-    localStorage.setItem('pasur_admin',JSON.stringify({s:SRV,k:KEY}));
+    if(remember)await saveSecret(SRV,KEY,pin);
+    localStorage.removeItem('pasur_admin');   // پاک کردن ذخیرهٔ خام قدیمی
+    lastAct=Date.now();
     $('#dot').className='dot on';
-    msg($('#connMsg'), LEGACY
-      ? '✅ متصل شد — ولی سرورت نسخهٔ قدیمی است.\n'
-        +'⚠️ کلید مدیریت در آدرس فرستاده می‌شود و چند قابلیت کار نمی‌کند.\n'
-        +'برای رفع: روی سرور update.sh را اجرا کن.'
-      : '✅ متصل شد. سرور سالم و به‌روز است.', true);
+    $('#setupBox').style.display='none';
+    $('#unlockBox').style.display='none';
+    $('#btnLock').style.display='';
+    msg($('#connMsg'),
+      mode==='token'
+        ? '✅ متصل شد. ورود با توکن نشست (۸ ساعته) — کلید مدیریت دیگر فرستاده نمی‌شود.'
+        : (LEGACY
+            ? '✅ متصل شد — ولی سرورت نسخهٔ قدیمی است.\n'
+              +'⚠️ کلید مدیریت در آدرس فرستاده می‌شود و چند قابلیت کار نمی‌کند.\n'
+              +'برای رفع: روی سرور fix.sh را اجرا کن.'
+            : '✅ متصل شد. سرور سالم است؛ برای ورود امن‌تر (توکن نشست) fix.sh را روی سرور اجرا کن.'), true);
     $('#tabs').style.display='flex';
     await refreshAll();
     try{ const t=localStorage.getItem('pasur_admin_tab'); if(t)showPage(t); }catch(e){}
   }catch(e){
+    KEY=''; TOKEN='';
     $('#dot').className='dot off';
     $('#tabs').style.display='none';
+    showLoginUI();
     msg($('#connMsg'),'❌ اتصال ناموفق: '+(e.message||'سرور در دسترس نیست'),false);
   }
 }
-$('#btnConnect').onclick=connect;
+/* بار اول: کلید + ساختن رمز */
+async function connect(remember){
+  const srv=$('#srv').value.trim(), key=$('#key').value.trim();
+  const p1=$('#pin1').value, p2=$('#pin2').value;
+  if(!srv||!key){ msg($('#connMsg'),'آدرس سرور و کلید مدیریت را پر کن',false); return; }
+  if(remember){
+    if(p1.length<4){ msg($('#connMsg'),'رمز پنل حداقل ۴ حرف باشد',false); return; }
+    if(p1!==p2){ msg($('#connMsg'),'دو رمز یکی نیستند',false); return; }
+  }
+  await doConnect(srv,key,!!remember,p1);
+  $('#key').value=''; $('#pin1').value=''; $('#pin2').value='';
+}
+/* دفعه‌های بعد: فقط رمز */
+async function unlock(){
+  const pin=$('#pin').value;
+  if(!pin){ msg($('#connMsg'),'رمز پنل را وارد کن',false); return; }
+  let d=null;
+  try{ d=await loadSecret(pin); }
+  catch(e){ msg($('#connMsg'),'❌ رمز اشتباه است',false); $('#pin').value=''; return; }
+  if(!d){ msg($('#connMsg'),'کلید ذخیره‌شده‌ای نیست',false); return; }
+  $('#pin').value='';
+  await doConnect($('#srv').value.trim()||d.srv, d.key, false, '');
+}
+$('#btnConnect').onclick=()=>connect(true);
+$('#btnNoSave').onclick=()=>connect(false);
+$('#btnUnlock').onclick=unlock;
+$('#pin').addEventListener('keydown',e=>{ if(e.key==='Enter')unlock(); });
+$('#pin2').addEventListener('keydown',e=>{ if(e.key==='Enter')connect(true); });
+$('#srv').addEventListener('input',httpWarnCheck);
+$('#btnLock').onclick=()=>lockPanel('قفل شد');
 $('#btnForget').onclick=()=>{
+  if(!confirm('کلید ذخیره‌شده پاک شود؟ دفعهٔ بعد باید دوباره کلید مدیریت را وارد کنی.'))return;
+  localStorage.removeItem(SEC_STORE);
   localStorage.removeItem('pasur_admin');
-  $('#key').value=''; $('#dot').className='dot';
-  $('#tabs').style.display='none'; $$('.page').forEach(e=>e.classList.remove('active'));
-  $('#p-dash').classList.add('active');
-  stopAuto(); $('#autoRef').checked=false;
+  lockPanel('');
   msg($('#connMsg'),'اطلاعات ذخیره‌شده پاک شد',true);
 };
 
@@ -1186,7 +1357,9 @@ $('#btnBulk').onclick=async()=>{
   } else value=true;
   const names={coinGrant:'هدیهٔ سکه',scoreGrant:'افزودن جام',msg:'ارسال پیام',
     vipGrant:'فعال‌کردن VIP',banned:'مسدودکردن'};
-  if(!confirm('«'+names[field]+'» برای '+ids.length+' کاربر اجرا شود؟\n\nاین کار قابل بازگشت نیست.'))return;
+  if(ids.length>=10||field==='banned'){
+    if(!confirmPhrase('«'+names[field]+'» برای '+ids.length+' کاربر اجرا می‌شود.','اجرا'))return;
+  }else if(!confirm('«'+names[field]+'» برای '+ids.length+' کاربر اجرا شود؟'))return;
   try{
     const r=await fetchA(('/bulk.json'),{method:'PUT',
       body:JSON.stringify({ids,field,value})});
@@ -1314,7 +1487,7 @@ $('#btnSetProg').onclick=async()=>{
 $('#btnDelete').onclick=async()=>{
   const id=uid(); if(!id){ msg($('#opMsg'),'شناسه را وارد کن',false); return; }
   if(!confirm('اکانت '+id+' کاملاً حذف شود؟\n\nاطلاعات کاربر، رکورد رتبه‌بندی و نام‌کاربری‌اش پاک می‌شود.\nاین کار برگشت‌پذیر نیست.'))return;
-  if(!confirm('بار دوم تأیید می‌کنی؟ حذف قطعی است.'))return;
+  if(!confirmPhrase('حذف قطعی اکانت '+id,'حذف'))return;
   try{
     const r=await fetchA(('/users/'+encodeURIComponent(id)+'.json'),{method:'DELETE'});
     const j=await r.json();
@@ -1338,7 +1511,7 @@ $$('[data-bc]').forEach(b=>b.onclick=()=>{
 $('#btnBcSend').onclick=async()=>{
   const t=($('#bcText').value||'').trim();
   if(!t){ msg($('#bcMsg'),'متن اعلان را بنویس',false); return; }
-  if(!confirm('این اعلان برای همهٔ کاربران ('+fa((STATS&&STATS.users)||0)+' نفر) فرستاده شود؟'))return;
+  if(!confirmPhrase('این اعلان برای همهٔ کاربران ('+fa((STATS&&STATS.users)||0)+' نفر) فرستاده می‌شود.','ارسال'))return;
   try{
     const r=await fetchA(('/broadcast.json'),{method:'PUT',
       body:JSON.stringify({icon:($('#bcIcon').value||'📢').trim(),
@@ -1490,12 +1663,20 @@ document.addEventListener('keydown',e=>{
   bcPreview();
   try{
     if(localStorage.getItem('pasur_admin_auto')==='1')$('#autoRef').checked=true;
-    const s=JSON.parse(localStorage.getItem('pasur_admin')||'null');
-    if(s&&s.s&&s.k){
-      $('#srv').value=s.s; $('#key').value=s.k;
-      connect().then(()=>{ if($('#autoRef').checked)startAuto(); });
+    /* مهاجرت از نسخهٔ قدیمی که کلید را خام ذخیره می‌کرد:
+       دیگر خودکار وصل نمی‌شویم — کلید خام پاک می‌شود و کاربر یک بار
+       آن را با رمز خودش دوباره ذخیره می‌کند. */
+    const old=JSON.parse(localStorage.getItem('pasur_admin')||'null');
+    if(old&&old.s){
+      $('#srv').value=old.s;
+      localStorage.removeItem('pasur_admin');
+      if(!hasSecret())setTimeout(()=>msg($('#connMsg'),
+        'ℹ️ برای امنیت بیشتر، کلید مدیریت دیگر خام ذخیره نمی‌شود. '
+        +'یک بار کلید و یک رمز دلخواه بزن تا رمزگذاری‌شده ذخیره شود.',true),200);
     }
   }catch(e){}
+  showLoginUI();
+  httpWarnCheck();
 })();
 </script>
 </body>

@@ -64,7 +64,7 @@ function sendJSON(res, code, obj) {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Key',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Key, X-Admin-Token',
     'Access-Control-Max-Age': '86400',
     'Cache-Control': 'no-store'
   });
@@ -93,12 +93,82 @@ function readKey(req) {
   try { return new URL(req.url, 'http://x').searchParams.get('key'); } catch (e) { return null; }
 }
 // مقایسهٔ ثابت‌زمان تا کلید حرف‌به‌حرف حدس زده نشود
-function keyOk(req) {
-  const got = readKey(req);
-  if (typeof got !== 'string') return false;
-  const a = Buffer.from(got), b = Buffer.from(ADMIN_KEY);
+function sameSecret(got, want) {
+  if (typeof got !== 'string' || typeof want !== 'string') return false;
+  const a = Buffer.from(got), b = Buffer.from(want);
   if (a.length !== b.length) return false;
   try { return crypto.timingSafeEqual(a, b); } catch (e) { return false; }
+}
+
+/* ---------- قفل شدن پس از چند تلاش ناموفق ----------
+ * کلید مدیریت طولانی است و عملاً حدس‌زدنی نیست، ولی این قفل جلوی
+ * تلاش‌های خودکار را می‌گیرد و در دفتر ثبت هم رد می‌گذارد. */
+const FAILS = new Map();                       // ip → {n, t, until}
+const FAIL_MAX    = 10;                        // بیشتر از این → قفل
+const FAIL_WINDOW = 15 * 60 * 1000;
+const FAIL_LOCK   = 15 * 60 * 1000;
+function isLocked(ip) {
+  const f = FAILS.get(ip);
+  return !!(f && f.until && Date.now() < f.until);
+}
+function noteFail(req) {
+  const ip = clientIp(req), now = Date.now();
+  let f = FAILS.get(ip);
+  if (!f || now - f.t > FAIL_WINDOW) f = { n: 0, t: now, until: 0 };
+  f.n++; f.t = now;
+  if (f.n >= FAIL_MAX) {
+    f.until = now + FAIL_LOCK;
+    f.n = 0;
+    audit(req, 'auth:locked', ip, 'پس از ' + FAIL_MAX + ' تلاش ناموفق');
+    console.error('قفل موقت برای IP ' + ip + ' پس از تلاش‌های ناموفق');
+    saveDB();
+  }
+  FAILS.set(ip, f);
+}
+function noteOk(ip) { FAILS.delete(ip); }
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, f] of FAILS) if (now - f.t > FAIL_WINDOW && !isLocked(ip)) FAILS.delete(ip);
+}, FAIL_WINDOW);
+
+/* ---------- فهرست IP مجاز (اختیاری) ----------
+ * اگر متغیر ADMIN_IPS تنظیم شود، فقط از همان آدرس‌ها می‌توان مدیریت کرد. */
+const ADMIN_IPS = String(process.env.ADMIN_IPS || '').split(',').map(x => x.trim()).filter(Boolean);
+function ipAllowed(ip) { return ADMIN_IPS.length === 0 || ADMIN_IPS.indexOf(ip) >= 0; }
+
+/* ---------- نشست مدیریت (توکن کوتاه‌عمر) ----------
+ * فقط در حافظه نگه داشته می‌شود؛ با ری‌استارت سرور همه باطل می‌شوند.
+ * مزیت: کلید اصلی فقط یک‌بار در هر نشست فرستاده می‌شود، نه در هر درخواست. */
+const TOKENS = new Map();                      // token → {ip, exp}
+const TOKEN_TTL = 8 * 3600 * 1000;
+function newToken(ip) {
+  const t = crypto.randomBytes(32).toString('base64url');
+  TOKENS.set(t, { ip, exp: Date.now() + TOKEN_TTL });
+  return t;
+}
+function tokenOk(req) {
+  const t = req.headers['x-admin-token'];
+  if (!t) return false;
+  const rec = TOKENS.get(String(t));
+  if (!rec) return false;
+  if (Date.now() > rec.exp) { TOKENS.delete(String(t)); return false; }
+  if (rec.ip !== clientIp(req)) return false;   // توکن به همان IP بسته است
+  return true;
+}
+setInterval(() => {
+  const now = Date.now();
+  for (const [t, r] of TOKENS) if (now > r.exp) TOKENS.delete(t);
+}, 600000);
+
+function keyOk(req) {
+  const ip = clientIp(req);
+  if (!ipAllowed(ip) || isLocked(ip)) return false;
+  if (tokenOk(req)) return true;
+  const got = readKey(req);
+  if (got == null) return false;                // اصلاً کلیدی نفرستاده — تلاش حساب نمی‌شود
+  if (sameSecret(got, ADMIN_KEY)) { noteOk(ip); return true; }
+  noteFail(req);
+  return false;
 }
 // getKey فقط برای سازگاری با کدهای قدیمی این فایل
 function getKey(url) {
@@ -439,6 +509,7 @@ const server = http.createServer(async (req, res) => {
     rollWeek();
     return sendJSON(res, 200, {
       appUpdate: DB.appUpdate || null,
+      security: { ipLock: ADMIN_IPS.length > 0, sessions: TOKENS.size, locked: [...FAILS.values()].filter(f => f.until > Date.now()).length },
       tickets: Object.keys(DB.tickets || {}).length,
       ticketsNew: Object.values(DB.tickets || {}).filter(t => t && t.status === 'new').length,
       metrics: DB.metrics || {},
@@ -568,6 +639,35 @@ const server = http.createServer(async (req, res) => {
       delete DB.tickets[a];
       audit(req, 'ticket:delete', a, '');
       saveDB(); return sendJSON(res, 200, { ok: true });
+    }
+  }
+
+  /* ===== ۸ه) ورود مدیریت و گرفتن توکن نشست ===== */
+  if (root === 'auth') {
+    const ip = clientIp(req);
+    if (method === 'POST' || method === 'PUT') {
+      if (!ipAllowed(ip)) return sendJSON(res, 403, { error: 'ip not allowed' });
+      if (isLocked(ip)) {
+        const f = FAILS.get(ip);
+        return sendJSON(res, 429, { error: 'locked', retryIn: Math.ceil((f.until - Date.now()) / 1000) });
+      }
+      const body = await readBody(req) || {};
+      if (!sameSecret(String(body.key || ''), ADMIN_KEY)) {
+        noteFail(req);
+        const f = FAILS.get(ip) || { n: 0 };
+        return sendJSON(res, 403, { error: 'bad key', left: Math.max(0, FAIL_MAX - f.n) });
+      }
+      noteOk(ip);
+      const token = newToken(ip);
+      audit(req, 'auth:login', ip, '');
+      saveDB();
+      return sendJSON(res, 200, { token, ttl: TOKEN_TTL });
+    }
+    // خروج: باطل کردن توکن
+    if (method === 'DELETE') {
+      const t = req.headers['x-admin-token'];
+      if (t) TOKENS.delete(String(t));
+      return sendJSON(res, 200, { ok: true });
     }
   }
 

@@ -86,6 +86,22 @@ fi
 ls -1 /opt/pasur11/backups/*.gz 2>/dev/null | tail -3 || echo "  no backups yet"
 
 echo ""
+echo "[14] Admin login security:"
+AK=$(cat /opt/pasur11/admin_key.txt 2>/dev/null)
+R=$(curl -s --max-time 5 -X POST "http://127.0.0.1:3000/auth.json" -d "{\"key\":\"$AK\"}")
+case "$R" in
+  *token*)     echo "  OK       session tokens enabled" ;;
+  *not?found*) echo "  MISSING  /auth   <-- server is OLD, run fix.sh" ;;
+  "")          echo "  NO REPLY /auth   <-- app may be down" ;;
+  *)           echo "  ?        /auth -> $R" ;;
+esac
+if [ -n "$ADMIN_IPS" ]; then
+  echo "  ADMIN_IPS: $ADMIN_IPS"
+else
+  echo "  ADMIN_IPS: not set (any IP may log in with the key)"
+fi
+
+echo ""
 echo "======================================"
 echo " Send a photo of this screen"
 echo "======================================"
