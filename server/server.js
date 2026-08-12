@@ -566,6 +566,9 @@ const server = http.createServer(async (req, res) => {
         wins: clampInt(body.wins, 1e7),
         ver: String(body.ver || '').slice(0, 16),
         dev: String(body.dev || '').slice(0, 120),
+        // فقط برای تیکت «مشکل خرید»: کد پیگیری و شمارهٔ کارت (هر دو فقط رقم)
+        ref:  String(body.ref  || '').replace(/\D/g, '').slice(0, 32),
+        card: String(body.card || '').replace(/\D/g, '').slice(0, 16),
         banned: !!((DB.control[a] || {}).banned),
         msgs: [{ who: 'user', text, ts: Date.now() }]
       };

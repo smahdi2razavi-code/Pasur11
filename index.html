@@ -315,7 +315,7 @@ body.is-vip .vip-emblem .ve-crown{filter:drop-shadow(0 2px 6px rgba(127,224,180,
 }
 /* ---- فرم پیام به پشتیبانی ---- */
 #ticket label{display:block; font-size:13.5px; font-weight:700; color:#c6d2f2; margin:12px 0 6px;}
-#ticket select, #ticket textarea{
+#ticket select, #ticket textarea, #ticket input{
   width:100%; font-family:inherit; font-size:15.5px; padding:11px 12px; border-radius:10px;
   border:1px solid #3a4f8e; background:#131e40; color:var(--ivory); outline:none;
   display:block; -webkit-appearance:none; appearance:none;
@@ -324,7 +324,12 @@ body.is-vip .vip-emblem .ve-crown{filter:drop-shadow(0 2px 6px rgba(127,224,180,
   linear-gradient(135deg,#8ea0d0 50%,transparent 50%);
   background-position:14px calc(50% - 2px), 19px calc(50% - 2px);
   background-size:5px 5px, 5px 5px; background-repeat:no-repeat; padding-left:32px;}
-#ticket select:focus, #ticket textarea:focus{border-color:var(--gold);}
+#ticket select:focus, #ticket textarea:focus, #ticket input:focus{border-color:var(--gold);}
+#ticket input{letter-spacing:.5px;}
+#tkBuyBox{border:1px dashed #4a63ad; border-radius:12px; padding:2px 12px 12px; margin-top:12px;
+  background:rgba(90,120,200,.07);}
+#tkBuyBox .tk-need{font-size:12.5px; color:#ffd98a; font-weight:700; margin:8px 0 0;}
+#tkBuyBox .tk-safe{font-size:12.5px; color:#ffb9c6; line-height:1.9; margin:10px 0 0;}
 #ticket textarea{resize:vertical; min-height:120px; line-height:1.9;}
 #ticket .mission-row{align-items:flex-start;}
 #ticket .tk-bubble{border-radius:12px; padding:9px 11px; margin-bottom:7px; font-size:13.5px; line-height:1.9;}
@@ -1524,6 +1529,24 @@ body.table-persian #game{background:radial-gradient(1200px 760px at 50% -8%,#5a1
         <option value="idea">💡 پیشنهاد یا انتقاد</option>
         <option value="other">✉️ موضوع دیگر</option>
       </select>
+
+      <!-- فقط برای «مشکل در خرید یا پرداخت» -->
+      <div id="tkBuyBox" style="display:none">
+        <label>کد پیگیری پرداخت <span style="color:#ffd98a">(همان که در مایکت ثبت شده)</span></label>
+        <input id="tkRef" type="text" inputmode="numeric" maxlength="32" autocomplete="off"
+          placeholder="مثلاً ۱۲۳۴۵۶۷۸۹۰">
+        <div class="hint" style="margin:6px 0 0">
+          مایکت را باز کن ← منوی سه‌خط ← <b>خریدهای من</b> (یا پیامک/ایمیل بانک).
+          کد پیگیری یا شمارهٔ سفارش همان‌جاست.
+        </div>
+        <label>شمارهٔ کارتی که با آن پرداخت کردی</label>
+        <input id="tkCard" type="text" inputmode="numeric" maxlength="19" autocomplete="off"
+          placeholder="۶۰۳۷۹۹۱۱۱۲۳۴۵۶۷۸">
+        <div class="tk-need" id="tkBuyNeed"></div>
+        <p class="tk-safe">🔒 فقط برای پیدا کردن پرداختت در مایکت و برگرداندن پول لازم است.
+          <b>رمز کارت، CVV2 و رمز پویا را هرگز جایی ننویس</b> — ما هیچ‌وقت آن‌ها را نمی‌خواهیم.</p>
+      </div>
+
       <label>توضیح مشکل</label>
       <textarea id="tkText" rows="6" maxlength="1500"
         placeholder="هرچه کامل‌تر بنویسی، سریع‌تر حل می‌شود…"></textarea>
@@ -1875,18 +1898,56 @@ function fillVersionInfo(){
   if(_tt)_tt.addEventListener('input',()=>{
     const c=document.getElementById('tkCount'); if(c)c.textContent=fa(_tt.value.length);
   });
+  const _tk2=document.getElementById('tkKind');
+  if(_tk2)_tk2.addEventListener('change',()=>{ TK_FORCE=false; tkSyncBuyBox(); });
+  // فقط رقم؛ شمارهٔ کارت چهارتاچهارتا جدا می‌شود تا خواندنش راحت باشد
+  const _tr=document.getElementById('tkRef');
+  if(_tr)_tr.addEventListener('input',()=>{
+    _tr.value=digitsOnly(_tr.value).slice(0,32);
+    TK_FORCE=false; $('#tkBuyNeed').textContent='';   // با هر ویرایش دوباره بررسی شود
+  });
+  const _tc=document.getElementById('tkCard');
+  if(_tc)_tc.addEventListener('input',()=>{
+    const d=digitsOnly(_tc.value).slice(0,16);
+    _tc.value=d.replace(/(\d{4})(?=\d)/g,'$1-');
+    TK_FORCE=false; $('#tkBuyNeed').textContent='';   // با هر ویرایش دوباره بررسی شود
+  });
   const _ts=document.getElementById('btnTkSend');
   if(_ts)_ts.onclick=async()=>{
     const txt=($('#tkText').value||'').trim();
     const kind=$('#tkKind').value||'other';
     const out=$('#tkMsg');
     if(txt.length<10){ out.style.color='#ffb9c6'; out.textContent='لطفاً کمی کامل‌تر توضیح بده (حداقل ۱۰ حرف)'; return; }
+    // ---- مشکل پرداخت: کد پیگیری و شمارهٔ کارت ----
+    const extra={ref:'',card:''};
+    if(kind==='buy'){
+      const need=$('#tkBuyNeed');
+      extra.ref=digitsOnly($('#tkRef').value).slice(0,32);
+      extra.card=digitsOnly($('#tkCard').value).slice(0,16);
+      if(extra.card&&extra.card.length!==16){
+        need.textContent='شمارهٔ کارت باید ۱۶ رقم باشد (الان '+fa(extra.card.length)+' رقم است).';
+        $('#tkCard').focus(); return;
+      }
+      if(extra.card&&!cardLuhn(extra.card)&&!TK_FORCE){
+        need.textContent='این شمارهٔ کارت درست به نظر نمی‌رسد؛ یک بار دیگر نگاهش کن. '
+          +'اگر مطمئنی درست است، دوباره روی «ارسال» بزن.';
+        TK_FORCE=true; $('#tkCard').focus(); return;
+      }
+      if((!extra.ref||!extra.card)&&!TK_FORCE){
+        const miss=[]; if(!extra.ref)miss.push('کد پیگیری'); if(!extra.card)miss.push('شمارهٔ کارت');
+        need.textContent='بدون '+miss.join(' و ')+' پیدا کردن پرداختت خیلی سخت می‌شود. '
+          +'اگر واقعاً نداری، دوباره روی «ارسال» بزن تا بدون آن فرستاده شود.';
+        TK_FORCE=true; return;
+      }
+      need.textContent='';
+    }
     _ts.disabled=true; out.style.color=''; out.textContent='در حال ارسال…';
     try{
-      const id=await sendTicket(kind,txt);
+      const id=await sendTicket(kind,txt,extra);
       out.style.color='#9dffc0';
       out.textContent='✅ پیامت ثبت شد. کد پیگیری: '+fa(id)+' — پاسخ در صندوق پیام می‌آید.';
       $('#tkText').value=''; $('#tkCount').textContent=fa(0);
+      $('#tkRef').value=''; $('#tkCard').value=''; TK_FORCE=false;
       addMail('📮','پیام تو ثبت شد',
         'پیامت با کد پیگیری '+fa(id)+' برای پشتیبانی فرستاده شد. پاسخ را همین‌جا می‌بینی.');
       loadMyTickets();
@@ -1896,10 +1957,11 @@ function fillVersionInfo(){
         out.style.color='#ffb9c6'; out.textContent=e.message;
       } else {
         // اینترنت یا سرور در دسترس نیست: پیام گم نمی‌شود
-        queueTicket(kind,txt);
+        queueTicket(kind,txt,extra);
         out.style.color='#ffe9ad';
         out.textContent='📥 پیامت ذخیره شد و به‌محض برقراری ارتباط خودکار فرستاده می‌شود.';
         $('#tkText').value=''; $('#tkCount').textContent=fa(0);
+        $('#tkRef').value=''; $('#tkCard').value=''; TK_FORCE=false;
         loadMyTickets();
       }
     }
@@ -3332,20 +3394,37 @@ function showBanModal(){
 /* ================= تیکت پشتیبانی =================
    پیام مستقیم به پنل مدیریت می‌رود؛ اگر اینترنت نبود، در گوشی می‌ماند
    و دفعهٔ بعد که وصل شد خودکار فرستاده می‌شود. */
+let TK_FORCE=false;
 const TICKET_KINDS={ban:'اعتراض به مسدودی',buy:'مشکل خرید',bug:'ایراد فنی',
   cheat:'گزارش تقلب',account:'مشکل حساب',idea:'پیشنهاد',other:'موضوع دیگر'};
-function ticketPayload(kind,text){
+/* تبدیل رقم فارسی/عربی به انگلیسی و برداشتن هر چیز غیر رقم */
+function digitsOnly(v){
+  return String(v||'')
+    .replace(/[\u06F0-\u06F9]/g,d=>String(d.charCodeAt(0)-0x06F0))
+    .replace(/[\u0660-\u0669]/g,d=>String(d.charCodeAt(0)-0x0660))
+    .replace(/\D/g,'');
+}
+/* درستی شمارهٔ کارت با الگوریتم لون — همهٔ کارت‌های بانکی ایران باید پاس شوند */
+function cardLuhn(c){
+  c=String(c||''); if(c.length!==16)return false;
+  let sum=0;
+  for(let i=0;i<16;i++){ let d=+c[i]*((i%2===0)?2:1); if(d>9)d-=9; sum+=d; }
+  return sum%10===0;
+}
+function ticketPayload(kind,text,extra){
+  extra=extra||{};
   return {
     kind:kind, text:text,
+    ref:extra.ref||'', card:extra.card||'',
     name:SET.pName||'', user:SET.profileUsername||'',
     level:PROG.level||1, coins:PROG.coins||0, trophies:PROG.trophies||0,
     vip:!!PROG.vip, games:PROG.games||0, wins:PROG.wins||0,
     ver:APP_VERSION_NAME+' ('+APP_VERSION_CODE+') '+GAME_BUILD, dev:(navigator.userAgent||'').slice(0,120)
   };
 }
-async function sendTicket(kind,text){
+async function sendTicket(kind,text,extra){
   const uid=ensureUserId();
-  const body=ticketPayload(kind,text);
+  const body=ticketPayload(kind,text,extra);
   if(!firebaseConfigured())throw new Error('offline');
   const r=await fetch(FIREBASE_DB_URL+'/tickets/'+encodeURIComponent(uid)+'.json',
     {method:'PUT',body:JSON.stringify(body)});
@@ -3364,9 +3443,10 @@ async function sendTicket(kind,text){
   }
   return j.id;
 }
-function queueTicket(kind,text){
+function queueTicket(kind,text,extra){
   if(!Array.isArray(PROG.tkQueue))PROG.tkQueue=[];
-  PROG.tkQueue.push({kind:kind,text:text,ts:Date.now()});
+  extra=extra||{};
+  PROG.tkQueue.push({kind:kind,text:text,ref:extra.ref||'',card:extra.card||'',ts:Date.now()});
   if(PROG.tkQueue.length>10)PROG.tkQueue.shift();
   progSave();
 }
@@ -3376,15 +3456,27 @@ async function flushTicketQueue(){
   const q=PROG.tkQueue.slice();
   for(const t of q){
     try{
-      await sendTicket(t.kind,t.text);
+      await sendTicket(t.kind,t.text,{ref:t.ref||'',card:t.card||''});
       PROG.tkQueue=PROG.tkQueue.filter(x=>x!==t); progSave();
     }catch(e){ break; }     // اینترنت هنوز مشکل دارد؛ دفعهٔ بعد
   }
+}
+/* کادر «کد پیگیری و شمارهٔ کارت» فقط وقتی موضوع، مشکل پرداخت است */
+function tkSyncBuyBox(){
+  const box=$('#tkBuyBox'); if(!box)return;
+  const on=($('#tkKind')&&$('#tkKind').value)==='buy';
+  box.style.display=on?'block':'none';
+  if(!on){ const r=$('#tkRef'), c=$('#tkCard'), n=$('#tkBuyNeed');
+    if(r)r.value=''; if(c)c.value=''; if(n)n.textContent=''; }
 }
 function openTicket(kind){
   const k=$('#tkKind'); if(k&&kind)k.value=kind;
   $('#tkText').value=''; $('#tkCount').textContent=fa(0);
   $('#tkMsg').textContent='';
+  const _r=$('#tkRef'), _c=$('#tkCard'), _n=$('#tkBuyNeed');
+  if(_r)_r.value=''; if(_c)_c.value=''; if(_n)_n.textContent='';
+  TK_FORCE=false;
+  tkSyncBuyBox();
   show('ticket');
   loadMyTickets();
 }

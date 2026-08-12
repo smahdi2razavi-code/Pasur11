@@ -114,6 +114,11 @@ tr:hover td{background:rgba(255,255,255,.03);}
 .danger{border-color:#7a2233; background:rgba(224,51,63,.07);}
 .tk-card{margin-bottom:10px; background:rgba(255,255,255,.03);}
 .tk-card.tk-wait{border-color:rgba(224,51,63,.55);}
+.tk-pay{margin-top:8px; padding:8px 11px; border-radius:10px; font-size:13px; line-height:2.1;
+  background:rgba(230,182,76,.09); border:1px solid rgba(230,182,76,.4); color:var(--gold-soft);}
+.tk-pay .mono{color:var(--ivory); font-size:14px; letter-spacing:.6px;}
+.tk-pay .btn-sm{padding:1px 7px; margin:0 2px;}
+.tk-pay-none{background:rgba(224,51,63,.09); border-color:rgba(224,51,63,.4); color:#ffc3ca;}
 .tk-thread{margin:10px 0; max-height:340px; overflow-y:auto;}
 .tk-msg{border-radius:11px; padding:9px 11px; margin-bottom:7px; font-size:13.5px; line-height:1.9; white-space:pre-wrap;}
 .tk-msg b{display:block; font-size:11px; margin-bottom:3px; opacity:.7; font-weight:700;}
@@ -909,7 +914,9 @@ const TK_TPL=[
   {n:'🙏 عذرخواهی', t:'بابت مشکل پیش‌آمده عذرخواهیم. جبران کوچکی به حسابت اضافه شد.'},
   {n:'🔍 در بررسی', t:'پیامت را دیدیم و در حال بررسی هستیم. به‌زودی خبر می‌دهیم.'},
   {n:'❓ توضیح بیشتر', t:'برای بررسی دقیق‌تر، لطفاً کمی بیشتر توضیح بده که مشکل دقیقاً کِی و کجا پیش می‌آید.'},
-  {n:'✅ رفع مسدودی', t:'مسدودی حسابت برداشته شد. لطفاً قوانین بازی را رعایت کن.'}
+  {n:'✅ رفع مسدودی', t:'مسدودی حسابت برداشته شد. لطفاً قوانین بازی را رعایت کن.'},
+  {n:'💳 کد پیگیری', t:'برای پیگیری پرداخت، لطفاً کد پیگیری خرید (در مایکت: منو ← خریدهای من) و شمارهٔ ۱۶ رقمی کارتی که با آن پرداخت کرده‌ای را همین‌جا بفرست. رمز کارت، CVV2 و رمز پویا را هرگز ننویس.'},
+  {n:'💰 پول برگشت', t:'پرداختت بررسی شد و مبلغ به همان کارت برگشت داده شد. بسته به بانک، ۲۴ تا ۷۲ ساعت طول می‌کشد.'}
 ];
 const TK_KINDS={ban:'⛔ اعتراض به مسدودی',buy:'💳 مشکل خرید',bug:'🐞 ایراد فنی',
   cheat:'🚩 گزارش تقلب',account:'👤 مشکل حساب',idea:'💡 پیشنهاد',other:'✉️ موضوع دیگر'};
@@ -926,6 +933,41 @@ function tkBadge(){
   const n=Object.values(TICKETS).filter(t=>t&&t.status==='new').length;
   const b=$('#tkBadge');
   if(b)b.innerHTML=n?'<span class="tag ban" style="margin-right:4px">'+fa(n)+'</span>':'';
+}
+/* ---------- اطلاعات پرداخت روی تیکت «مشکل خرید» ---------- */
+const BINS={'603799':'ملی','589210':'سپه','603769':'صادرات','603770':'کشاورزی','610433':'ملت',
+ '991975':'ملت','627353':'تجارت','585983':'تجارت','589463':'رفاه','628023':'مسکن','627760':'پست بانک',
+ '502908':'توسعه تعاون','627648':'توسعه صادرات','627961':'صنعت و معدن','627412':'اقتصاد نوین',
+ '622106':'پارسیان','639194':'پارسیان','627884':'پارسیان','502229':'پاسارگاد','639347':'پاسارگاد',
+ '627488':'کارآفرین','502910':'کارآفرین','621986':'سامان','639346':'سینا','639607':'سرمایه',
+ '502806':'شهر','504706':'شهر','502938':'دی','627381':'انصار','639370':'مهر اقتصاد','505801':'کوثر',
+ '606373':'قرض‌الحسنهٔ مهر ایران','505416':'گردشگری','636214':'آینده','636949':'حکمت ایرانیان',
+ '585949':'خاورمیانه','507677':'نور','606256':'ملل','504172':'رسالت','628157':'توسعهٔ اعتباری'};
+function cardFmt(c){ return String(c||'').replace(/(\d{4})(?=\d)/g,'$1-'); }
+function cardBank(c){ return BINS[String(c||'').slice(0,6)]||''; }
+/* درستی شمارهٔ کارت با الگوریتم لون — کارت‌های بانکی ایران باید پاس شوند */
+function cardValid(c){
+  c=String(c||''); if(c.length!==16)return false;
+  let sum=0;
+  for(let i=0;i<16;i++){
+    let d=+c[i]*((i%2===0)?2:1);
+    if(d>9)d-=9; sum+=d;
+  }
+  return sum%10===0;
+}
+function payBox(t){
+  if(!t.ref&&!t.card)return t.kind==='buy'
+    ? '<div class="tk-pay tk-pay-none">💳 کاربر کد پیگیری و شمارهٔ کارت را وارد نکرده — '
+      +'با دکمهٔ «درخواست کد پیگیری» از او بخواه.</div>' : '';
+  const bank=cardBank(t.card), okc=t.card?cardValid(t.card):true;
+  return '<div class="tk-pay">💳 <b>اطلاعات پرداخت</b>'
+    +(t.ref?('<div>کد پیگیری: <span class="mono">'+esc(t.ref)+'</span> '
+      +'<button class="btn-ghost btn-sm" data-cp="'+esc(t.ref)+'">📋</button></div>'):'')
+    +(t.card?('<div>شمارهٔ کارت: <span class="mono">'+esc(cardFmt(t.card))+'</span> '
+      +'<button class="btn-ghost btn-sm" data-cp="'+esc(t.card)+'">📋</button>'
+      +(bank?' <span class="tag on">'+esc(bank)+'</span>':'')
+      +(okc?'':' <span class="tag ban">شمارهٔ کارت معتبر نیست</span>')+'</div>'):'')
+    +'</div>';
 }
 function renderTickets(){
   const f=$('#tkFilter').value, kf=$('#tkKindF').value;
@@ -967,6 +1009,7 @@ function renderTickets(){
         +(t.ver?(' • نسخهٔ '+esc(t.ver)):'')
         +(t.gift?(' • <span class="tag pend">تا حالا '+num(t.gift)+' سکه جبران شد</span>'):'')
         +'</div>'
+      +payBox(t)
       // ---- کادر پاسخ ----
       +'<textarea data-rep="'+esc(t.id)+'" rows="3" placeholder="پاسخ خود را بنویس…" style="margin-top:9px"></textarea>'
       +'<div class="row tight" style="margin-bottom:8px">'
@@ -988,6 +1031,9 @@ function renderTickets(){
       +'</div></div>';
   }).join('');
 
+  $('#tkList').querySelectorAll('[data-cp]').forEach(b=>b.onclick=()=>{
+    navigator.clipboard.writeText(b.dataset.cp).then(()=>toast('کپی شد ✔'),()=>toast('کپی نشد',true));
+  });
   $('#tkList').querySelectorAll('[data-send]').forEach(b=>b.onclick=()=>tkReply(b.dataset.send));
   $('#tkList').querySelectorAll('[data-read]').forEach(b=>b.onclick=()=>tkStatus(b.dataset.read,'read'));
   $('#tkList').querySelectorAll('[data-user]').forEach(b=>b.onclick=()=>pickUser(b.dataset.user));
