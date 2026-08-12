@@ -179,6 +179,13 @@ for ep in tickets/11-000000 stats control audit; do
     *)             echo "    OK       /$ep" ;;
   esac
 done
+# newest features report themselves in /health -> feat[]
+for f in auth pay; do
+  case "$L" in
+    *"\"$f\""*) echo "    OK       $f" ;;
+    *)          echo "    MISSING  $f   <-- server.js is still old" ;;
+  esac
+done
 
 echo ""
 echo "========================================"
