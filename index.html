@@ -309,6 +309,12 @@ body.is-vip .vip-emblem .ve-crown{filter:drop-shadow(0 2px 6px rgba(127,224,180,
 #ticket select:focus, #ticket textarea:focus{border-color:var(--gold);}
 #ticket textarea{resize:vertical; min-height:120px; line-height:1.9;}
 #ticket .mission-row{align-items:flex-start;}
+#ticket .tk-bubble{border-radius:12px; padding:9px 11px; margin-bottom:7px; font-size:13.5px; line-height:1.9;}
+#ticket .tk-bubble b{display:block; font-size:11.5px; margin-bottom:3px; opacity:.75;}
+#ticket .tk-me{background:rgba(255,255,255,.05); border:1px solid #2c3d72;}
+#ticket .tk-admin{background:rgba(230,182,76,.10); border:1px solid rgba(230,182,76,.45); color:#ffe9ad;}
+#ticket .tk-reply{margin-top:8px; padding-top:8px; border-top:1px solid #2c3d72;}
+#ticket .tk-reply textarea{min-height:60px;}
 #ticket .mission-row .mi{width:100%;}
 .set-item input[type=range]{width:100%; accent-color:var(--gold);}
 .set-item input[type=file]{width:100%; color:#c6d2f2; font-family:inherit; font-size:13px;}
@@ -1465,26 +1471,16 @@ body.table-persian #game{background:radial-gradient(1200px 760px at 50% -8%,#5a1
     <div class="card-box" style="text-align:center">
       <div style="font-size:48px;margin-bottom:6px">📮</div>
       <h3>پیام مستقیم به پشتیبانی</h3>
-      <p class="hint">سریع‌ترین راه: همین‌جا بنویس، بدون نیاز به ایمیل.
-        پاسخ را در صندوق پیام خودت می‌بینی.</p>
+      <p class="hint">هر مشکل، شکایت یا پیشنهادی داری همین‌جا بنویس.
+        پاسخ ما را در صندوق پیام خودت می‌بینی و می‌توانی همان‌جا جواب بدهی.</p>
       <button class="btn primary" id="btnTicket" style="width:100%">📮 ثبت شکایت یا پیام</button>
     </div>
 
-    <div class="card-box" style="text-align:center">
-      <div style="font-size:40px;margin-bottom:6px">✉️</div>
-      <h3>یا از راه ایمیل</h3>
-      <p class="hint">اگر ترجیح می‌دهی ایمیل بزنی، از این گزینه‌ها استفاده کن.</p>
-      <div class="invite-code" id="contactMail" style="font-size:17px;letter-spacing:0">smr2.ff@gmail.com</div>
-      <button class="btn primary" id="btnCopyMail" style="width:100%">کپی ایمیل</button>
-      <button class="btn" id="btnOpenMail" style="width:100%">ارسال ایمیل</button>
-      <button class="btn" id="btnCopyMsg" style="width:100%">کپی متن پیام</button>
-      <div class="hint" style="margin-top:6px">اگر برنامهٔ ایمیل باز نشد، «کپی متن پیام» را بزن و در ایمیل خودت بچسبان.</div>
-    </div>
     <div class="card-box">
-      <h3>هنگام پیام‌دادن این‌ها را بنویس</h3>
-      <div class="srow"><span>شناسهٔ کاربری شما</span><span id="contactUid">—</span></div>
+      <h3>اطلاعات حساب شما</h3>
+      <div class="srow"><span>شناسهٔ کاربری</span><span id="contactUid">—</span></div>
       <div class="srow"><span>نسخهٔ بازی</span><span>۱.۰</span></div>
-      <div class="hint" style="margin-top:8px">با داشتن شناسه، سریع‌تر می‌توانیم کمکت کنیم.</div>
+      <div class="hint" style="margin-top:8px">این اطلاعات خودکار همراه پیامت فرستاده می‌شود.</div>
     </div>
     <button class="btn" id="btnAbout" style="width:100%">ℹ️ دربارهٔ برنامه</button>
   </div>
@@ -1495,7 +1491,7 @@ body.table-persian #game{background:radial-gradient(1200px 760px at 50% -8%,#5a1
   <div class="topbar"><button class="back" id="btnTicketBack">→ بازگشت</button><h2>📮 پیام به پشتیبانی</h2></div>
   <div class="scroll">
     <div class="card-box">
-      <p class="hint" style="margin-top:0">پیامت مستقیم به دست ما می‌رسد — نیازی به ایمیل نیست.
+      <p class="hint" style="margin-top:0">پیامت مستقیم به دست ما می‌رسد.
         معمولاً کمتر از ۲۴ ساعت جواب می‌دهیم و پاسخ را در <b>صندوق پیام</b> می‌بینی.</p>
       <label>موضوع</label>
       <select id="tkKind">
@@ -1830,38 +1826,11 @@ $('#btnGuide').onclick=()=>show('guide');
   }; }
 /* ارتباط با ما */
 {
-  const CONTACT_MAIL='smr2.ff@gmail.com';
   const _cb=document.getElementById('btnContact');
   if(_cb)_cb.onclick=()=>{
     const u=$('#contactUid'); if(u)u.textContent=fa(ensureUserId());
     show('contact');
   };
-  const _cp=document.getElementById('btnCopyMail');
-  if(_cp)_cp.onclick=()=>{ copyText(CONTACT_MAIL); toast('ایمیل کپی شد ✔'); };
-  function contactBody(){
-    return 'سلام،\n\n'
-      +'—————————————\n'
-      +'شناسهٔ کاربری: '+ensureUserId()+'\n'
-      +'نام‌کاربری: '+(SET.profileUsername?('@'+SET.profileUsername):'—')+'\n'
-      +'نام نمایشی: '+(SET.pName||'—')+'\n'
-      +'سطح: '+PROG.level+'  |  جام: '+PROG.trophies+'\n'
-      +'نسخهٔ بازی: ۱.۰\n'
-      +'—————————————\n\n'
-      +'پیام شما:\n';
-  }
-  const _om=document.getElementById('btnOpenMail');
-  if(_om)_om.onclick=()=>{
-    const sub=encodeURIComponent('پاسور ۱۱ — پشتیبانی ('+ensureUserId()+')');
-    const body=encodeURIComponent(contactBody());
-    // در نسخهٔ اندروید، اپ خودش برنامهٔ ایمیل را باز می‌کند
-    if(window.AndroidApp&&window.AndroidApp.sendMail){
-      try{ window.AndroidApp.sendMail(CONTACT_MAIL, decodeURIComponent(sub), contactBody()); return; }catch(e){}
-    }
-    try{ window.location.href='mailto:'+CONTACT_MAIL+'?subject='+sub+'&body='+body; }
-    catch(e){ copyText(CONTACT_MAIL+'\n\n'+contactBody()); toast('ایمیل و متن کپی شد ✔'); }
-  };
-  const _cm=document.getElementById('btnCopyMsg');
-  if(_cm)_cm.onclick=()=>{ copyText(contactBody()); toast('متن پیام کپی شد ✔'); };
 
   /* ---- فرم شکایت/پیام مستقیم ---- */
   const _tk=document.getElementById('btnTicket');
@@ -1895,13 +1864,7 @@ $('#btnGuide').onclick=()=>show('guide');
         // اینترنت یا سرور در دسترس نیست: پیام گم نمی‌شود
         queueTicket(kind,txt);
         out.style.color='#ffe9ad';
-        out.innerHTML='📥 پیامت ذخیره شد و به‌محض برقراری ارتباط خودکار فرستاده می‌شود.'
-          +'<br>اگر عجله داری، همین حالا با ایمیل بفرست:';
-        const b=document.createElement('button');
-        b.className='btn'; b.style.cssText='width:100%;margin-top:8px';
-        b.textContent='✉️ ارسال همین پیام با ایمیل';
-        b.onclick=()=>sendTicketByMail(kind,txt);
-        out.appendChild(b);
+        out.textContent='📥 پیامت ذخیره شد و به‌محض برقراری ارتباط خودکار فرستاده می‌شود.';
         $('#tkText').value=''; $('#tkCount').textContent=fa(0);
         loadMyTickets();
       }
@@ -3302,6 +3265,14 @@ function mpSetStatus(text){
 /* آدرس سرور بازی (سرور ایرانی، بدون TLS تا فیلترینگ اختلال ایجاد نکند).
    داده‌های ردوبدل‌شده حساس نیستند: فقط کد اتصال دو نفره و جدول امتیاز. */
 const FIREBASE_DB_URL='http://94.184.36.13';
+
+/* ⚠️⚠️ هر بار که نسخهٔ تازه در مایکت منتشر می‌کنی، این دو عدد را
+   دقیقاً برابر versionCode و versionName در build.gradle.kts بگذار.
+   اگر یادت برود، بازی فکر می‌کند نسخهٔ قدیمی است و پیام به‌روزرسانی
+   را به کاربرانِ همین نسخه هم نشان می‌دهد. */
+const APP_VERSION_CODE = 2;
+const APP_VERSION_NAME = '1.0';
+const MARKET_PACKAGE   = 'com.smahdi2razavi.pasur11';
 function firebaseConfigured(){
   return !!FIREBASE_DB_URL&&!FIREBASE_DB_URL.startsWith('YOUR_')&&FIREBASE_DB_URL.startsWith('http');
 }
@@ -3332,7 +3303,7 @@ function ticketPayload(kind,text){
     name:SET.pName||'', user:SET.profileUsername||'',
     level:PROG.level||1, coins:PROG.coins||0, trophies:PROG.trophies||0,
     vip:!!PROG.vip, games:PROG.games||0, wins:PROG.wins||0,
-    ver:'۱.۰', dev:(navigator.userAgent||'').slice(0,120)
+    ver:APP_VERSION_NAME+' ('+APP_VERSION_CODE+')', dev:(navigator.userAgent||'').slice(0,120)
   };
 }
 async function sendTicket(kind,text){
@@ -3402,33 +3373,39 @@ async function loadMyTickets(){
     const st=t.status==='done'?'<span style="color:#9dffc0">✅ پاسخ داده شد</span>'
       :(t.status==='read'?'<span style="color:#ffe9ad">👁 در حال بررسی</span>'
         :'<span class="hint">📨 ثبت شد</span>');
-    out+='<div class="mission-row"><div class="mi">'
+    const msgs=Array.isArray(t.msgs)&&t.msgs.length?t.msgs:[{who:'user',text:t.text,ts:t.ts}];
+    out+='<div class="card-box" style="margin-bottom:10px">'
       +'<div class="mt">'+esc(TICKET_KINDS[t.kind]||'پیام')+' — کد '+fa(t.id)+'</div>'
-      +'<div class="hint">'+st+' • '+esc(faDate(t.ts))+'</div>'
-      +'<div class="hint">'+esc(String(t.text).slice(0,110))+'</div>'
-      +(t.reply?('<div class="hint" style="color:#ffe9ad;margin-top:4px">پاسخ: '+esc(t.reply)+'</div>'):'')
+      +'<div class="hint" style="margin-bottom:8px">'+st+' • '+esc(faDate(t.ts))+'</div>'
+      +msgs.map(m=>'<div class="tk-bubble '+(m.who==='admin'?'tk-admin':'tk-me')+'">'
+          +'<b>'+(m.who==='admin'?'پشتیبانی':'شما')+'</b>'
+          +'<div>'+esc(m.text)+'</div>'
+          +(m.coins?'<div class="hint" style="color:#ffe9ad">🪙 '+fa(m.coins)+' سکه هدیه</div>':'')
+          +'</div>').join('')
+      +'<div class="tk-reply">'
+        +'<textarea data-tkid="'+esc(t.id)+'" rows="2" placeholder="پاسخ خودت را بنویس…"></textarea>'
+        +'<button class="btn" data-tksend="'+esc(t.id)+'" style="width:100%;margin-top:6px">↩️ ارسال پاسخ</button>'
       +'</div></div>';
   });
   box.innerHTML=out||'<div class="hint">هنوز پیامی نفرستاده‌ای.</div>';
+  box.querySelectorAll('[data-tksend]').forEach(b=>b.onclick=()=>replyToTicket(b.dataset.tksend,b));
 }
-/* راه دوم: اگر سرور در دسترس نبود، همان پیام با ایمیل فرستاده شود */
-function sendTicketByMail(kind,text){
-  const MAIL='smr2.ff@gmail.com';
-  const subject='پاسور ۱۱ — '+(TICKET_KINDS[kind]||'پشتیبانی')+' ('+ensureUserId()+')';
-  const body='موضوع: '+(TICKET_KINDS[kind]||'—')+'\n'
-    +'—————————————\n'
-    +'شناسهٔ کاربری: '+ensureUserId()+'\n'
-    +'نام‌کاربری: '+(SET.profileUsername?('@'+SET.profileUsername):'—')+'\n'
-    +'نام نمایشی: '+(SET.pName||'—')+'\n'
-    +'سطح: '+PROG.level+' | سکه: '+PROG.coins+' | جام: '+PROG.trophies+'\n'
-    +'VIP: '+(PROG.vip?'بله':'خیر')+' | نسخهٔ بازی: ۱.۰\n'
-    +'—————————————\n\n'+text;
-  if(window.AndroidApp&&window.AndroidApp.sendMail){
-    try{ window.AndroidApp.sendMail(MAIL,subject,body); return; }catch(e){}
-  }
-  try{ window.location.href='mailto:'+MAIL+'?subject='+encodeURIComponent(subject)
-    +'&body='+encodeURIComponent(body); }
-  catch(e){ copyText(MAIL+'\n\n'+body); toast('ایمیل و متن کپی شد ✔'); }
+/* پاسخ کاربر روی یک تیکت باز */
+async function replyToTicket(id,btn){
+  const ta=document.querySelector('[data-tkid="'+id+'"]');
+  const txt=(ta&&ta.value||'').trim();
+  if(txt.length<3){ toast('متن پاسخ خیلی کوتاه است',true); return; }
+  if(btn)btn.disabled=true;
+  try{
+    const r=await fetch(FIREBASE_DB_URL+'/tickets/'+encodeURIComponent(ensureUserId())
+      +'/'+encodeURIComponent(id)+'.json',{method:'PUT',body:JSON.stringify({text:txt})});
+    const j=await r.json();
+    if(j&&j.error){
+      toast(j.error==='wait'?'کمی صبر کن و دوباره بفرست'
+        :(j.error==='too many messages'?'این گفتگو خیلی طولانی شده':'ارسال نشد'),true);
+    } else { toast('پاسخت فرستاده شد ✔'); loadMyTickets(); }
+  }catch(e){ toast('اینترنت وصل نیست',true); }
+  if(btn)btn.disabled=false;
 }
 function faDate(ts){
   try{ return new Date(ts).toLocaleDateString('fa-IR'); }catch(e){ return ''; }
@@ -3493,6 +3470,45 @@ async function checkBroadcast(){
 /* ----- شمارندهٔ قیف -----
    هر مرحله فقط یک‌بار در عمر این نصب فرستاده می‌شود؛ هیچ اطلاعات شخصی نمی‌رود،
    فقط یک شمارنده روی سرور بالا می‌رود تا بدانیم کاربران کجا بازی را رها می‌کنند. */
+/* ---------- اجبار به‌روزرسانی ----------
+   مدیر در پنل تعیین می‌کند از کدام نسخه به پایین، ادامهٔ بازی ممنوع است. */
+let updateShown=false;
+function openMarketPage(){
+  const pkg=MARKET_PACKAGE;
+  // در اپ اندرویدی، پل بومی صفحهٔ مایکت را باز می‌کند
+  if(window.AndroidApp&&window.AndroidApp.openMarket){
+    try{ window.AndroidApp.openMarket(pkg); return; }catch(e){}
+  }
+  try{ window.location.href='myket://details?id='+pkg; }
+  catch(e){ try{ window.open('https://myket.ir/app/'+pkg,'_blank'); }catch(e2){} }
+}
+function showUpdateModal(info,force){
+  if(updateShown&&force)return;
+  updateShown=true;
+  const title=esc(info.title||'نسخهٔ تازه منتشر شد');
+  const text =esc(info.text ||'برای ادامهٔ بازی، لطفاً نسخهٔ جدید را از مایکت نصب کن.');
+  $('#modalBox').innerHTML='<h3>⬆️ '+title+'</h3>'
+    +'<p style="text-align:center">'+text+'</p>'
+    +'<button class="btn primary" id="updGo" style="width:100%">📥 دریافت نسخهٔ جدید</button>'
+    +(force?'':'<button class="btn" id="updLater" style="width:100%">بعداً</button>');
+  $('#modalWrap').classList.add('show');
+  const g=$('#updGo'); if(g)g.onclick=openMarketPage;
+  const l=$('#updLater');
+  if(l)l.onclick=()=>{ $('#modalWrap').classList.remove('show'); updateShown=false; };
+}
+async function checkAppUpdate(){
+  try{
+    if(!firebaseConfigured())return;
+    const r=await fetch(FIREBASE_DB_URL+'/appupdate.json');
+    const u=await r.json();
+    if(!u)return;
+    const min=Number(u.min)||0, latest=Number(u.latest)||0;
+    if(APP_VERSION_CODE<min){ showUpdateModal(u,true); return; }   // اجباری
+    if(APP_VERSION_CODE<latest&&!updateShown){                      // اختیاری
+      showUpdateModal(u,false);
+    }
+  }catch(e){}
+}
 function metric(name){
   try{
     if(!firebaseConfigured())return;
@@ -3504,6 +3520,7 @@ function metric(name){
 }
 async function syncUserWithServer(){
   checkVipExpiry();
+  try{ checkAppUpdate(); }catch(e){}
   try{ flushTicketQueue(); }catch(e){}
   if(!firebaseConfigured())return;
   const uid=encodeURIComponent(ensureUserId());
@@ -5013,6 +5030,7 @@ function init(){
   setTimeout(()=>{ try{ checkBroadcast(); }catch(e){} }, 4200);
   // بررسی دوره‌ای تا هدیه‌ها بدون بستن بازی هم برسند
   try{ metric('install'); }catch(e){}
+  try{ checkAppUpdate(); }catch(e){}
   setInterval(()=>{ try{ if(!G||!$('#game').classList.contains('active'))syncUserWithServer(); }catch(e){} }, 45000);
   setInterval(()=>{ try{ checkBroadcast(); }catch(e){} }, 180000);
   document.addEventListener('visibilitychange',()=>{

@@ -142,21 +142,29 @@ class MainActivity : ComponentActivity() {
             @android.webkit.JavascriptInterface
             fun exit() { runOnUiThread { finish() } }
 
-            // باز کردن برنامهٔ ایمیل از داخل بازی (صفحهٔ ارتباط با ما)
+            // باز کردن صفحهٔ برنامه در مایکت (برای به‌روزرسانی اجباری)
             @android.webkit.JavascriptInterface
-            fun sendMail(to: String, subject: String, body: String) {
+            fun openMarket(pkg: String) {
                 runOnUiThread {
+                    val id = pkg.replace("[^A-Za-z0-9._]".toRegex(), "")
                     try {
-                        val i = android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
-                            data = Uri.parse("mailto:$to")
-                            putExtra(android.content.Intent.EXTRA_SUBJECT, subject)
-                            putExtra(android.content.Intent.EXTRA_TEXT, body)
-                        }
-                        startActivity(android.content.Intent.createChooser(i, "ارسال ایمیل"))
+                        // اول خودِ اپ مایکت
+                        startActivity(android.content.Intent(
+                            android.content.Intent.ACTION_VIEW,
+                            Uri.parse("myket://details?id=$id")
+                        ).apply { setPackage("ir.mservices.market") })
                     } catch (e: Exception) {
-                        android.widget.Toast.makeText(
-                            this@MainActivity, "برنامهٔ ایمیلی روی گوشی پیدا نشد", 
-                            android.widget.Toast.LENGTH_LONG).show()
+                        try {
+                            // اگر مایکت نصب نبود، در مرورگر
+                            startActivity(android.content.Intent(
+                                android.content.Intent.ACTION_VIEW,
+                                Uri.parse("https://myket.ir/app/$id")
+                            ))
+                        } catch (e2: Exception) {
+                            android.widget.Toast.makeText(
+                                this@MainActivity, "مایکت روی گوشی پیدا نشد",
+                                android.widget.Toast.LENGTH_LONG).show()
+                        }
                     }
                 }
             }

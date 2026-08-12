@@ -438,6 +438,7 @@ const server = http.createServer(async (req, res) => {
     } catch (e) {}
     rollWeek();
     return sendJSON(res, 200, {
+      appUpdate: DB.appUpdate || null,
       tickets: Object.keys(DB.tickets || {}).length,
       ticketsNew: Object.values(DB.tickets || {}).filter(t => t && t.status === 'new').length,
       metrics: DB.metrics || {},
@@ -494,10 +495,31 @@ const server = http.createServer(async (req, res) => {
         wins: clampInt(body.wins, 1e7),
         ver: String(body.ver || '').slice(0, 16),
         dev: String(body.dev || '').slice(0, 120),
-        banned: !!((DB.control[a] || {}).banned)
+        banned: !!((DB.control[a] || {}).banned),
+        msgs: [{ who: 'user', text, ts: Date.now() }]
       };
       saveDB();
       return sendJSON(res, 200, { ok: true, id });
+    }
+    // پاسخ کاربر روی تیکت باز (گفتگوی دوطرفه)
+    if (method === 'PUT' && a && b && b !== 'reply' && isId(a)) {
+      const t = DB.tickets[b];
+      if (!t || t.uid !== a) return sendJSON(res, 404, { error: 'not found' });
+      const body = await readBody(req) || {};
+      const text = String(body.text || '').slice(0, 1500).trim();
+      if (!text) return sendJSON(res, 400, { error: 'empty' });
+      t.msgs = t.msgs || [{ who: 'user', text: t.text, ts: t.ts }];
+      if (t.msgs.length >= 30) return sendJSON(res, 429, { error: 'too many messages' });
+      // اگر آخرین پیام از خودِ کاربر باشد یعنی دارد پشت‌سرهم می‌نویسد → کمی صبر
+      // ولی اگر پشتیبانی جواب داده، بتواند فوراً پاسخ بدهد
+      const last = t.msgs[t.msgs.length - 1];
+      if (last && last.who === 'user' && Date.now() - (last.ts || 0) < 20000)
+        return sendJSON(res, 429, { error: 'wait' });
+      t.msgs.push({ who: 'user', text, ts: Date.now() });
+      t.status = 'new';                       // دوباره نیاز به رسیدگی دارد
+      t.lastUser = Date.now();
+      saveDB();
+      return sendJSON(res, 200, { ok: true });
     }
     // پیگیری تیکت‌های خودِ کاربر (فقط تیکت‌های همان شناسه)
     if (method === 'GET' && a === 'mine' && b) {
@@ -505,7 +527,8 @@ const server = http.createServer(async (req, res) => {
       const mine = Object.values(DB.tickets).filter(t => t && t.uid === b)
         .sort((x, y) => y.ts - x.ts).slice(0, 20)
         .map(t => ({ id: t.id, ts: t.ts, kind: t.kind, text: t.text,
-                     status: t.status, reply: t.reply || '', replyTs: t.replyTs || 0 }));
+                     status: t.status, reply: t.reply || '', replyTs: t.replyTs || 0,
+                     msgs: t.msgs || [{ who: 'user', text: t.text, ts: t.ts }] }));
       return sendJSON(res, 200, mine);
     }
     // فهرست کامل برای پنل
@@ -520,14 +543,24 @@ const server = http.createServer(async (req, res) => {
       if (!t) return sendJSON(res, 404, { error: 'not found' });
       const body = await readBody(req) || {};
       const reply = String(body.reply || '').slice(0, 1500).trim();
+      const gift  = clampInt(body.coins, 1000000);
       if (reply) {
-        t.reply = reply; t.replyTs = Date.now(); t.status = 'done';
+        t.reply = reply; t.replyTs = Date.now();
+        t.status = body.keepOpen ? 'read' : 'done';
+        t.msgs = t.msgs || [{ who: 'user', text: t.text, ts: t.ts }];
+        t.msgs.push({ who: 'admin', text: reply, ts: Date.now(), coins: gift || 0 });
         // پاسخ در صندوق پستی بازیکن نشان داده می‌شود
         DB.control[t.uid] = DB.control[t.uid] || {};
         DB.control[t.uid].msg = reply;
       }
+      // هدیهٔ سکه همراه پاسخ (برای جبران)
+      if (gift > 0) {
+        DB.control[t.uid] = DB.control[t.uid] || {};
+        DB.control[t.uid].coinGrant = (Number(DB.control[t.uid].coinGrant) || 0) + gift;
+        t.gift = (Number(t.gift) || 0) + gift;
+      }
       if (body.status) t.status = String(body.status).slice(0, 10);
-      audit(req, 'ticket:reply', t.uid, reply.slice(0, 80));
+      audit(req, 'ticket:reply', t.uid, reply.slice(0, 80) + (gift ? (' +' + gift + ' سکه') : ''));
       saveDB(); return sendJSON(res, 200, { ok: true });
     }
     if (method === 'DELETE' && a) {
@@ -535,6 +568,25 @@ const server = http.createServer(async (req, res) => {
       delete DB.tickets[a];
       audit(req, 'ticket:delete', a, '');
       saveDB(); return sendJSON(res, 200, { ok: true });
+    }
+  }
+
+  /* ===== ۸د) اجبار به‌روزرسانی نسخهٔ بازی ===== */
+  if (root === 'appupdate') {
+    if (method === 'GET') return sendJSON(res, 200, DB.appUpdate || null);
+    if (method === 'PUT') {
+      if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
+      const body = await readBody(req);
+      DB.appUpdate = body ? {
+        min:    clampInt(body.min, 100000),      // پایین‌تر از این = اجباری
+        latest: clampInt(body.latest, 100000),   // آخرین نسخه (پیشنهاد اختیاری)
+        title:  String(body.title || '').slice(0, 60),
+        text:   String(body.text  || '').slice(0, 400),
+        url:    String(body.url   || '').slice(0, 200),
+        ts: Date.now()
+      } : null;
+      audit(req, 'appupdate', '', DB.appUpdate ? ('min=' + DB.appUpdate.min) : 'حذف');
+      saveDB(); return sendJSON(res, 200, DB.appUpdate);
     }
   }
 
