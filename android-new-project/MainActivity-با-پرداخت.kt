@@ -73,19 +73,24 @@ class MainActivity : ComponentActivity() {
         webView.setBackgroundColor(0xFF0A0A0C.toInt())
 
         // اندروید ۱۵ به بعد، پنجره به‌طور پیش‌فرض تا زیر نوار وضعیت و نوار
-        // ناوبری کشیده می‌شود (edge-to-edge). بدون این کد، کارت‌های پایین
-        // بازی زیر نوار ناوبری می‌روند و بریده دیده می‌شوند.
-        // اینجا به‌اندازهٔ نوارهای سیستم (و بریدگی دوربین) فاصله می‌گذاریم،
-        // و وقتی صفحه‌کلید باز شود، پایین صفحه به‌اندازهٔ آن جمع می‌شود.
-        ViewCompat.setOnApplyWindowInsetsListener(webView) { v, insets ->
+        // ناوبری کشیده می‌شود (edge-to-edge) و محتوا زیر ساعت و باتری می‌رود.
+        // ⚠️ عمداً به وب‌ویو padding نمی‌دهیم؛ اگر بدهیم صفحه کوچک می‌شود،
+        // نوارهای خالی می‌سازد و نسبت تصویر عوض می‌شود.
+        // به‌جایش وب‌ویو تمام‌صفحه می‌ماند و فقط اندازهٔ نوارهای سیستم را به
+        // بازی می‌دهیم تا خودش محتوا را کمی داخل‌تر بچیند. پس‌زمینهٔ بازی
+        // تا زیر ساعت و نوار ناوبری ادامه پیدا می‌کند و ظاهر یکدست می‌ماند.
+        ViewCompat.setOnApplyWindowInsetsListener(webView) { _, insets ->
             val bars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
             )
             val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
-            v.setPadding(bars.left, bars.top, bars.right, maxOf(bars.bottom, ime.bottom))
-            // به بازی خبر بده که فاصلهٔ نوارها اینجا اعمال شده تا خودش دوباره
-            // فاصله نگذارد (حالت پشتیبانِ داخل index.html)
-            markInsetsHandled()
+            val d = resources.displayMetrics.density.coerceAtLeast(1f)
+            sendInsets(
+                (bars.top / d).toInt(),
+                (maxOf(bars.bottom, ime.bottom) / d).toInt(),
+                (bars.left / d).toInt(),
+                (bars.right / d).toInt()
+            )
             insets
         }
         // آیکن‌های نوار وضعیت روشن باشند تا روی پس‌زمینهٔ تیرهٔ بازی دیده شوند
@@ -249,8 +254,24 @@ class MainActivity : ComponentActivity() {
         } catch (e: Exception) { /* اگر نشد، خرید عادی همچنان کار می‌کند */ }
     }
 
+    /** اندازهٔ نوارهای سیستم را به‌صورت متغیر CSS به بازی می‌دهد */
+    private var insTop = 0
+    private var insBottom = 0
+    private var insLeft = 0
+    private var insRight = 0
+
+    private fun sendInsets(top: Int, bottom: Int, left: Int, right: Int) {
+        insTop = top; insBottom = bottom; insLeft = left; insRight = right
+        markInsetsHandled()
+    }
+
     private fun markInsetsHandled() {
-        try { webView.evaluateJavascript("window.__insetsOK=1;", null) } catch (e: Exception) {}
+        val js = "document.documentElement.style.setProperty('--sat','" + insTop + "px');" +
+                 "document.documentElement.style.setProperty('--sab','" + insBottom + "px');" +
+                 "document.documentElement.style.setProperty('--sal','" + insLeft + "px');" +
+                 "document.documentElement.style.setProperty('--sar','" + insRight + "px');" +
+                 "window.__insetsOK=1;"
+        try { webView.evaluateJavascript(js, null) } catch (e: Exception) {}
     }
 
     private fun jsArg(s: String) = s.replace("\\", "").replace("'", "")

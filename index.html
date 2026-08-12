@@ -26,6 +26,14 @@
   --crimson:#b3273b;
   /* ارتفاع واقعی قابل‌دیدن (در اپ اندروید با JS اندازه‌گیری می‌شود) */
   --vhpx:var(--tg-vh, var(--app-vh, 100dvh));
+  /* فاصلهٔ نوارهای سیستم (ساعت/باتری بالا و نوار ناوبری پایین).
+     اپ اندروید مقدار دقیق را در --sat و --sab می‌گذارد؛ اگر نگذاشت،
+     از env مرورگر استفاده می‌شود. وب‌ویو تمام‌صفحه می‌ماند و نسبت
+     تصویر عوض نمی‌شود — فقط محتوا کمی داخل‌تر می‌آید. */
+  --sa-t:max(env(safe-area-inset-top,0px),    var(--sat, 0px));
+  --sa-b:max(env(safe-area-inset-bottom,0px), var(--sab, 0px));
+  --sa-l:max(env(safe-area-inset-left,0px),   var(--sal, 0px));
+  --sa-r:max(env(safe-area-inset-right,0px),  var(--sar, 0px));
   /* عرض کارت دست = بزرگ‌ترین اندازهٔ ممکن که هر ۴ کارت داخل کادر جا شوند
      و از ارتفاع صفحه هم بیرون نزنند */
   --cw:min(clamp(75px, 23.7vw, 123px), calc((100vw - 64px)/4), max(40px, calc((var(--vhpx) - 130px)/3.4)));
@@ -49,23 +57,24 @@ body{
 /* ارتفاع از روی اندازهٔ واقعیِ قابل‌دیدن گرفته می‌شود، نه inset:0؛
    وگرنه در وب‌ویو اندروید پایین صفحه زیر نوار ناوبری می‌رود و کارت‌ها بریده می‌شوند */
 .screen{position:fixed; left:0; right:0; top:0; height:var(--vhpx);
-  display:none; flex-direction:column; overflow:hidden;}
+  display:none; flex-direction:column; overflow:hidden;
+  padding-left:var(--sa-l); padding-right:var(--sa-r);}
 .screen.active{display:flex; animation:screenIn .26s ease-out;}
 @keyframes screenIn{from{opacity:0; transform:translateY(8px);}}
 .scroll{overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px 18px 90px;}
 
 /* ===================== منوی اصلی ===================== */
 #menu{align-items:stretch; justify-content:space-between; gap:0; text-align:center; overflow:hidden;
-  padding:max(10px, env(safe-area-inset-top,0px)) 14px max(10px, env(safe-area-inset-bottom,0px));}
+  padding:max(10px, var(--sa-t)) 14px max(10px, var(--sa-b));}
 /* اگر نسخهٔ اپ نوارهای سیستم را جبران نکند (اندروید ۱۵ به بعد، صفحهٔ لبه‌به‌لبه)،
    خودمان فاصله می‌گذاریم تا نوار بالای بازی زیر ساعت و باتری نرود. */
-body.no-insets #menu{padding-top:calc(max(10px, env(safe-area-inset-top,0px)) + 26px);}
-body.no-insets #menu{padding-bottom:calc(max(10px, env(safe-area-inset-bottom,0px)) + 14px);}
-body.no-insets .hud{padding-top:calc(env(safe-area-inset-top,0px) + 36px);}
-body.no-insets .gamebtns{top:calc(env(safe-area-inset-top,0px) + 88px);}
-body.no-insets .topbar{padding-top:calc(env(safe-area-inset-top,0px) + 40px);}
-body.no-insets #handRow{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 34px);}
-body.no-insets .dock{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 20px);}
+body.no-insets #menu{padding-top:calc(max(10px, var(--sa-t)) + 26px);}
+body.no-insets #menu{padding-bottom:calc(max(10px, var(--sa-b)) + 14px);}
+body.no-insets .hud{padding-top:calc(var(--sa-t) + 36px);}
+body.no-insets .gamebtns{top:calc(var(--sa-t) + 88px);}
+body.no-insets .topbar{padding-top:calc(var(--sa-t) + 40px);}
+body.no-insets #handRow{padding-bottom:calc(var(--sa-b) + 34px);}
+body.no-insets .dock{padding-bottom:calc(var(--sa-b) + 20px);}
 .menu-fit{display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
   flex:1 1 auto; min-height:0; gap:clamp(10px,2.5vh,22px); width:100%;}
 
@@ -283,7 +292,7 @@ body.is-vip .vip-emblem .ve-crown{filter:drop-shadow(0 2px 6px rgba(127,224,180,
 
 /* ===================== صفحه‌های متنی ===================== */
 .topbar{
-  display:flex; align-items:center; gap:12px; padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 14px;
+  display:flex; align-items:center; gap:12px; padding:calc(var(--sa-t) + 14px) 16px 14px;
   background:rgba(9,14,30,.65); backdrop-filter:blur(6px); border-bottom:1px solid #2a3a6a;
   flex:0 0 auto;
 }
@@ -385,7 +394,7 @@ body.is-vip .vip-emblem .ve-crown{filter:drop-shadow(0 2px 6px rgba(127,224,180,
   background:radial-gradient(closest-side, rgba(230,182,76,.09), transparent 72%);}
 .hud{
   flex:0 0 auto; display:flex; align-items:center; justify-content:space-between;
-  padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 6px; gap:8px; z-index:5;
+  padding:calc(var(--sa-t) + 10px) 16px 6px; gap:8px; z-index:5;
 }
 .who{display:flex; flex-direction:column; align-items:center; gap:2px; min-width:86px;}
 .who .nm{font-size:13px; font-weight:800; color:var(--gold-soft); max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
@@ -399,14 +408,14 @@ body.is-vip .vip-emblem .ve-crown{filter:drop-shadow(0 2px 6px rgba(127,224,180,
 .scorebox .sc{font-size:19px; font-weight:800; color:#fff; letter-spacing:1px;}
 .scorebox .tg{font-size:11px; color:#bcd7cd;}
 /* شمارندهٔ کارت‌ها: نزدیک کاربر (پایین صفحه) تا سمت حریف خلوت بماند */
-.deckinfo{position:absolute; bottom:calc(env(safe-area-inset-bottom,0px) + var(--ch) + 26px); left:14px; z-index:4;
+.deckinfo{position:absolute; bottom:calc(var(--sa-b) + var(--ch) + 26px); left:14px; z-index:4;
   display:flex; align-items:center; gap:7px; pointer-events:none; opacity:.92;
   font-size:12px; color:#cfe8dd; background:rgba(0,0,0,.32); border:1px solid rgba(230,182,76,.3); border-radius:12px; padding:4px 10px;}
 .deckpile{position:relative; width:20px; height:28px; flex:0 0 auto;}
 .deckpile i{position:absolute; inset:0; border-radius:4px; background:linear-gradient(160deg,#22345f,#152246);
   border:1px solid rgba(230,182,76,.5);}
 .deckpile i:nth-child(1){transform:translate(-3px,-2px);} .deckpile i:nth-child(2){transform:translate(-1.5px,-1px);}
-.gamebtns{position:absolute; top:calc(env(safe-area-inset-top,0px) + 62px); right:16px; z-index:6; display:flex; gap:8px;}
+.gamebtns{position:absolute; top:calc(var(--sa-t) + 62px); right:16px; z-index:6; display:flex; gap:8px;}
 .gbtn{
   width:34px; height:34px; border-radius:11px; border:1px solid rgba(230,182,76,.4);
   background:rgba(0,0,0,.35); color:var(--gold-soft); font-size:17px; cursor:pointer;
@@ -415,7 +424,7 @@ body.is-vip .vip-emblem .ve-crown{filter:drop-shadow(0 2px 6px rgba(127,224,180,
 }
 .gbtn:active{transform:scale(.9);}
 .gbtn::after{content:""; position:absolute; inset:-6px;} /* ناحیهٔ لمس ≥44px */
-#surIndicator{position:absolute; bottom:calc(env(safe-area-inset-bottom,0px) + var(--ch) + 26px); right:14px; z-index:4; display:none;
+#surIndicator{position:absolute; bottom:calc(var(--sa-b) + var(--ch) + 26px); right:14px; z-index:4; display:none;
   font-size:11.5px; color:#ffe9ad; background:rgba(0,0,0,.35); border:1px solid var(--gold); border-radius:12px; padding:3px 10px; pointer-events:none;}
 .row{flex:0 0 auto; display:flex; justify-content:center; gap:6px; padding:4px 8px; min-height:calc(var(--ch)*.66); z-index:2;}
 /* کارت‌های حریف از سمت راست تا زیر دکمه‌های منو نروند */
@@ -433,7 +442,7 @@ body.is-vip .vip-emblem .ve-crown{filter:drop-shadow(0 2px 6px rgba(127,224,180,
 .table-empty-hint{width:100%; text-align:center; color:rgba(248,242,226,.45); font-size:14px;}
 #selHint{flex:0 0 auto; text-align:center; font-size:11.5px; color:#ffe9ad; min-height:18px; padding:0 20px; z-index:2; line-height:1.6;}
 /* ۲۰ پیکسل فاصله تا کف، تا کارت‌ها روی قاب طلایی ننشینند */
-#handRow{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 20px); min-height:calc(var(--ch) + 22px); align-items:flex-end;}
+#handRow{padding-bottom:calc(var(--sa-b) + 20px); min-height:calc(var(--ch) + 22px); align-items:flex-end;}
 #handRow .card{margin:0 2px; transition:transform .15s;}
 #handRow .card.playable:active{transform:translateY(-14px);}
 .card.selected{box-shadow:0 0 0 3px var(--gold), 0 0 14px 1px rgba(230,182,76,.65) !important; transform:translateY(-8px);}
@@ -587,7 +596,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 .pl-vip{font-size:11px;}
 /* نوار «رتبهٔ شما» چسبیده به پایین */
 .me-rank{position:absolute; left:0; right:0; bottom:0; z-index:6;
-  padding:10px 14px calc(env(safe-area-inset-bottom,0px) + 12px);
+  padding:10px 14px calc(var(--sa-b) + 12px);
   background:linear-gradient(180deg,rgba(16,26,51,.7),rgba(10,16,34,.97)); backdrop-filter:blur(6px);
   border-top:1px solid var(--gold);}
 .req-dot{display:none; width:8px; height:8px; border-radius:50%; background:#e0333f;
@@ -3299,7 +3308,7 @@ const APP_VERSION_CODE = 2;
 const APP_VERSION_NAME = '1.0';
 /* شناسهٔ فایل بازی — با هر تغییر در این فایل عوض می‌شود.
    در «دربارهٔ برنامه» نشان داده می‌شود تا بدانی کدام نسخه داخل APK است. */
-const GAME_BUILD = 'B7';
+const GAME_BUILD = 'B8';
 const MARKET_PACKAGE   = 'com.smahdi2razavi.pasur11';
 function firebaseConfigured(){
   return !!FIREBASE_DB_URL&&!FIREBASE_DB_URL.startsWith('YOUR_')&&FIREBASE_DB_URL.startsWith('http');
