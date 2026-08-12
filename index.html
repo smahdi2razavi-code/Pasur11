@@ -1082,7 +1082,10 @@ body.table-persian #game{background:radial-gradient(1200px 760px at 50% -8%,#5a1
       <p>پاسور ۱۱ بدون تبلیغ است و بازی تک‌نفره کاملاً <span class="tag">آفلاین</span> کار می‌کند. حریف شما یک هوش مصنوعی با پنج سطح مهارت است؛ از یک تازه‌کار مهربان تا استادی که تقریباً شکست‌ناپذیر است — یا یک دوست واقعی، با اینترنت خودتان از هر جای ایران!</p>
       <p>پیشرفت بازی به‌صورت خودکار ذخیره می‌شود؛ هر وقت خارج شدید، از همان‌جا ادامه دهید. از تنظیمات می‌توانید صدا، موزیک، لرزش و انیمیشن را مدیریت کنید و عکس کارت‌های دلخواهتان را در پوشهٔ cards قرار دهید تا خودکار نمایش داده شوند.</p>
       <p style="text-align:center; margin-top:16px; font-size:16px; font-weight:800; color:var(--gold-soft)">ساخته شده توسط تیم { SMRx }</p>
-      <p style="text-align:center; color:#96a5cf; margin-top:4px">نسخهٔ ۲٫۱ — با ❤ برای عاشقان پاسور</p>
+      <p style="text-align:center; color:#96a5cf; margin-top:4px">با ❤ برای عاشقان پاسور</p>
+      <div class="srow" style="margin-top:12px"><span>نسخهٔ برنامه</span><span id="abVer">—</span></div>
+      <div class="srow"><span>شناسهٔ فایل بازی</span><span id="abBuild" class="tag">—</span></div>
+      <div class="srow"><span>جبران نوارهای سیستم</span><span id="abInsets">—</span></div>
     </div>
       <div class="card-box">
       <h3>اعتبارها</h3>
@@ -1488,7 +1491,7 @@ body.table-persian #game{background:radial-gradient(1200px 760px at 50% -8%,#5a1
     <div class="card-box">
       <h3>اطلاعات حساب شما</h3>
       <div class="srow"><span>شناسهٔ کاربری</span><span id="contactUid">—</span></div>
-      <div class="srow"><span>نسخهٔ بازی</span><span>۱.۰</span></div>
+      <div class="srow"><span>نسخهٔ بازی</span><span id="ctVer">—</span></div>
       <div class="hint" style="margin-top:8px">این اطلاعات خودکار همراه پیامت فرستاده می‌شود.</div>
     </div>
     <button class="btn" id="btnAbout" style="width:100%">ℹ️ دربارهٔ برنامه</button>
@@ -1827,7 +1830,19 @@ function show(id){
 }
 document.querySelectorAll('[data-to]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.to)));
 $('#btnGuide').onclick=()=>show('guide');
-{ const _ab=document.getElementById('btnAbout'); if(_ab)_ab.onclick=()=>show('about'); }
+{ const _ab=document.getElementById('btnAbout'); if(_ab)_ab.onclick=()=>{ fillVersionInfo(); show('about'); }; }
+function fillVersionInfo(){
+  try{
+    const set=(id,v)=>{ const e=document.getElementById(id); if(e)e.textContent=v; };
+    set('abVer', APP_VERSION_NAME+'  (کد '+fa(APP_VERSION_CODE)+')');
+    set('abBuild', GAME_BUILD);
+    set('ctVer', APP_VERSION_NAME+' — '+GAME_BUILD);
+    const inApp=!!window.AndroidApp;
+    set('abInsets', !inApp ? 'مرورگر'
+      : (window.__insetsOK ? '✅ توسط اپ' 
+        : (document.body.classList.contains('no-insets') ? '✅ توسط بازی' : '⚠️ هیچ‌کدام')));
+  }catch(e){}
+}
 { const _ib=document.getElementById('btnInbox');
   if(_ib)_ib.onclick=async()=>{
     show('inbox'); openInbox();
@@ -1838,6 +1853,7 @@ $('#btnGuide').onclick=()=>show('guide');
   const _cb=document.getElementById('btnContact');
   if(_cb)_cb.onclick=()=>{
     const u=$('#contactUid'); if(u)u.textContent=fa(ensureUserId());
+    fillVersionInfo();
     show('contact');
   };
 
@@ -3281,6 +3297,9 @@ const FIREBASE_DB_URL='http://94.184.36.13';
    را به کاربرانِ همین نسخه هم نشان می‌دهد. */
 const APP_VERSION_CODE = 2;
 const APP_VERSION_NAME = '1.0';
+/* شناسهٔ فایل بازی — با هر تغییر در این فایل عوض می‌شود.
+   در «دربارهٔ برنامه» نشان داده می‌شود تا بدانی کدام نسخه داخل APK است. */
+const GAME_BUILD = 'B7';
 const MARKET_PACKAGE   = 'com.smahdi2razavi.pasur11';
 function firebaseConfigured(){
   return !!FIREBASE_DB_URL&&!FIREBASE_DB_URL.startsWith('YOUR_')&&FIREBASE_DB_URL.startsWith('http');
@@ -3312,7 +3331,7 @@ function ticketPayload(kind,text){
     name:SET.pName||'', user:SET.profileUsername||'',
     level:PROG.level||1, coins:PROG.coins||0, trophies:PROG.trophies||0,
     vip:!!PROG.vip, games:PROG.games||0, wins:PROG.wins||0,
-    ver:APP_VERSION_NAME+' ('+APP_VERSION_CODE+')', dev:(navigator.userAgent||'').slice(0,120)
+    ver:APP_VERSION_NAME+' ('+APP_VERSION_CODE+') '+GAME_BUILD, dev:(navigator.userAgent||'').slice(0,120)
   };
 }
 async function sendTicket(kind,text){
