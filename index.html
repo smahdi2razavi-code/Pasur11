@@ -75,7 +75,7 @@ body.no-insets .gamebtns{top:calc(var(--sa-t) + 88px);}
 body.no-insets .topbar{padding-top:calc(var(--sa-t) + 40px);}
 body.no-insets #handRow{padding-bottom:calc(var(--sa-b) + 34px);}
 body.no-insets .dock{padding-bottom:calc(var(--sa-b) + 20px);}
-.menu-fit{display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+.menu-fit{display:flex; flex-direction:column; align-items:center; justify-content:space-evenly; text-align:center;
   flex:1 1 auto; min-height:0; gap:clamp(10px,2.5vh,22px); width:100%;}
 
 /* ---------- نوار بالای صفحه (HUD) ---------- */
@@ -753,6 +753,31 @@ body.table-persian #game{background:radial-gradient(1200px 760px at 50% -8%,#5a1
   .logo h1{font-size:clamp(34px,10vw,52px);}
   .menu-cards{margin-bottom:12px;}
   .ornament{margin:8px auto 12px;}
+}
+/* صفحه‌های کوتاه (گوشی‌های کوچک یا حالت دو-پنجره): همه چیز کمی جمع‌تر شود
+   تا منو از کادر بیرون نزند و دکمهٔ اشتراک روی نوار پایین نیفتد. */
+@media (max-height:620px){
+  .menu-fit{gap:6px;}
+  .logo h1{font-size:clamp(24px,8.4vw,40px);}
+  .logo .sub{font-size:11.5px;}
+  .big-btn{padding:8px 16px; font-size:15px; border-radius:13px;}
+  .big-btn .ba-ic{font-size:20px;}
+  .rb-circle{width:38px; height:38px; font-size:19px;}
+  .rb-tx{font-size:9px;}
+  .dk-circle{width:38px; height:38px; font-size:18px;}
+  .dk-tx{font-size:9.5px;}
+  .dock{padding:6px 4px;}
+  .vip-emblem{padding:7px 12px;}
+  .vip-emblem .ve-crown{font-size:20px;}
+  .topbar-hud{margin-bottom:2px;}
+}
+/* گوشی‌های بلند (۲۰:۹ و بازتر): فضای اضافه به‌جای اینکه فقط بالا و پایین
+   جمع شود، بین همهٔ بخش‌ها پخش می‌شود و دکمه‌ها هم کمی بزرگ‌تر می‌شوند.
+   ⚠️ باید بعد از تعریف .big-btn / .logo h1 / .rb-circle بیاید وگرنه بی‌اثر است. */
+@media (min-height:700px){
+  .big-btn{padding:clamp(12px,2.8vh,26px) 20px;}
+  .logo h1{font-size:clamp(26px, min(12vw, 6.6vh), 64px);}
+  .rb-circle{width:clamp(46px,11vw,62px); height:clamp(46px,11vw,62px);}
 }
 @media (max-height:560px){
   :root{--cw:min(clamp(54px,17vw,83px), calc((100vw - 64px)/4), max(40px, calc((var(--vhpx) - 130px)/3.4)));
@@ -3370,7 +3395,7 @@ const APP_VERSION_CODE = 5;
 const APP_VERSION_NAME = '1.1';
 /* شناسهٔ فایل بازی — با هر تغییر در این فایل عوض می‌شود.
    در «دربارهٔ برنامه» نشان داده می‌شود تا بدانی کدام نسخه داخل APK است. */
-const GAME_BUILD = 'B9';
+const GAME_BUILD = 'B10';
 const MARKET_PACKAGE   = 'com.smahdi2razavi.pasur11';
 function firebaseConfigured(){
   return !!FIREBASE_DB_URL&&!FIREBASE_DB_URL.startsWith('YOUR_')&&FIREBASE_DB_URL.startsWith('http');
