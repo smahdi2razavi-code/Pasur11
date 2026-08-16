@@ -786,6 +786,13 @@ body.table-persian #game{background:radial-gradient(1200px 760px at 50% -8%,#5a1
 @keyframes spGlow{0%,100%{opacity:.55; transform:translate(-50%,-50%) scale(1);}
   50%{opacity:1; transform:translate(-50%,-50%) scale(1.09);}}
 #splash>*{position:relative; z-index:1;}
+.sp-err{display:none; max-width:86vw; margin-top:18px; padding:12px 14px; border-radius:12px;
+  background:rgba(224,51,63,.14); border:1px solid rgba(224,51,63,.6); color:#ffc3ca;
+  font-size:12.5px; line-height:2; text-align:center; direction:rtl;}
+.sp-err b{color:#ff9aa6;}
+.sp-err button{margin-top:6px; font-family:inherit; font-size:13px; font-weight:700;
+  padding:7px 18px; border-radius:10px; border:1px solid var(--gold);
+  background:#1c2a55; color:var(--gold-soft); cursor:pointer;}
 #splash.hide{opacity:0; pointer-events:none;}
 .sp-ring{position:relative; width:min(62vw,270px); height:min(62vw,270px);
   display:flex; align-items:flex-end; justify-content:center;}
@@ -959,7 +966,43 @@ body.table-persian #game{background:radial-gradient(1200px 760px at 50% -8%,#5a1
   <div class="sp-sub">بازی کلاسیک ورق ایرانی</div>
   <div class="sp-bar"><i></i></div>
   <div class="sp-tip" id="spTip"></div>
+  <div class="sp-err" id="spErr"></div>
 </div>
+
+<!-- ⚠️ این اسکریپت عمداً جداست و با دستورهای قدیمیِ جاوااسکریپت نوشته شده،
+     تا حتی اگر اسکریپت اصلی بازی خطا داشته باشد یا وب‌ویو گوشی قدیمی باشد،
+     خودش اجرا شود. کارش این است: اگر بازی بالا نیامد، به‌جای گیر کردن روی
+     صفحهٔ لودینگ، علت را روی صفحه بنویسد. -->
+<script>
+(function(){
+  var shown = false;
+  function say(msg){
+    if(shown) return; shown = true;
+    var e = document.getElementById('spErr');
+    if(!e) return;
+    e.innerHTML = '<b>بازی بالا نیامد</b><br>' + String(msg).replace(/</g,'&lt;')
+      + '<br><br><button id="spSkip">رد کن و ادامه بده</button>';
+    e.style.display = 'block';
+    var b = document.getElementById('spSkip');
+    if(b) b.onclick = function(){
+      var sp = document.getElementById('splash');
+      if(sp && sp.parentNode) sp.parentNode.removeChild(sp);
+    };
+  }
+  window.addEventListener('error', function(ev){
+    var m = ev && ev.message ? ev.message : 'خطای نامشخص';
+    var f = ev && ev.lineno ? (' (خط ' + ev.lineno + ')') : '';
+    say(m + f);
+  });
+  // اگر بعد از ۸ ثانیه هنوز روی صفحهٔ لودینگ مانده‌ایم، یعنی چیزی درست نیست
+  setTimeout(function(){
+    var sp = document.getElementById('splash');
+    if(sp && sp.className.indexOf('hide') < 0){
+      say('صفحهٔ لودینگ بیش از حد طول کشید. احتمالاً فایل index.html ناقص کپی شده است.');
+    }
+  }, 8000);
+})();
+</script>
 
 <!-- ============ منوی اصلی ============ -->
 <div class="screen active" id="menu">
@@ -3370,7 +3413,7 @@ const APP_VERSION_CODE = 5;
 const APP_VERSION_NAME = '1.1';
 /* شناسهٔ فایل بازی — با هر تغییر در این فایل عوض می‌شود.
    در «دربارهٔ برنامه» نشان داده می‌شود تا بدانی کدام نسخه داخل APK است. */
-const GAME_BUILD = 'B11';
+const GAME_BUILD = 'B12';
 const MARKET_PACKAGE   = 'com.smahdi2razavi.pasur11';
 function firebaseConfigured(){
   return !!FIREBASE_DB_URL&&!FIREBASE_DB_URL.startsWith('YOUR_')&&FIREBASE_DB_URL.startsWith('http');
