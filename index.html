@@ -3413,7 +3413,7 @@ const APP_VERSION_CODE = 5;
 const APP_VERSION_NAME = '1.1';
 /* شناسهٔ فایل بازی — با هر تغییر در این فایل عوض می‌شود.
    در «دربارهٔ برنامه» نشان داده می‌شود تا بدانی کدام نسخه داخل APK است. */
-const GAME_BUILD = 'B12';
+const GAME_BUILD = 'B13';
 const MARKET_PACKAGE   = 'com.smahdi2razavi.pasur11';
 function firebaseConfigured(){
   return !!FIREBASE_DB_URL&&!FIREBASE_DB_URL.startsWith('YOUR_')&&FIREBASE_DB_URL.startsWith('http');
@@ -4459,12 +4459,7 @@ function openShop(){
     const row=document.createElement('div'); row.className='mission-row';
     row.innerHTML='<div class="mi"><div class="mt">💰 '+x.n+'</div></div>';
     const b=document.createElement('button'); b.className='small-btn claim-ready'; b.style.margin='0'; b.textContent='خرید';
-    b.onclick=()=>{
-      const bridge=window.AndroidBilling||window.MyketBilling;
-      if(bridge&&bridge.buy){
-        try{ bridge.buy(x.sku); }catch(e){ toast('شروع خرید ممکن نشد؛ دوباره امتحان کن'); }
-      } else toast('خرید درون‌برنامه‌ای فقط در نسخهٔ نصب‌شده از مایکت یا گوگل‌پلی فعال است');
-    };
+    b.onclick=()=>{ iapBuy(x.sku); };
     row.appendChild(b); pk.appendChild(row);
   });
   // بخش خرید اشتراک VIP در فروشگاه
@@ -4479,11 +4474,7 @@ function openShop(){
     if(PROG.vip&&dl==null){ vb.textContent='فعال ✔'; vb.disabled=true; }
     else{
       vb.textContent=PROG.vip?('تمدید ('+fa(dl)+' روز مانده)'):'خرید';
-      vb.onclick=()=>{
-        const bridge=window.AndroidBilling||window.MyketBilling;
-        if(bridge&&bridge.buy){ try{ bridge.buy('vip_subscription'); }catch(e){ toast('شروع خرید ممکن نشد؛ دوباره امتحان کن'); } }
-        else { grantVip('vip_subscription'); }
-      };
+      vb.onclick=()=>{ iapBuy('vip_subscription'); };
     }
     vrow.appendChild(vb); vipBox.appendChild(vrow);
   }
@@ -4542,20 +4533,6 @@ function renderShopSkinList(box,list,activeKey,makePreview){
     row.appendChild(left); row.appendChild(b); box.appendChild(row);
   });
 }
-/* پل خرید: نسخهٔ اندرویدی بعد از خرید موفق این تابع را صدا می‌زند */
-window.grantPurchase=function(sku){
-  const p=IAP_PACKS.find(x=>x.sku===sku); if(!p)return;
-  metric('buy');
-  const isFirst=!(PROG.iap&&PROG.iap.length);      // 🎁 پیشنهاد اولین خرید: ۵۰٪ سکهٔ بیشتر
-  PROG.iap.push({sku:sku,ts:Date.now()});
-  const amount=isFirst?Math.round(p.c*1.5):p.c;
-  addCoins(amount); progSave();
-  toast(isFirst
-    ?('🎁 اولین خرید! '+fa(amount)+' سکه (۵۰٪ بیشتر) اضافه شد')
-    :('خرید موفق! '+p.n+' اضافه شد 🎉'),true);
-  try{ if($('#shop').classList.contains('active'))openShop(); }catch(e){}
-};
-
 /* ----- لیگ هفتگی -----
    هفته‌ها با سرور یکی هستند. امتیاز هفتگی = جام‌هایی که از ابتدای هفته گرفته‌ای. */
 const WEEK_MS=7*86400000, WEEK_EPOCH=Date.UTC(2024,0,1);
@@ -5021,18 +4998,60 @@ function openVip(){
       b.innerHTML='<div class="vp-medal"><span class="vp-num">'+fa(v.m)+'</span><span class="vp-unit">ماهه</span></div>'
         +'<div class="vp-price">'+v.price+'</div>'
         +(on&&left!=null?'<div class="vp-ext">تمدید</div>':'');
-      b.onclick=()=>{
-        const bridge=window.AndroidBilling||window.MyketBilling;
-        if(bridge&&bridge.buy){ try{ bridge.buy(v.sku); }catch(e){ toast('شروع خرید ممکن نشد؛ دوباره امتحان کن'); } }
-        else { grantVip(v.sku); }        // در مرورگر/دمو برای آزمایش
-      };
+      b.onclick=()=>{ iapBuy(v.sku); };
       pk.appendChild(b);
     });
   }
 }
+/* ================= پل خرید درون‌برنامه‌ای (مایکت) =================
+   قانون: هیچ کالایی بدون تأیید درگاه تحویل داده نمی‌شود. */
+function iapBridge(){ return window.AndroidBilling||window.MyketBilling||null; }
+function iapBuy(sku){
+  const b=iapBridge();
+  if(b&&b.buy){
+    try{ b.buy(sku); return true; }
+    catch(e){ toast('شروع خرید ممکن نشد؛ دوباره امتحان کن',true); return false; }
+  }
+  toast('خرید فقط در نسخه‌ای فعال است که از مایکت نصب شده باشد',true);
+  return false;
+}
+/* هر خرید شناسهٔ یکتا دارد؛ اگر دوباره تحویل شود نادیده گرفته می‌شود */
+function iapSeen(token){
+  if(!token)return false;
+  if(!Array.isArray(PROG.iapTok))PROG.iapTok=[];
+  if(PROG.iapTok.indexOf(token)>=0)return true;
+  PROG.iapTok.push(token);
+  if(PROG.iapTok.length>60)PROG.iapTok.shift();
+  progSave();
+  return false;
+}
+/* اندروید بعد از پرداخت موفقِ بستهٔ سکه این را صدا می‌زند */
+window.grantPurchase=function(sku,token){
+  try{
+    if(iapSeen(token))return;
+    const p=IAP_PACKS.find(x=>x.sku===sku);
+    if(!p){ toast('کالای ناشناخته',true); return; }
+    if(!Array.isArray(PROG.iap))PROG.iap=[];
+    const first=PROG.iap.length===0;
+    const c=first?Math.round(p.c*1.5):p.c;   // هدیهٔ ۵۰٪ اولین خرید
+    PROG.iap.push({sku:sku,ts:Date.now()});
+    progSave();
+    addCoins(c);
+    try{ metric('buy'); }catch(e){}
+    addMail('🪙','خرید موفق',fa(c)+' سکه به حسابت اضافه شد.'
+      +(first?' (شامل ۵۰٪ هدیهٔ اولین خرید)':''));
+    toast(first?('🎁 اولین خرید! '+fa(c)+' سکه (۵۰٪ بیشتر) اضافه شد')
+               :('✅ '+fa(c)+' سکه اضافه شد'),true);
+    if($('#shop').classList.contains('active'))openShop();
+  }catch(e){}
+};
+/* اگر خرید ناموفق بود، اندروید علت را به بازی می‌گوید */
+window.onPurchaseFail=function(msg){ try{ toast(msg||'خرید انجام نشد',true); }catch(e){} };
+
 /* skuOrMonths: شناسهٔ کالای مایکت، یا مستقیماً تعداد ماه.
    اگر چیزی داده نشود، یک ماه در نظر گرفته می‌شود. */
-function grantVip(skuOrMonths){
+function grantVip(skuOrMonths,token){
+  if(iapSeen(token))return;
   let months=1;
   if(typeof skuOrMonths==='number'&&skuOrMonths>0)months=skuOrMonths;
   else if(typeof skuOrMonths==='string'){
@@ -5068,11 +5087,7 @@ if(_btnVipHome){
     setTimeout(()=>{ _btnVipHome.classList.remove('goldify'); openVip(); show('vip'); }, 460);
   };
 }
-$('#btnBuyVip').onclick=()=>{
-  const bridge=window.AndroidBilling||window.MyketBilling;
-  if(bridge&&bridge.buy){ try{ bridge.buy('vip_subscription'); }catch(e){ toast('شروع خرید ممکن نشد'); } }
-  else { grantVip('vip_subscription'); } // در مرورگر/دمو مستقیم فعال می‌شود
-};
+$('#btnBuyVip').onclick=()=>{ iapBuy('vip_subscription'); };
 $('#btnCancelVip').onclick=()=>{ PROG.vip=false; PROG.vipUntil=0; progSave(); applyVipUI(); openVip(); renderProgChip(); toast('اشتراک VIP لغو شد'); };
 
 /* ================= تالار افتخارات (دستاوردها و جام‌های خودم) ================= */
