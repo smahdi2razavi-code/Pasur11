@@ -28,7 +28,7 @@ const MAX_TROPHIES  = 1000000;
 const MAX_LEVEL     = 500;
 
 /* ---------- ذخیره‌سازی ساده روی فایل ---------- */
-let DB = { sessions:{}, leaderboard:{}, usernames:{}, users:{}, control:{}, friendreq:{}, backup:{}, broadcast:null, broadcastLog:[], tickets:{} };
+let DB = { sessions:{}, leaderboard:{}, usernames:{}, users:{}, control:{}, friendreq:{}, backup:{}, broadcast:null, broadcastLog:[], tickets:{}, secrets:{} };
 try { if (fs.existsSync(DATA_FILE)) DB = Object.assign(DB, JSON.parse(fs.readFileSync(DATA_FILE,'utf8'))); }
 catch (e) { console.error('خواندن داده‌ها ناموفق بود:', e.message); }
 
@@ -64,7 +64,7 @@ function sendJSON(res, code, obj) {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Key, X-Admin-Token',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Key, X-Admin-Token, X-User-Key',
     'Access-Control-Max-Age': '86400',
     'Cache-Control': 'no-store'
   });
@@ -196,6 +196,30 @@ setInterval(() => {                       // پاک‌سازی شمارنده‌
 
 /* ---------- اعتبارسنجی ورودی ---------- */
 const ID_RE = /^\d{1,3}-\d{4,12}$/;                   // مثل 11-123456
+
+/* ---------- کلید شخصی هر حساب ----------
+ * بازی هنگام ساخت حساب یک کلید تصادفی می‌سازد و در هر نوشتن می‌فرستد.
+ * سرور بار اول آن را به همان شناسه گره می‌زند (TOFU) و از آن به بعد
+ * نوشتن روی آن حساب فقط با همان کلید ممکن است.
+ * سازگاری با نسخه‌های قدیمی: حسابی که هنوز کلید ندارد مثل قبل کار می‌کند؛
+ * به‌محض اینکه کاربر نسخهٔ تازه را نصب کند، حسابش قفل می‌شود. */
+function userKeyOf(req) {
+  const h = req && req.headers && req.headers['x-user-key'];
+  if (!h) return null;
+  const v = String(h).slice(0, 64);
+  return /^[A-Za-z0-9_-]{16,64}$/.test(v) ? v : null;
+}
+/** true = اجازهٔ نوشتن روی این حساب هست */
+function ownsAccount(req, id) {
+  DB.secrets = DB.secrets || {};
+  const bound = DB.secrets[id];
+  const got = userKeyOf(req);
+  if (!bound) {                       // هنوز قفل نشده
+    if (got) { DB.secrets[id] = got; saveDB(); }   // اولین کلید، مالک می‌شود
+    return true;
+  }
+  return sameSecret(got || '', bound);
+}
 const isId  = s => typeof s === 'string' && ID_RE.test(s);
 const isName = s => typeof s === 'string' && s.length >= 1 && s.length <= 32 && !/[\x00-\x1f\x7f]/.test(s);
 let dataTooBig = false;
@@ -342,6 +366,7 @@ const server = http.createServer(async (req, res) => {
   if (root === 'users') {
     if (method === 'PUT' && a) {
       if (!isId(a)) return sendJSON(res, 400, { error: 'bad id' });
+      if (!admin && !ownsAccount(req, a)) return sendJSON(res, 403, { error: 'not your account' });
       if (!canCreate(DB.users, a)) return sendJSON(res, 507, { error: 'storage full' });
       const body = await readBody(req) || {};
       const prev = DB.users[a];
@@ -425,8 +450,12 @@ const server = http.createServer(async (req, res) => {
   /* ===== ۷) پشتیبان‌گیری حساب با ایمیل ===== */
   if (root === 'backup') {
     DB.backup = DB.backup || {};
-    if (method === 'GET' && a) return sendJSON(res, 200, DB.backup[a.toLowerCase()] || null);
+    if (method === 'GET' && a) {
+      if (!admin && !ownsAccount(req, a)) return sendJSON(res, 403, { error: 'not your account' });
+      return sendJSON(res, 200, DB.backup[a.toLowerCase()] || null);
+    }
     if (method === 'PUT' && a) {
+      if (!admin && !ownsAccount(req, a)) return sendJSON(res, 403, { error: 'not your account' });
       const body = await readBody(req);
       DB.backup[a.toLowerCase()] = Object.assign({}, body, { ts: Date.now() });
       saveDB(); return sendJSON(res, 200, { ok: true });
@@ -439,7 +468,10 @@ const server = http.createServer(async (req, res) => {
       if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
       return sendJSON(res, 200, DB.control);
     }
-    if (method === 'GET' && a && !b) return sendJSON(res, 200, DB.control[a] || null);
+    if (method === 'GET' && a && !b) {
+      if (!admin && !ownsAccount(req, a)) return sendJSON(res, 403, { error: 'not your account' });
+      return sendJSON(res, 200, DB.control[a] || null);
+    }
     // پاک‌کردن همهٔ دستورهای در انتظارِ یک کاربر
     if (method === 'DELETE' && a && !b) {
       if (!admin) return sendJSON(res, 403, { error: 'forbidden' });
@@ -453,6 +485,9 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req);
       const clearing = (body === 0 || body === false || body === '0' || body === 'false');
       if (!clearing && !admin) return sendJSON(res, 403, { error: 'forbidden' });
+      // پاک‌کردن دستور فقط از سمت خودِ همان حساب
+      if (clearing && !admin && !ownsAccount(req, a))
+        return sendJSON(res, 403, { error: 'not your account' });
       if (!clearing && !canCreate(DB.control, a)) return sendJSON(res, 507, { error: 'storage full' });
       DB.control[a] = DB.control[a] || {};
       DB.control[a][b] = body;
@@ -546,6 +581,7 @@ const server = http.createServer(async (req, res) => {
     // ثبت تیکت تازه از سمت بازی (بدون کلید مدیریت)
     if (method === 'PUT' && a && !b) {
       if (!isId(a)) return sendJSON(res, 400, { error: 'bad id' });
+      if (!ownsAccount(req, a)) return sendJSON(res, 403, { error: 'not your account' });
       if (dataTooBig) return sendJSON(res, 507, { error: 'storage full' });
       const body = await readBody(req) || {};
       const text = String(body.text || '').slice(0, 1500).trim();
@@ -586,6 +622,7 @@ const server = http.createServer(async (req, res) => {
     }
     // پاسخ کاربر روی تیکت باز (گفتگوی دوطرفه)
     if (method === 'PUT' && a && b && b !== 'reply' && isId(a)) {
+      if (!ownsAccount(req, a)) return sendJSON(res, 403, { error: 'not your account' });
       const t = DB.tickets[b];
       if (!t || t.uid !== a) return sendJSON(res, 404, { error: 'not found' });
       const body = await readBody(req) || {};
@@ -607,6 +644,7 @@ const server = http.createServer(async (req, res) => {
     // پیگیری تیکت‌های خودِ کاربر (فقط تیکت‌های همان شناسه)
     if (method === 'GET' && a === 'mine' && b) {
       if (!isId(b)) return sendJSON(res, 400, { error: 'bad id' });
+      if (!admin && !ownsAccount(req, b)) return sendJSON(res, 403, { error: 'not your account' });
       const mine = Object.values(DB.tickets).filter(t => t && t.uid === b)
         .sort((x, y) => y.ts - x.ts).slice(0, 20)
         .map(t => ({ id: t.id, ts: t.ts, kind: t.kind, text: maskPay(t.text),

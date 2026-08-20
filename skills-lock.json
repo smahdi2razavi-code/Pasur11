@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "skills": {
+    "business-growth-skills": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "skillPath": "business-growth/skills/business-growth-skills/SKILL.md",
+      "computedHash": "6e838c803782dc6b755bb7f2115781021a746887e84374262322de04b1375c3b"
+    },
+    "business-intelligence": {
+      "source": "borghei/claude-skills",
+      "sourceType": "github",
+      "skillPath": "data-analytics/business-intelligence/SKILL.md",
+      "computedHash": "a54978f2d494d2ffade72523e1ffd0938ae65491aa32cf34bed8fa013ba7b823"
+    },
+    "content-strategy": {
+      "source": "coreyhaines31/marketingskills",
+      "sourceType": "github",
+      "skillPath": "skills/content-strategy/SKILL.md",
+      "computedHash": "01a3033127a32ea67898a14f050bb76cf9df9c515365fedf647737c82a235225"
+    },
+    "security-review": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/security-review/SKILL.md",
+      "computedHash": "9b1791054c648b84ca424fc1342dede2e04759dc73436bb91d21675d5a4c13ea"
+    }
+  }
+}

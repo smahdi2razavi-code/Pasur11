@@ -2355,7 +2355,7 @@ function bkSnapshot(){
     if(!firebaseConfigured()){ m.textContent='برای ذخیره باید به اینترنت وصل باشی'; return; }
     m.textContent='در حال ذخیره…';
     try{
-      const r=await fetch(FIREBASE_DB_URL+'/backup/'+encodeURIComponent(em)+'.json',
+      const r=await sfetch(FIREBASE_DB_URL+'/backup/'+encodeURIComponent(em)+'.json',
         {method:'PUT',body:JSON.stringify(bkSnapshot())});
       const j=await r.json();
       if(!j||!j.ok)throw new Error();
@@ -2372,7 +2372,7 @@ function bkSnapshot(){
     if(!confirm('پیشرفت فعلی این گوشی با نسخهٔ ذخیره‌شده جایگزین می‌شود. ادامه می‌دهی؟'))return;
     m.textContent='در حال بازیابی…';
     try{
-      const r=await fetch(FIREBASE_DB_URL+'/backup/'+encodeURIComponent(em)+'.json');
+      const r=await sfetch(FIREBASE_DB_URL+'/backup/'+encodeURIComponent(em)+'.json');
       const d=await r.json();
       if(!d||!d.prog){ m.textContent='برای این ایمیل نسخهٔ پشتیبانی پیدا نشد'; return; }
       if(String(d.code||'')!==cd){ m.textContent='رمز اشتباه است'; return; }
@@ -3413,7 +3413,7 @@ const APP_VERSION_CODE = 5;
 const APP_VERSION_NAME = '1.1';
 /* شناسهٔ فایل بازی — با هر تغییر در این فایل عوض می‌شود.
    در «دربارهٔ برنامه» نشان داده می‌شود تا بدانی کدام نسخه داخل APK است. */
-const GAME_BUILD = 'B13';
+const GAME_BUILD = 'B14';
 const MARKET_PACKAGE   = 'com.smahdi2razavi.pasur11';
 function firebaseConfigured(){
   return !!FIREBASE_DB_URL&&!FIREBASE_DB_URL.startsWith('YOUR_')&&FIREBASE_DB_URL.startsWith('http');
@@ -3482,7 +3482,7 @@ async function sendTicket(kind,text,extra){
   if(tail)text=String(text).slice(0,1500-tail.length)+tail;
   const body=ticketPayload(kind,text,extra);
   if(!firebaseConfigured())throw new Error('offline');
-  const r=await fetch(FIREBASE_DB_URL+'/tickets/'+encodeURIComponent(uid)+'.json',
+  const r=await sfetch(FIREBASE_DB_URL+'/tickets/'+encodeURIComponent(uid)+'.json',
     {method:'PUT',body:JSON.stringify(body)});
   const j=await r.json();
   if(j&&j.error){
@@ -3542,7 +3542,7 @@ async function loadMyTickets(){
   let rows=[];
   try{
     if(firebaseConfigured()){
-      const r=await fetch(FIREBASE_DB_URL+'/tickets/mine/'+encodeURIComponent(ensureUserId())+'.json');
+      const r=await sfetch(FIREBASE_DB_URL+'/tickets/mine/'+encodeURIComponent(ensureUserId())+'.json');
       const d=await r.json();
       if(Array.isArray(d))rows=d;
     }
@@ -3582,7 +3582,7 @@ async function replyToTicket(id,btn){
   if(txt.length<3){ toast('متن پاسخ خیلی کوتاه است',true); return; }
   if(btn)btn.disabled=true;
   try{
-    const r=await fetch(FIREBASE_DB_URL+'/tickets/'+encodeURIComponent(ensureUserId())
+    const r=await sfetch(FIREBASE_DB_URL+'/tickets/'+encodeURIComponent(ensureUserId())
       +'/'+encodeURIComponent(id)+'.json',{method:'PUT',body:JSON.stringify({text:txt})});
     const j=await r.json();
     if(j&&j.error){
@@ -3710,35 +3710,35 @@ async function syncUserWithServer(){
   if(!firebaseConfigured())return;
   const uid=encodeURIComponent(ensureUserId());
   // ۱) ثبت/به‌روزرسانی اطلاعات کاربر روی سرور
-  fetch(FIREBASE_DB_URL+'/users/'+uid+'.json',{method:'PUT',body:JSON.stringify({
+  sfetch(FIREBASE_DB_URL+'/users/'+uid+'.json',{method:'PUT',body:JSON.stringify({
     name:SET.pName||'', user:SET.profileUsername||'', level:PROG.level,
     coins:PROG.coins, trophies:PROG.trophies, vip:!!PROG.vip, ts:Date.now()
   })}).catch(()=>{});
   // ۲) خواندن و اعمال دستورهای مدیریتی (از ربات تلگرام)
   try{
-    const r=await fetch(FIREBASE_DB_URL+'/control/'+uid+'.json');
+    const r=await sfetch(FIREBASE_DB_URL+'/control/'+uid+'.json');
     const c=await r.json();
     if(!c)return;
     if(c.coinGrant){
       addCoins(c.coinGrant);
       addMail('🪙','هدیهٔ سکه','مدیریت بازی '+fa(c.coinGrant)+' سکه به حساب تو اضافه کرد. از همراهی‌ات ممنونیم!');
       toast('🎁 هدیهٔ '+fa(c.coinGrant)+' سکه از پشتیبانی دریافت شد',true);
-      fetch(FIREBASE_DB_URL+'/control/'+uid+'/coinGrant.json',{method:'PUT',body:'0'}).catch(()=>{});
+      sfetch(FIREBASE_DB_URL+'/control/'+uid+'/coinGrant.json',{method:'PUT',body:'0'}).catch(()=>{});
     }
     if(c.vipGrant){
       // از پنل مدیریت: عدد = تعداد ماه، true = یک ماه
       const mo=(typeof c.vipGrant==='number'&&c.vipGrant>0)?c.vipGrant:1;
       grantVip(mo);
-      fetch(FIREBASE_DB_URL+'/control/'+uid+'/vipGrant.json',{method:'PUT',body:'false'}).catch(()=>{});
+      sfetch(FIREBASE_DB_URL+'/control/'+uid+'/vipGrant.json',{method:'PUT',body:'false'}).catch(()=>{});
     }
     if(c.msg&&typeof c.msg==='string'&&c.msg.trim()){
       addMail('✉️','پیام از پشتیبانی',c.msg.trim());
-      fetch(FIREBASE_DB_URL+'/control/'+uid+'/msg.json',{method:'PUT',body:'0'}).catch(()=>{});
+      sfetch(FIREBASE_DB_URL+'/control/'+uid+'/msg.json',{method:'PUT',body:'0'}).catch(()=>{});
     }
     if(typeof c.scoreGrant==='number'&&c.scoreGrant){
       PROG.trophies=Math.max(0,PROG.trophies+c.scoreGrant); progSave(); renderProgChip();
       addMail('🏆','امتیاز هدیه',fa(c.scoreGrant)+' جام به حساب تو اضافه شد.');
-      fetch(FIREBASE_DB_URL+'/control/'+uid+'/scoreGrant.json',{method:'PUT',body:'0'}).catch(()=>{});
+      sfetch(FIREBASE_DB_URL+'/control/'+uid+'/scoreGrant.json',{method:'PUT',body:'0'}).catch(()=>{});
     }
     // 🏆 جایزهٔ لیگ هفتگی
     if(c.league&&typeof c.league==='object'&&c.league.coins){
@@ -3747,7 +3747,7 @@ async function syncUserWithServer(){
       addMail(medal,'جایزهٔ لیگ هفتگی',
         'در لیگ هفتهٔ گذشته رتبهٔ '+fa(L.rank)+' شدی! '+fa(L.coins)+' سکه جایزه گرفتی. آفرین 🎉');
       toast(medal+' رتبهٔ '+fa(L.rank)+' لیگ هفتگی — '+fa(L.coins)+' سکه',true);
-      fetch(FIREBASE_DB_URL+'/control/'+uid+'/league.json',{method:'PUT',body:'0'}).catch(()=>{});
+      sfetch(FIREBASE_DB_URL+'/control/'+uid+'/league.json',{method:'PUT',body:'0'}).catch(()=>{});
     }
     // حذف اکانت از پنل: داده‌های محلی هم پاک می‌شوند
     if(c.deleted){
@@ -3772,7 +3772,7 @@ async function syncUserWithServer(){
       if(typeof sp.vip==='boolean')PROG.vip=sp.vip;
       progSave(); renderProgChip(); applyVipUI();
       addMail('⚙️','به‌روزرسانی حساب','اطلاعات حساب تو توسط مدیریت به‌روزرسانی شد.');
-      fetch(FIREBASE_DB_URL+'/control/'+uid+'/setProgress.json',{method:'PUT',body:'0'}).catch(()=>{});
+      sfetch(FIREBASE_DB_URL+'/control/'+uid+'/setProgress.json',{method:'PUT',body:'0'}).catch(()=>{});
     }
     USER_BANNED=!!c.banned;
     if(USER_BANNED)showBanModal();
@@ -4684,7 +4684,7 @@ function normalizeUid(v){
     msg.textContent='در حال جستجو…';
     let info=null;
     try{
-      const r=await fetch(FIREBASE_DB_URL+'/users/'+encodeURIComponent(v)+'.json');
+      const r=await sfetch(FIREBASE_DB_URL+'/users/'+encodeURIComponent(v)+'.json');
       info=await r.json();
     }catch(e){}
     if(!info){ msg.textContent='بازیکنی با این شناسه پیدا نشد'; return; }
@@ -4758,13 +4758,41 @@ function deviceId(){
   return d;
 }
 /* شناسهٔ یکتای کاربر (یک‌بار ساخته می‌شود و ثابت می‌ماند) — برای پروفایل و پشتیبانی */
+function randStr(n){
+  const abc='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let out='';
+  try{
+    const a=new Uint8Array(n); crypto.getRandomValues(a);
+    for(let i=0;i<n;i++)out+=abc[a[i]%abc.length];
+  }catch(e){
+    for(let i=0;i<n;i++)out+=abc[Math.floor(Math.random()*abc.length)];
+  }
+  return out;
+}
 function ensureUserId(){
   if(!PROG.userId){
-    let s=''; for(let i=0;i<6;i++)s+=Math.floor(Math.random()*10);
+    // ۹ رقم تصادفیِ امن: احتمال تکراری شدن شناسه عملاً صفر می‌شود
+    let s='';
+    try{
+      const a=new Uint8Array(9); crypto.getRandomValues(a);
+      for(let i=0;i<9;i++)s+=String(a[i]%10);
+    }catch(e){ for(let i=0;i<9;i++)s+=Math.floor(Math.random()*10); }
     PROG.userId='11-'+s;
     progSave();
   }
   return PROG.userId;
+}
+/* کلید شخصی حساب: فقط روی همین گوشی می‌ماند و در هر نوشتن فرستاده می‌شود
+   تا کسی نتواند با دانستن شناسه، حساب دیگری را دستکاری یا پاک کند. */
+function ensureUserKey(){
+  if(!PROG.userKey){ PROG.userKey=randStr(32); progSave(); }
+  return PROG.userKey;
+}
+/* هر درخواست به سرور از این تابع رد می‌شود تا کلید حساب همراهش برود */
+function sfetch(url,opts){
+  const o=Object.assign({},opts||{});
+  o.headers=Object.assign({},o.headers,{'X-User-Key':ensureUserKey()});
+  return fetch(url,o);
 }
 async function claimUsername(u){
   if(!u)return{ok:false,msg:'نام‌کاربری خالی است'};
