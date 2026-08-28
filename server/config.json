@@ -1,0 +1,31 @@
+{
+  "name": "Pasur11 API",
+  "port": 8080,
+  "host": "0.0.0.0",
+
+  "_allowedOrigins": "دامنه‌هایی که اجازهٔ صدا زدن این سرور را دارند. برای باز گذاشتن کامل: [\"*\"]",
+  "allowedOrigins": ["*"],
+
+  "_myketPublicKey": "کلید عمومی RSA از پنل توسعه‌دهندهٔ مایکت (بخش «کلید عمومی»)",
+  "myketPublicKey": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCMs6lVGTGVI03dkVW/wOqrmFshhUkVQkKoWM2R9izm/+e2jChJJikEwuJ6qDwJF6+pWmCzGYY/ahnbGHGwiqBBh393ywAJ4q4bRRT5xedGMLX/2+kgT64O/4wxCRvg0BaNtcj+UNlgQPy+pgTsbU/YG3dO02U/N/aTxgAQtYkCkQIDAQAB",
+
+  "_skipSignature": "فقط برای تست محلی true شود؛ روی سرور واقعی حتماً false بماند",
+  "skipSignature": false,
+
+  "sessionTtlMinutes": 10,
+  "leaderboardMax": 200,
+
+  "_tls": "اگر SSL را مستقیم روی Node می‌خواهید مسیر فایل‌ها را بدهید؛ با Nginx خالی بماند",
+  "tlsCert": "",
+  "tlsKey": "",
+
+  "_products": "جایزهٔ هر شناسهٔ محصول در پنل مایکت. تغییر مقدارها نیازی به دست زدن به کد ندارد.",
+  "products": {
+    "coins_500":          { "coins": 500,  "tickets": 1,  "vipDays": 0,  "consumable": true },
+    "coins_1500":         { "coins": 1500, "tickets": 3,  "vipDays": 0,  "consumable": true },
+    "coins_4000":         { "coins": 4000, "tickets": 10, "vipDays": 0,  "consumable": true },
+    "vip_subscription":   { "coins": 0,    "tickets": 3,  "vipDays": 30, "consumable": false },
+    "vip_subscription_2": { "coins": 0,    "tickets": 7,  "vipDays": 60, "consumable": false },
+    "vip_subscription_3": { "coins": 0,    "tickets": 12, "vipDays": 90, "consumable": false }
+  }
+}

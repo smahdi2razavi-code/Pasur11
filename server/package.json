@@ -1,0 +1,14 @@
+{
+  "name": "pasur11-server",
+  "version": "1.0.0",
+  "description": "سرور بازی پاسور ۱۱ — کد اتصال دو نفره، جدول رتبه‌بندی، نام‌کاربری یکتا و تأیید خرید مایکت",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {}
+}

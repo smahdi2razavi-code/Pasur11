@@ -24,11 +24,16 @@
   --ivory:#f8f2e2;      /* رنگ کارت */
   --ink:#232733;
   --crimson:#b3273b;
-  --cw:clamp(52px, 16.5vw, 86px);          /* عرض کارت دست */
+  /* ارتفاع واقعی صفحه: پیش از اجرای جاوااسکریپت از vh/dvh و پس از آن از px دقیق پر می‌شود */
+  --app-h:100vh;
+  /* اندازهٔ کارت هم به عرض و هم به ارتفاع صفحه وابسته است تا روی گوشی کوتاه،
+     گوشی پهن و تبلت هیچ‌وقت از کادر بیرون نزند */
+  --cw:clamp(40px, min(16.5vw, calc(var(--app-h) * 0.115)), 86px);   /* عرض کارت دست */
   --ch:calc(var(--cw)*1.4);   /* نسبت واقعی ورق بازی */
-  --tw:clamp(44px, 13.5vw, 74px);          /* عرض کارت روی میز */
+  --tw:clamp(34px, min(13.5vw, calc(var(--app-h) * 0.094)), 74px);   /* عرض کارت روی میز */
   --th:calc(var(--tw)*1.4);
 }
+@supports (height:100dvh){ :root{ --app-h:100dvh; } }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
 html,body{height:100%;}
 body{
@@ -37,15 +42,18 @@ body{
     radial-gradient(1200px 700px at 50% -10%, var(--bg2), var(--bg1) 70%);
   color:var(--ivory);
   overflow:hidden;
-  height:100dvh; height:var(--tg-vh, var(--app-vh, 100dvh));
+  height:var(--app-h);
   touch-action:manipulation;
   user-select:none; -webkit-user-select:none;
   overscroll-behavior:none;
 }
-.screen{position:fixed; inset:0; display:none; flex-direction:column; overflow:hidden;}
+/* صفحه‌ها به‌جای inset:0 از ارتفاع اندازه‌گیری‌شده استفاده می‌کنند؛ وگرنه زیر نوار آدرس مرورگر می‌روند */
+.screen{position:fixed; top:0; right:0; left:0; height:var(--app-h);
+  display:none; flex-direction:column; overflow:hidden;}
 .screen.active{display:flex; animation:screenIn .26s ease-out;}
 @keyframes screenIn{from{opacity:0; transform:translateY(8px);}}
-.scroll{overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px 18px 90px;}
+.scroll{overflow-y:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
+  padding:16px 18px calc(env(safe-area-inset-bottom,0px) + 90px);}
 
 /* ===================== منوی اصلی ===================== */
 #menu{align-items:stretch; justify-content:space-between; gap:0; text-align:center; overflow:hidden;
@@ -70,6 +78,8 @@ body{
   box-shadow:0 1px 4px rgba(200,149,46,.5);}
 .hud-vip-txt{font-size:9px; color:var(--gold-soft); font-weight:700;}
 body.is-vip .hud-vip-badge{background:linear-gradient(180deg,#7fe0b4,#2f7d5a); color:#062e21;}
+/* بدون اشتراک، نشان خاموش می‌ماند ولی دکمه همیشه دیده و لمس می‌شود */
+body:not(.is-vip) .hud-vip-badge{background:linear-gradient(180deg,#3a4f8e,#22305d); color:#c6d2f2; box-shadow:none;}
 .hud-wallets{display:flex; flex-direction:column; gap:6px; flex:0 0 auto;}
 .wallet{display:flex; align-items:center; gap:5px; background:linear-gradient(180deg,rgba(38,56,107,.9),rgba(19,30,64,.9));
   border:1px solid var(--gold); border-radius:12px; padding:4px 6px 4px 9px; min-width:96px;}
@@ -183,7 +193,10 @@ body.is-vip .hud-vip-badge{background:linear-gradient(180deg,#7fe0b4,#2f7d5a); c
   background:#22305d center/cover no-repeat; border:2px solid var(--gold);
   display:flex; align-items:center; justify-content:center; font-size:20px;
 }
-.pc-name-row{display:flex; align-items:center; gap:8px;}
+.pc-name-row{display:flex; align-items:baseline; gap:6px; min-width:0;}
+.pc-name-row .pc-name{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.pc-name-row .pc-user{flex:1 1 auto; min-width:0; direction:ltr; text-align:left;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .profile-chip .pc-name{font-size:15px; font-weight:800; color:var(--gold-soft);}
 .vip-hero{text-align:center; background:linear-gradient(180deg,#2a2408,#1a1605); border-color:var(--gold);}
 .vip-hero-crown{font-size:54px; filter:drop-shadow(0 4px 10px rgba(230,182,76,.5));}
@@ -425,21 +438,54 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 #tableArea .card.repo-img.selected{transform:translateY(-6px) scale(1.05);}
 .card.back.repo-img::after{content:"";}
 
-/* ===================== سازگاری با ابعاد همهٔ گوشی‌ها (اندروید و آیفون) ===================== */
+/* ===================== سازگاری با ابعاد همهٔ گوشی‌ها (اندروید و آیفون) =====================
+   اندازهٔ کارت‌ها در :root از هر دو بُعد (عرض و ارتفاع) حساب می‌شود؛ این بخش فقط
+   اجزای دیگر (لوگو، دکمه‌ها، نوارها) را روی صفحه‌های کوتاه یا افقی جمع‌وجور می‌کند. */
 @media (max-height:660px){
-  :root{--cw:clamp(44px,14vw,70px); --tw:clamp(38px,11.5vw,60px);}
-  .logo h1{font-size:clamp(34px,10vw,52px);}
+  .logo h1{font-size:clamp(30px,9vw,46px);}
   .menu-cards{margin-bottom:12px;}
   .ornament{margin:8px auto 12px;}
+  .hud-vip-txt{font-size:8px;}
 }
 @media (max-height:560px){
-  :root{--cw:clamp(38px,12vw,58px); --tw:clamp(32px,10vw,50px);}
   .menu-btns{gap:8px;}
   .btn{padding:10px 16px; font-size:15px;}
   .deckinfo,#surIndicator{font-size:10.5px;}
+  .logo .sub{display:none;}
+  .rb-tx,.dk-tx{font-size:10px;}
+  .dock{padding:6px 6px;}
+}
+/* حالت افقی (landscape): بازی روی گوشی خوابیده هم کامل و بدون بریدگی دیده می‌شود */
+@media (orientation:landscape) and (max-height:520px){
+  :root{
+    --cw:clamp(34px, min(9vw, calc(var(--app-h) * 0.20)), 70px);
+    --tw:clamp(28px, min(7.4vw, calc(var(--app-h) * 0.155)), 60px);
+  }
+  .menu-fit{gap:8px;}
+  .logo h1{font-size:clamp(24px,6vw,38px);}
+  .logo .sub,.ornament,.menu-cards{display:none;}
+  .main-actions{flex-direction:row; width:min(760px,96%); gap:8px;}
+  .big-btn{flex:1 1 0; min-width:0; flex-direction:column; gap:4px; padding:8px 10px; font-size:13px; text-align:center;}
+  .big-btn .ba-ic{font-size:20px;}
+  .round-row{width:min(760px,96%);}
+  .rb-circle{width:38px; height:38px; font-size:19px;}
+  .rb-tx,.dk-tx{font-size:9.5px;}
+  .dk-circle{width:34px; height:34px; font-size:17px;}
+  .dock{padding:5px 6px; margin-top:4px;}
+  .hud-profile{padding:4px 8px;}
+  .avatar{width:34px; height:34px; font-size:16px;}
+  .hud{padding:calc(env(safe-area-inset-top,0px) + 5px) 14px 3px;}
+  .deckinfo,.gamebtns{top:calc(env(safe-area-inset-top,0px) + 44px);}
+  #surIndicator{top:calc(env(safe-area-inset-top,0px) + 78px);}
+  #selHint{display:none;}
+  .scroll{padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 60px);}
+  .topbar{padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 8px;}
 }
 @media (min-width:760px){
-  :root{--cw:92px; --tw:78px;}
+  :root{
+    --cw:clamp(52px, min(11vw, calc(var(--app-h) * 0.115)), 96px);
+    --tw:clamp(44px, min(9vw,  calc(var(--app-h) * 0.094)), 82px);
+  }
   .menu-btns,.profile-chip{width:360px;}
 }
 
@@ -597,13 +643,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
       <div class="hud-pinfo">
         <div class="pc-name-row">
           <div class="pc-name" id="menuProfName">مهمان</div>
+          <div class="pc-user" id="menuProfUser"></div>
         </div>
         <div class="hud-levelrow">
           <span class="hud-star" id="hudLevel">★ ۱</span>
           <div class="pbar hud-xpbar"><i id="hudXp" style="width:0%"></i></div>
         </div>
       </div>
-      <button class="hud-vip" id="btnVip"><span class="hud-vip-badge" id="vipBadge">VIP</span><span class="hud-vip-txt">اشتراک</span></button>
+      <button class="hud-vip" id="btnVip"><span class="hud-vip-badge" id="vipBadge">VIP</span><span class="hud-vip-txt" id="vipStateTxt">اشتراک</span></button>
     </div>
     <div class="hud-wallets">
       <div class="wallet"><span class="w-ic">🪙</span><span class="w-val" id="hudCoins">۱۰۰</span><button class="w-plus" id="btnAddCoins">＋</button></div>
@@ -815,6 +862,12 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
       <span class="txt">🗂 مرتب‌سازی خودکار کارت‌های دست</span>
       <label class="sw"><input type="checkbox" id="setAutoSort"><span></span></label>
     </div>
+    <div class="set-item">
+      <label class="title">🌐 آدرس سرور بازی</label>
+      <input type="text" id="setApiBase" placeholder="https://api.example.ir" dir="ltr" style="text-align:left" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button class="small-btn" id="btnTestApi">تست اتصال به سرور</button>
+      <div class="hint" id="apiStatus">با وارد کردن آدرس سرور، کد کوتاه ۷ رقمی بازی دو نفره، جدول رتبه‌بندی جهانی و تأیید خریدها فعال می‌شود. اگر خالی بماند بازی کاملاً آفلاین کار می‌کند.</div>
+    </div>
     <button class="btn primary" id="btnSaveSettings" style="width:100%"><span class="ic">💾</span> ذخیره تنظیمات</button>
     <div class="hint" style="padding:6px 6px 0">تنظیمات همزمان با تغییر هم به‌صورت خودکار ذخیره می‌شوند.</div>
   </div>
@@ -825,7 +878,8 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
   <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>بازی دو نفره (وای‌فای)</h2></div>
   <div class="scroll">
     <div class="card-box">
-      <p>با یک دوست روی <span class="tag">یک وای‌فای مشترک</span> بازی کنید — بدون سرور و بدون نیاز به اینترنت واقعی. یک نفر میزبان می‌شود و دیگری با کد به او می‌پیوندد.</p>
+      <p>با یک دوست بازی کنید — یک نفر <span class="tag">میزبان</span> می‌شود و دیگری با کد به او می‌پیوندد.</p>
+      <p class="hint" id="mpHubMode" style="margin-top:6px"></p>
     </div>
     <button class="btn primary" id="btnMpHost" style="width:100%"><span class="ic">🏠</span> میزبانی بازی</button>
     <div style="height:12px"></div>
@@ -936,9 +990,15 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
   <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>فروشگاه</h2></div>
   <div class="scroll">
     <div class="card-box" id="shopTop"></div>
-    <div class="card-box"><h3>🂠 طرح پشت کارت</h3><div class="shop-grid" id="shopBacks"></div></div>
-    <div class="card-box"><h3>💎 بستهٔ سکه — خرید درون‌برنامه‌ای</h3><div id="shopPacks"></div>
-      <div class="hint">خرید واقعی در نسخهٔ نصب‌شده از مایکت یا گوگل‌پلی فعال می‌شود؛ اینجا پیش‌نمایش است.</div></div>
+    <div class="card-box"><h3>🪙 بستهٔ سکه</h3><div id="shopPacks"></div>
+      <div class="hint" id="shopIapHint"></div></div>
+    <div class="card-box"><h3>👑 اشتراک VIP</h3><div id="shopVipPacks"></div>
+      <div class="hint">با VIP: تجربهٔ دوبرابر، جایزهٔ ورود دوبرابر، چرخ شانس رایگان و همهٔ طرح‌های پشت کارت.</div></div>
+    <div class="card-box"><h3>🂠 طرح پشت کارت</h3><div class="shop-grid" id="shopBacks"></div>
+      <div class="hint">طرح‌ها با سکهٔ داخل بازی خریداری می‌شوند و برای کاربران VIP همه باز است.</div></div>
+    <div class="card-box"><h3>🎟️ بلیط مسابقه</h3><div id="shopTickets"></div></div>
+    <div class="card-box"><button class="small-btn" id="btnRestoreIap" style="margin:0">♻️ بازیابی خریدهای قبلی</button>
+      <div class="hint" id="restoreHint">اگر برنامه را دوباره نصب کردی یا گوشی عوض کردی، خریدهایت را از اینجا برگردان.</div></div>
   </div>
 </div>
 
@@ -970,9 +1030,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
       <div class="vip-perk"><span>👑</span><div><b>نشان و آواتار طلایی VIP</b><br><span class="hint">نام تو با نشان VIP کنار پروفایلت می‌درخشد</span></div></div>
     </div>
     <div class="card-box">
-      <button class="btn primary" id="btnBuyVip" style="width:100%">👑 فعال‌سازی VIP</button>
-      <button class="btn danger" id="btnCancelVip" style="width:100%; display:none">لغو اشتراک VIP</button>
-      <div class="hint" style="text-align:center;margin-top:8px">خرید واقعی در نسخهٔ نصب‌شده از مایکت یا گوگل‌پلی انجام می‌شود.</div>
+      <h3>انتخاب مدت اشتراک</h3>
+      <div id="vipPacks"></div>
+      <div class="hint" id="vipBuyHint" style="text-align:center;margin-top:10px"></div>
+      <button class="small-btn" id="btnRestoreVip" style="width:100%;text-align:center">♻️ بازیابی اشتراک قبلی</button>
     </div>
   </div>
 </div>
@@ -982,6 +1043,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
   <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>🏛️ تالار افتخارات</h2></div>
   <div class="scroll">
     <div class="card-box" id="hallTop"></div>
+    <button class="btn primary" id="btnBoard" style="width:100%;margin-bottom:14px"><span class="ic">🌍</span> جدول رتبه‌بندی جهانی</button>
     <div class="card-box"><h3>🏅 مدال‌های من</h3><div id="hallAch"></div></div>
   </div>
 </div>
@@ -1143,7 +1205,8 @@ const DEFS={
   sound:true, music:false, haptic:true, anims:true, autoSort:true,
   backImg:null, backZoom:100, backX:50, backY:50,
   frontImg:null, frontZoom:100, frontX:50, frontY:50,
-  profileUsername:'', profileAvatar:null, profileSet:false, profileEmail:'', googleSignedIn:false
+  profileUsername:'', profileAvatar:null, profileSet:false, profileEmail:'', googleSignedIn:false,
+  apiBase:''   /* آدرس سرور بازی؛ از صفحهٔ تنظیمات قابل تغییر است */
 };
 let SET=Object.assign({},DEFS,loadJSON('pasur11_set')||{});
 SET.backImg=null; SET.frontImg=null; // بخش عکس کارت از تنظیمات حذف شد؛ عکس‌ها فقط از پوشهٔ cards خوانده می‌شوند
@@ -1284,21 +1347,6 @@ function refreshMenu(){
   $('#btnContinue').disabled=!loadJSON('pasur11_save');
   refreshProfileWidget();
   renderProgChip();
-  fitMenu();
-}
-/* منوی اصلی همیشه یک‌تکه: اگر محتوا از صفحه بلندتر شد، کل منو به‌نسبت کوچک می‌شود تا بدون اسکرول جا بگیرد */
-function fitMenu(){ return; /* منوی جدید با flex خودکار جا می‌شود */
-  // eslint-disable-next-line
-  const m=document.getElementById('menu'); if(!m)return;
-  m.style.zoom='';
-  requestAnimationFrame(()=>{
-    for(let i=0;i<4;i++){
-      const need=m.scrollHeight, have=m.clientHeight;
-      if(!need||!have||need<=have+1)break;
-      const cur=parseFloat(m.style.zoom)||1;
-      m.style.zoom=String(Math.max(.5, cur*(have/need)*.985));
-    }
-  });
 }
 
 /* ================= پروفایل ================= */
@@ -1512,6 +1560,10 @@ function openSettingsForm(){
   $('#setSound').checked=SET.sound; $('#setMusic').checked=SET.music;
   $('#setHaptic').checked=SET.haptic; $('#setAnims').checked=SET.anims;
   $('#setAutoSort').checked=SET.autoSort;
+  $('#setApiBase').value=SET.apiBase||'';
+  $('#apiStatus').textContent=serverConfigured()
+    ? 'سرور تنظیم شده است: '+apiBase()+' — برای اطمینان «تست اتصال» را بزن.'
+    : 'با وارد کردن آدرس سرور، کد کوتاه ۷ رقمی بازی دو نفره، جدول رتبه‌بندی جهانی و تأیید خریدها فعال می‌شود. اگر خالی بماند بازی کاملاً آفلاین کار می‌کند.';
 }
 function updSettings(){
   SET.pName=$('#setPName').value.trim()||DEFS.pName;
@@ -1528,13 +1580,27 @@ function updSettings(){
   if(music!==SET.music){ SET.music=music; SoundEngine.toggleMusic(music); }
   const sort=$('#setAutoSort').checked;
   if(sort!==SET.autoSort){ SET.autoSort=sort; if(G&&sort){G.p=sortHand(G.p);} }
+  SET.apiBase=normalizeBase($('#setApiBase').value);
   persistSettings();
   if(G)render();
 }
 ['setPName','setBName','setTarget','setDiff','setSurLastHand','setSurLastCard','setSurReturn',
- 'setSound','setMusic','setHaptic','setAnims','setAutoSort'
+ 'setSound','setMusic','setHaptic','setAnims','setAutoSort','setApiBase'
 ].forEach(id=>document.getElementById(id).addEventListener('change',updSettings));
 $('#btnSaveSettings').onclick=()=>{ updSettings(); toast('تنظیمات ذخیره شد ✔'); };
+$('#btnTestApi').onclick=async()=>{
+  updSettings();
+  const st=$('#apiStatus');
+  if(!serverConfigured()){ st.textContent='آدرس سرور خالی است؛ اول آدرس را وارد کن.'; return; }
+  st.textContent='در حال تست اتصال به '+apiBase()+' …';
+  try{
+    const r=await apiPing();
+    st.textContent=r.ok?('✅ سرور در دسترس است ('+fa(r.ms)+' میلی‌ثانیه)'+(r.name?' — '+r.name:'')):'❌ پاسخ سرور معتبر نبود.';
+    if(r.ok){ toast('اتصال به سرور برقرار است ✔',true); syncPendingPurchases(); }
+  }catch(e){
+    st.textContent='❌ اتصال برقرار نشد؛ آدرس، HTTPS و روشن بودن سرور را بررسی کن.';
+  }
+};
 
 /* ================= منطق کارت ================= */
 function makeDeck(){const d=[];for(let s=0;s<4;s++)for(let r=1;r<=13;r++)d.push({r,s,id:s*13+r});return d}
@@ -2071,9 +2137,15 @@ function probeSrc(base,i,done){
   im.src=base+'.'+REPO_EXTS[i];
 }
 function probeRepoCards(){
-  probeSrc('cards/back',0,src=>{ if(src){REPO_CARDS.back=src; if(G)render();} });
-  makeDeck().forEach(c=>{
-    probeSrc(repoBase(c),0,src=>{ if(src){REPO_CARDS.src.set(c.id,src); if(G)render();} });
+  /* اول فقط پشت کارت بررسی می‌شود؛ اگر پوشهٔ cards وجود نداشته باشد،
+     ۵۲ کارت دیگر اصلاً درخواست نمی‌شوند (قبلاً ۳۱۸ درخواست ۴۰۴ ساخته می‌شد
+     و شروع بازی را کند می‌کرد). */
+  probeSrc('cards/back',0,src=>{
+    if(!src)return;                       // پوشهٔ cards موجود نیست → طراحی داخلی کارت‌ها
+    REPO_CARDS.back=src; if(G)render();
+    makeDeck().forEach(c=>{
+      probeSrc(repoBase(c),0,s2=>{ if(s2){REPO_CARDS.src.set(c.id,s2); if(G)render();} });
+    });
   });
 }
 
@@ -2364,16 +2436,51 @@ function mpSetStatus(text){
   if(MP.role==='host')$('#mpHostStatus').textContent=text;
   if(MP.role==='joiner')$('#mpJoinStatus').textContent=text;
 }
-/* کد کوتاه ۷ رقمی (اختیاری - نیاز به Firebase Realtime Database رایگان دارد)
-   بدون این تنظیم، بازی دو نفره همچنان با روش دستی (کد طولانی) کار می‌کند. */
-const FIREBASE_DB_URL='YOUR_FIREBASE_DB_URL';
-function firebaseConfigured(){
-  return !!FIREBASE_DB_URL&&!FIREBASE_DB_URL.startsWith('YOUR_')&&FIREBASE_DB_URL.startsWith('http');
+/* ================================================================
+   اتصال به سرور بازی (سرور اختصاصی — مثلاً سرور ابری پارس‌پک)
+   کد سرور در پوشهٔ server/ همین مخزن است و با Node.js اجرا می‌شود.
+   اگر آدرس سرور خالی بماند، بازی کاملاً آفلاین و بدون خطا کار می‌کند:
+   بازی دو نفره با روش کد دستی، و جدول رتبه به‌صورت محلی.
+   ================================================================ */
+/* آدرس پیش‌فرض سرور — بعد از بالا آمدن سرور، همین یک خط را پر کنید.
+   نمونه: 'https://api.pasur11.ir'  (بدون اسلش انتهایی) */
+const DEFAULT_API_BASE='';
+function normalizeBase(v){
+  v=String(v||'').trim().replace(/\/+$/,'');
+  if(!v)return '';
+  if(!/^https?:\/\//i.test(v))v='https://'+v;
+  return v;
 }
-function genShortCode(){return String(Math.floor(1000000+Math.random()*9000000))}
+function apiBase(){ return normalizeBase(SET.apiBase)||normalizeBase(DEFAULT_API_BASE); }
+function serverConfigured(){ return !!apiBase(); }
+/* درخواست به سرور با مهلت زمانی و مدیریت کامل خطا (هیچ‌وقت بازی را قفل نمی‌کند) */
+async function api(path,opts,timeoutMs){
+  const base=apiBase();
+  if(!base)throw new Error('no-server');
+  const ctrl=(typeof AbortController!=='undefined')?new AbortController():null;
+  const t=setTimeout(()=>{ try{ctrl&&ctrl.abort()}catch(e){} },timeoutMs||9000);
+  try{
+    const o=Object.assign({},opts||{});
+    o.headers=Object.assign({'Content-Type':'application/json'},o.headers||{});
+    if(ctrl)o.signal=ctrl.signal;
+    if(o.body&&typeof o.body!=='string')o.body=JSON.stringify(o.body);
+    const res=await fetch(base+path,o);
+    const txt=await res.text();
+    let data=null; try{ data=txt?JSON.parse(txt):null; }catch(e){ data=null; }
+    if(!res.ok)throw Object.assign(new Error((data&&data.error)||('http-'+res.status)),{status:res.status,data:data});
+    return data;
+  } finally { clearTimeout(t); }
+}
+/* وضعیت سرور برای نمایش در تنظیمات */
+async function apiPing(){
+  const t0=Date.now();
+  const d=await api('/api/health',{method:'GET'},7000);
+  return {ok:!!(d&&d.ok), ms:Date.now()-t0, name:(d&&d.name)||''};
+}
+
 let mpPollTimer=null;
 function stopMpPoll(){ if(mpPollTimer){clearInterval(mpPollTimer);mpPollTimer=null;} }
-async function mpStartHostFirebase(){
+async function mpStartHostOnline(){
   const codeEl=$('#mpHostShortcode'), statusEl=$('#mpHostStatusShort');
   codeEl.textContent='-------'; statusEl.textContent='در حال ساخت کد…';
   MP.role='host';
@@ -2384,28 +2491,37 @@ async function mpStartHostFirebase(){
     const offer=await MP.pc.createOffer();
     await MP.pc.setLocalDescription(offer);
     await waitIceComplete(MP.pc);
-    const code=genShortCode(); MP.shortCode=code;
-    const res=await fetch(FIREBASE_DB_URL+'/sessions/'+code+'.json',{method:'PUT',body:JSON.stringify({offer:MP.pc.localDescription,ts:Date.now()})});
-    if(!res.ok)throw new Error('ذخیره‌سازی کد ناموفق بود');
-    codeEl.textContent=code;
+    const created=await api('/api/mp/session',{method:'POST',body:{offer:MP.pc.localDescription,name:SET.pName}},12000);
+    if(!created||!created.code)throw new Error('bad-response');
+    MP.shortCode=created.code;
+    codeEl.textContent=created.code;
     statusEl.textContent='منتظر اتصال بازیکن دوم…';
     stopMpPoll();
+    let misses=0;
     mpPollTimer=setInterval(async()=>{
+      if(MP.role!=='host'||MP.shortCode!==created.code){ stopMpPoll(); return; }
       try{
-        const r=await fetch(FIREBASE_DB_URL+'/sessions/'+code+'/answer.json');
-        const answer=await r.json();
-        if(answer&&answer.type){
+        const r=await api('/api/mp/session/'+created.code+'/answer',{method:'GET'},8000);
+        misses=0;
+        if(r&&r.answer&&r.answer.type){
           stopMpPoll();
-          await MP.pc.setRemoteDescription(answer);
+          await MP.pc.setRemoteDescription(r.answer);
           statusEl.textContent='در حال اتصال…';
-          fetch(FIREBASE_DB_URL+'/sessions/'+code+'.json',{method:'DELETE'}).catch(()=>{});
+          api('/api/mp/session/'+created.code,{method:'DELETE'}).catch(()=>{});
         }
-      }catch(e){}
+      }catch(e){
+        if(++misses>=5){ stopMpPoll(); statusEl.textContent='ارتباط با سرور قطع شد. اینترنت را بررسی کن و دوباره امتحان کن.'; }
+      }
     },2000);
-    setTimeout(()=>{ if(!MP.connected){stopMpPoll();statusEl.textContent='زمان اتصال تمام شد. برگرد و دوباره امتحان کن.';} },120000);
-  }catch(e){ statusEl.textContent='خطا در ارتباط با سرور کد. اینترنت را بررسی کن.'; }
+    setTimeout(()=>{ if(!MP.connected&&MP.role==='host'){stopMpPoll();statusEl.textContent='زمان اتصال تمام شد. برگرد و دوباره امتحان کن.';} },120000);
+  }catch(e){
+    codeEl.textContent='-------';
+    statusEl.textContent=(e&&e.message==='no-server')
+      ?'آدرس سرور تنظیم نشده است؛ از «تنظیمات ← آدرس سرور بازی» آن را وارد کن.'
+      :'خطا در ارتباط با سرور کد. اینترنت را بررسی کن.';
+  }
 }
-async function mpJoinFirebase(){
+async function mpJoinOnline(){
   const code=($('#mpJoinShortInput').value||'').trim();
   const statusEl=$('#mpJoinStatusShort');
   if(!/^\d{7}$/.test(code)){toast('کد باید دقیقاً ۷ رقم باشد');return;}
@@ -2414,8 +2530,7 @@ async function mpJoinFirebase(){
   MP.role='joiner';
   statusEl.textContent='در حال جستجوی کد…';
   try{
-    const res=await fetch(FIREBASE_DB_URL+'/sessions/'+code+'.json');
-    const data=await res.json();
+    const data=await api('/api/mp/session/'+code,{method:'GET'},12000);
     if(!data||!data.offer){statusEl.textContent='این کد پیدا نشد یا منقضی شده؛ از میزبان کد جدید بگیر.';return;}
     MP.pc=mpCreatePeer();
     MP.pc.ondatachannel=ev=>mpBindChannel(ev.channel);
@@ -2423,10 +2538,15 @@ async function mpJoinFirebase(){
     const answer=await MP.pc.createAnswer();
     await MP.pc.setLocalDescription(answer);
     await waitIceComplete(MP.pc);
-    await fetch(FIREBASE_DB_URL+'/sessions/'+code+'/answer.json',{method:'PUT',body:JSON.stringify(MP.pc.localDescription)});
+    await api('/api/mp/session/'+code+'/answer',{method:'POST',body:{answer:MP.pc.localDescription,name:SET.pName}},12000);
     statusEl.textContent='در حال اتصال به میزبان…';
-    setTimeout(()=>{ if(!MP.connected)statusEl.textContent='هنوز وصل نشدی. مطمئن شو هر دو روی یک وای‌فای هستید.'; },15000);
-  }catch(e){ statusEl.textContent='اتصال با خطا مواجه شد. دوباره امتحان کن.'; }
+    setTimeout(()=>{ if(!MP.connected&&MP.role==='joiner')statusEl.textContent='هنوز وصل نشدی. مطمئن شو هر دو به اینترنت وصل هستید.'; },20000);
+  }catch(e){
+    statusEl.textContent=(e&&e.status===404)
+      ?'این کد پیدا نشد یا منقضی شده؛ از میزبان کد جدید بگیر.'
+      :((e&&e.message==='no-server')?'آدرس سرور تنظیم نشده است؛ از «تنظیمات ← آدرس سرور بازی» آن را وارد کن.'
+                                    :'اتصال با خطا مواجه شد. دوباره امتحان کن.');
+  }
 }
 async function mpStartHost(){
   if(!window.RTCPeerConnection){toast('مرورگر شما از بازی دو نفره پشتیبانی نمی‌کند');return;}
@@ -2564,8 +2684,8 @@ function mpHostReceiveMove(msg){
 }
 function mpTeardown(){
   stopMpPoll();
-  if(MP.shortCode&&firebaseConfigured()){
-    fetch(FIREBASE_DB_URL+'/sessions/'+MP.shortCode+'.json',{method:'DELETE'}).catch(()=>{});
+  if(MP.shortCode&&serverConfigured()){
+    api('/api/mp/session/'+MP.shortCode,{method:'DELETE'},6000).catch(()=>{});
   }
   try{if(MP.channel)MP.channel.close()}catch(e){}
   try{if(MP.pc)MP.pc.close()}catch(e){}
@@ -2573,21 +2693,27 @@ function mpTeardown(){
   chatReset();
 }
 /* دکمه‌های رابط بازی دو نفره */
-$('#btnMp').onclick=()=>show('mpHub');
+$('#btnMp').onclick=()=>{
+  const m=$('#mpHubMode');
+  if(m)m.textContent=serverConfigured()
+    ? '🌐 حالت آنلاین فعال است: میزبان یک کد ۷ رقمی می‌گیرد و دوستت همان را وارد می‌کند — از هر جایی با اینترنت.'
+    : '📶 حالت بدون سرور: کد طولانی بین دو گوشی رد و بدل می‌شود و هر دو باید روی یک وای‌فای باشند. برای کد کوتاه ۷ رقمی، آدرس سرور را در «تنظیمات» وارد کن.';
+  show('mpHub');
+};
 $('#btnMpHost').onclick=()=>{
   requireProfileName(()=>{
     show('mpHost');
-    const useShort=firebaseConfigured();
+    const useShort=serverConfigured();
     $('#mpHostShortBox').style.display=useShort?'block':'none';
     $('#mpHostManualBox').style.display=useShort?'none':'block';
     $('#btnMpStartGame').style.display='none';
-    if(useShort)mpStartHostFirebase(); else mpStartHost();
+    if(useShort)mpStartHostOnline(); else mpStartHost();
   });
 };
 $('#btnMpJoin').onclick=()=>{
   requireProfileName(()=>{
     show('mpJoin');
-    const useShort=firebaseConfigured();
+    const useShort=serverConfigured();
     $('#mpJoinShortBox').style.display=useShort?'block':'none';
     $('#mpJoinManualBox').style.display=useShort?'none':'block';
     $('#mpJoinShortInput').value='';
@@ -2600,7 +2726,7 @@ function copyText(txt){
   if(navigator.clipboard)navigator.clipboard.writeText(txt).then(()=>toast('کد کپی شد')).catch(()=>{});
 }
 $('#btnMpCopyShort').onclick=()=>{ const c=$('#mpHostShortcode').textContent; if(c&&!c.includes('-'))copyText(c); };
-$('#btnMpJoinShort').onclick=mpJoinFirebase;
+$('#btnMpJoinShort').onclick=mpJoinOnline;
 $('#btnMpCopyOffer').onclick=()=>{ const ta=$('#mpHostOffer'); ta.select(); copyText(ta.value); };
 $('#btnMpCopyAnswer').onclick=()=>{ const ta=$('#mpJoinAnswer'); ta.select(); copyText(ta.value); };
 /* چسباندن کد = اقدام خودکار؛ بدون دکمهٔ اضافه */
@@ -2636,8 +2762,17 @@ const PROG=Object.assign({
   coins:100, xp:0, level:1, streak:0, lastLogin:'', lastSpin:'', trophies:0,
   games:0, wins:0, losses:0, highScore:0, surTotal:0, jackSweeps:0,
   missions:{date:'',list:[]}, achClaimed:[], owned:['back-default'], activeBack:'back-default', iap:[],
-  vip:false, invitedBy:'', inviteRedeemed:false, tickets:0
+  vip:false, vipUntil:0, invitedBy:'', inviteRedeemed:false, tickets:0,
+  pendingIap:[], iapOrders:[]
 }, loadJSON('pasur11_prog')||{});
+/* پاک‌سازی دادهٔ ذخیره‌شدهٔ قدیمی یا خراب تا هیچ حلقه یا خطایی پیش نیاید */
+['iap','pendingIap','iapOrders','achClaimed','owned'].forEach(k=>{ if(!Array.isArray(PROG[k]))PROG[k]=[]; });
+if(!PROG.owned.length)PROG.owned=['back-default'];
+if(typeof PROG.vipUntil!=='number'||!isFinite(PROG.vipUntil)||PROG.vipUntil<0)PROG.vipUntil=0;
+if(typeof PROG.tickets!=='number'||!isFinite(PROG.tickets)||PROG.tickets<0)PROG.tickets=0;
+/* مهاجرت از نسخهٔ قدیمی: VIP قبلاً یک کلید بله/خیر بود. برای کسانی که آن موقع
+   VIP داشتند، ۳۰ روز اشتراک در نظر گرفته می‌شود تا چیزی از دست نرود. */
+if(PROG.vip&&!PROG.vipUntil){ PROG.vipUntil=Date.now()+30*86400000; saveJSONSafe('pasur11_prog',PROG); }
 function progSave(){ saveJSONSafe('pasur11_prog',PROG); }
 function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function esc(s){ return String(s==null?'':s).replace(/[<>&"]/g,ch=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[ch])); }
@@ -2654,6 +2789,7 @@ function addXP(n){
   progSave(); renderProgChip();
 }
 function addCoins(n){ PROG.coins=Math.max(0,PROG.coins+n); progSave(); renderProgChip(); }
+function addTickets(n){ PROG.tickets=Math.max(0,(PROG.tickets||0)+n); progSave(); renderProgChip(); }
 function renderProgChip(){
   const need=xpNeed(PROG.level), pct=Math.min(100,Math.round(PROG.xp/need*100));
   const lv=document.getElementById('hudLevel'); if(lv)lv.textContent='★ '+fa(PROG.level);
@@ -2674,13 +2810,15 @@ function maybeDailyLogin(){
   const rewards=[20,30,40,50,60,80,150];
   let coins=rewards[Math.min(PROG.streak,7)-1];
   if(PROG.vip)coins*=2;        // امتیاز VIP: جایزهٔ ورود دوبرابر
+  const tickets=(PROG.streak%7===0)?2:(PROG.streak>=3?1:0);   // بلیط جایزهٔ پیوستگی
   $('#dailyBox').innerHTML='<h3>🎁 جایزهٔ ورود روزانه</h3>'
     +'<p style="text-align:center">روز '+fa(PROG.streak)+' ورود پیاپی! 🔥</p>'
     +'<div style="text-align:center;font-size:32px;margin:10px 0">🪙 '+fa(coins)+' <span style="font-size:15px;color:#96a5cf">+ '+fa(10)+' XP</span></div>'
+    +(tickets?'<div style="text-align:center;font-size:18px;color:#ffe9ad;margin-bottom:6px">🎟️ '+fa(tickets)+' بلیط مسابقه</div>':'')
     +'<div class="hint" style="text-align:center">هر روز که بیایی جایزه بزرگ‌تر می‌شود (تا روز ۷)</div>'
     +'<button class="btn primary" id="dailyClaim">دریافت جایزه 🎉</button>';
   $('#dailyWrap').classList.add('show');
-  $('#dailyClaim').onclick=()=>{ addCoins(coins); addXP(10); $('#dailyWrap').classList.remove('show'); };
+  $('#dailyClaim').onclick=()=>{ addCoins(coins); addXP(10); if(tickets)addTickets(tickets); $('#dailyWrap').classList.remove('show'); };
 }
 
 /* ----- مأموریت‌های روزانه ----- */
@@ -2834,7 +2972,7 @@ function openHub(){
 
 /* ----- چرخ شانس ----- */
 const WHEEL_SEG=[
-  {t:'🪙 ۱۰',c:10},{t:'پوچ'},{t:'🪙 ۵۰',c:50},{t:'✨ ۲۰',x:20},
+  {t:'🪙 ۱۰',c:10},{t:'🎟️ ۱',k:1},{t:'🪙 ۵۰',c:50},{t:'✨ ۲۰',x:20},
   {t:'🪙 ۲۰',c:20},{t:'🪙 ۱۰۰',c:100},{t:'✨ ۵۰',x:50},{t:'🪙 ۵',c:5}
 ];
 let wheelRot=0, wheelSpinning=false, wheelBuilt=false;
@@ -2871,6 +3009,7 @@ $('#wheelBtn').onclick=()=>{
     const s=WHEEL_SEG[idx];
     if(s.c){ addCoins(s.c); toast('🎡 بردی: '+fa(s.c)+' سکه!',true); }
     else if(s.x){ addXP(s.x); toast('🎡 بردی: '+fa(s.x)+' XP!',true); }
+    else if(s.k){ addTickets(s.k); toast('🎡 بردی: '+fa(s.k)+' بلیط مسابقه!',true); }
     else toast('🎡 پوچ! دفعهٔ بعد شانس بیشتری داری');
     openHub();
   },4300);
@@ -2884,11 +3023,201 @@ const BACK_SKINS=[
   {id:'back-royal',   n:'شاهانه',    price:250, cls:'sk-royal'},
   {id:'back-night',   n:'شب نقره‌ای',price:400, cls:'sk-night'},
 ];
-const IAP_PACKS=[
-  {sku:'coins_500',  n:'۵۰۰ سکه',    c:500},
-  {sku:'coins_1500', n:'۱٬۵۰۰ سکه',  c:1500},
-  {sku:'coins_4000', n:'۴٬۰۰۰ سکه',  c:4000},
+/* ================================================================
+   محصولات درون‌برنامه‌ای — دقیقاً مطابق «لیست محصولات درون‌برنامه‌ای» پنل مایکت
+   شناسه‌ها (sku) باید مو‌به‌مو با پنل یکی باشند وگرنه خرید انجام نمی‌شود.
+   قیمت‌ها فقط برای نمایش‌اند؛ مبلغ واقعی را خود مایکت از پنل می‌خواند.
+   ================================================================ */
+const IAP_PRODUCTS=[
+  {sku:'coins_500',        kind:'coins', ic:'🪙', n:'۵۰۰ سکه',            coins:500,  tickets:1,  rial:100000},
+  {sku:'coins_1500',       kind:'coins', ic:'🪙', n:'۱٬۵۰۰ سکه',          coins:1500, tickets:3,  rial:250000},
+  {sku:'coins_4000',       kind:'coins', ic:'🪙', n:'۴٬۰۰۰ سکه',          coins:4000, tickets:10, rial:500000},
+  {sku:'vip_subscription',   kind:'vip', ic:'👑', n:'اشتراک VIP — ۱ ماهه', days:30, tickets:3,  rial:500000},
+  {sku:'vip_subscription_2', kind:'vip', ic:'👑', n:'اشتراک VIP — ۲ ماهه', days:60, tickets:7,  rial:550000},
+  {sku:'vip_subscription_3', kind:'vip', ic:'👑', n:'اشتراک VIP — ۳ ماهه', days:90, tickets:12, rial:600000},
 ];
+function productBySku(sku){ return IAP_PRODUCTS.find(p=>p.sku===sku)||null; }
+function toman(rial){ return fa(Math.round(rial/10).toLocaleString('en-US'))+' تومان'; }
+
+/* ---------------- پل خرید مایکت (WebView اندروید) ----------------
+   اپلیکیشن اندرویدی، شیء MyketBilling را داخل صفحه تزریق می‌کند:
+     MyketBilling.buy(sku, payload)   → شروع خرید
+     MyketBilling.restore()           → فهرست خریدهای قبلی
+     MyketBilling.consume(token)      → مصرف بستهٔ سکه تا دوباره قابل خرید شود
+   و بعد از هر رویداد یکی از توابع window.onMyketPurchase / onMyketRestore /
+   onMyketError را صدا می‌زند. قرارداد کامل در android/BRIDGE.md آمده است. */
+function myketBridge(){
+  const b=window.MyketBilling||window.AndroidBilling||window.MyketIAB||null;
+  return (b&&typeof b.buy==='function')?b:null;
+}
+function iapAvailable(){ return !!myketBridge(); }
+function bridgeCall(name,a,b2){
+  const br=myketBridge();
+  if(!br||typeof br[name]!=='function')return false;
+  try{ br[name](a,b2); return true; }catch(e){ return false; }
+}
+
+/* ---------------- صف خریدهای تأییدنشده ----------------
+   خرید بلافاصله در حافظه ذخیره می‌شود؛ حتی اگر برنامه بسته شود یا اینترنت
+   قطع باشد، در اولین فرصت به سرور فرستاده و تأیید می‌شود. */
+let iapSyncing=false;
+function iapQueue(entry){
+  PROG.pendingIap.push(entry);
+  if(PROG.pendingIap.length>50)PROG.pendingIap=PROG.pendingIap.slice(-50);
+  progSave();
+}
+function iapAlreadyDone(orderId){
+  return !!orderId&&PROG.iapOrders.indexOf(orderId)!==-1;
+}
+function iapMarkDone(orderId){
+  if(!orderId||iapAlreadyDone(orderId))return;
+  PROG.iapOrders.push(orderId);
+  if(PROG.iapOrders.length>300)PROG.iapOrders=PROG.iapOrders.slice(-300);
+}
+function parseOrderId(purchaseData){
+  try{ const o=JSON.parse(purchaseData); return o.orderId||o.purchaseToken||''; }catch(e){ return ''; }
+}
+function parseToken(purchaseData){
+  try{ const o=JSON.parse(purchaseData); return o.purchaseToken||''; }catch(e){ return ''; }
+}
+
+/* اعمال جایزهٔ خرید — تنها نقطه‌ای که سکه/VIP/بلیط اضافه می‌شود */
+function applyGrant(g,label){
+  if(!g)return;
+  let parts=[];
+  if(g.coins>0){ addCoins(g.coins); parts.push('🪙 '+fa(g.coins)+' سکه'); }
+  if(g.tickets>0){ PROG.tickets=(PROG.tickets||0)+g.tickets; parts.push('🎟️ '+fa(g.tickets)+' بلیط'); }
+  if(g.vipDays>0){ grantVipDays(g.vipDays); parts.push('👑 '+fa(g.vipDays)+' روز VIP'); }
+  progSave(); renderProgChip(); applyVipUI();
+  try{ if($('#shop').classList.contains('active'))openShop(); }catch(e){}
+  try{ if($('#vip').classList.contains('active'))openVip(); }catch(e){}
+  toast('خرید موفق! '+(label?label+' — ':'')+parts.join(' + ')+' اضافه شد 🎉',true);
+}
+function localGrantOf(sku){
+  const p=productBySku(sku); if(!p)return null;
+  return {coins:p.coins||0, tickets:p.tickets||0, vipDays:p.days||0};
+}
+
+/* ارسال خریدهای در صف به سرور برای تأیید امضای مایکت */
+async function syncPendingPurchases(silent){
+  if(iapSyncing)return;
+  if(!PROG.pendingIap.length)return;
+  /* بدون سرور: خود مایکت خرید را روی گوشی تأیید کرده؛ همان‌جا جایزه داده می‌شود */
+  if(!serverConfigured()){
+    const list=PROG.pendingIap.splice(0,PROG.pendingIap.length);
+    list.forEach(e=>{
+      if(iapAlreadyDone(e.orderId))return;
+      iapMarkDone(e.orderId);
+      PROG.iap.push({sku:e.sku,ts:Date.now(),orderId:e.orderId,verified:false});
+      const g=localGrantOf(e.sku);
+      if(g)applyGrant(g,productBySku(e.sku).n);
+      if(e.token&&productBySku(e.sku)&&productBySku(e.sku).kind==='coins')bridgeCall('consume',e.token);
+    });
+    progSave();
+    return;
+  }
+  iapSyncing=true;
+  try{
+    while(PROG.pendingIap.length){
+      const e=PROG.pendingIap[0];
+      if(iapAlreadyDone(e.orderId)){ PROG.pendingIap.shift(); progSave(); continue; }
+      let res=null;
+      try{
+        res=await api('/api/iap/myket/verify',{method:'POST',body:{
+          sku:e.sku, purchaseData:e.purchaseData, signature:e.signature,
+          deviceId:deviceId(), username:SET.profileUsername||''
+        }},15000);
+      }catch(err){
+        if(err&&(err.status===400||err.status===403)){
+          // امضا معتبر نیست یا محصول ناشناخته است: از صف حذف می‌شود تا حلقه نزند
+          PROG.pendingIap.shift(); progSave();
+          if(!silent)toast('تأیید این خرید ناموفق بود. با پشتیبانی تماس بگیر.');
+          continue;
+        }
+        // خطای شبکه: در صف می‌ماند و بعداً دوباره تلاش می‌شود
+        if(!silent)toast('اینترنت در دسترس نیست؛ خرید ثبت شد و به‌محض اتصال اعمال می‌شود.');
+        break;
+      }
+      PROG.pendingIap.shift();
+      iapMarkDone(e.orderId||(res&&res.orderId));
+      PROG.iap.push({sku:e.sku,ts:Date.now(),orderId:e.orderId||(res&&res.orderId)||'',verified:true});
+      progSave();
+      /* پاسخ duplicate یعنی سرور این سفارش را قبلاً دیده — ولی چون بالاتر با
+         iapAlreadyDone مطمئن شده‌ایم این گوشی هنوز جایزه‌اش را نگرفته، جایزه
+         داده می‌شود. این همان حالتی است که کاربر برنامه را دوباره نصب کرده و
+         «بازیابی خریدهای قبلی» را می‌زند؛ وگرنه خریدش را از دست می‌داد. */
+      if(res&&res.ok&&res.grant)applyGrant(res.grant,(productBySku(e.sku)||{}).n);
+      if(e.token&&(productBySku(e.sku)||{}).kind==='coins')bridgeCall('consume',e.token);
+    }
+  } finally { iapSyncing=false; progSave(); }
+}
+
+/* شروع خرید */
+function iapBuy(sku){
+  const p=productBySku(sku);
+  if(!p){ toast('این محصول در دسترس نیست'); return; }
+  if(!iapAvailable()){
+    toast('خرید فقط در نسخهٔ نصب‌شده از مایکت انجام می‌شود؛ برنامه را از مایکت نصب کن.');
+    return;
+  }
+  const payload=JSON.stringify({d:deviceId(),u:SET.profileUsername||'',t:Date.now()});
+  toast('در حال باز کردن درگاه مایکت…');
+  if(!bridgeCall('buy',sku,payload))toast('شروع خرید ممکن نشد؛ دوباره امتحان کن');
+}
+
+/* ---------------- توابعی که اپلیکیشن اندروید صدا می‌زند ---------------- */
+function iapOnPurchase(a,b2,c){
+  // هم شیء و هم سه رشتهٔ جدا پشتیبانی می‌شود
+  let o=a;
+  if(typeof a==='string'&&(b2!==undefined))o={sku:a,purchaseData:b2,signature:c};
+  else if(typeof a==='string'){ try{ o=JSON.parse(a); }catch(e){ o=null; } }
+  if(!o||!o.sku){ toast('پاسخ درگاه خوانده نشد؛ اگر مبلغ کم شد، «بازیابی خریدهای قبلی» را بزن.'); return; }
+  if(o.error){ iapOnError(o.error,o.sku); return; }
+  const orderId=o.orderId||parseOrderId(o.purchaseData);
+  if(iapAlreadyDone(orderId)){ toast('این خرید قبلاً اعمال شده بود.'); return; }
+  iapQueue({sku:o.sku, purchaseData:o.purchaseData||'', signature:o.signature||'',
+            orderId:orderId, token:o.purchaseToken||parseToken(o.purchaseData), ts:Date.now()});
+  syncPendingPurchases();
+}
+function iapOnRestore(list){
+  let arr=list;
+  if(typeof list==='string'){ try{ arr=JSON.parse(list); }catch(e){ arr=[]; } }
+  if(!Array.isArray(arr)){ toast('خریدی برای بازیابی پیدا نشد'); return; }
+  let added=0;
+  arr.forEach(o=>{
+    if(!o||!o.sku||!productBySku(o.sku))return;
+    const orderId=o.orderId||parseOrderId(o.purchaseData);
+    if(iapAlreadyDone(orderId))return;
+    iapQueue({sku:o.sku, purchaseData:o.purchaseData||'', signature:o.signature||'',
+              orderId:orderId, token:o.purchaseToken||parseToken(o.purchaseData), ts:Date.now()});
+    added++;
+  });
+  if(added)syncPendingPurchases(); else toast('خرید جدیدی برای بازیابی پیدا نشد');
+}
+function iapOnError(msg,sku){
+  const m=String(msg||'');
+  if(/cancel|لغو/i.test(m)){ toast('خرید لغو شد'); return; }
+  if(/already|owned/i.test(m)){ toast('این محصول را قبلاً خریده‌ای؛ «بازیابی خریدهای قبلی» را بزن.'); iapRestore(true); return; }
+  toast('خرید انجام نشد'+(sku?'':'')+'؛ دوباره امتحان کن');
+}
+function iapRestore(silent){
+  if(!iapAvailable()){ if(!silent)toast('بازیابی فقط در نسخهٔ نصب‌شده از مایکت ممکن است'); return; }
+  if(!bridgeCall('restore')){ if(!silent)toast('بازیابی در این نسخه پشتیبانی نمی‌شود'); return; }
+  if(!silent)toast('در حال بررسی خریدهای قبلی…');
+}
+window.onMyketPurchase=iapOnPurchase;
+window.onMyketRestore=iapOnRestore;
+window.onMyketError=iapOnError;
+/* پل‌های نسخه‌های قدیمی‌تر اپلیکیشن اندروید (بدون رسید و امضا).
+   فقط وقتی کار می‌کنند که اپلیکیشن واقعاً حاضر باشد؛ در مرورگر معمولی
+   نمی‌شود با صدا زدن آن‌ها چیزی رایگان گرفت. */
+window.grantPurchase=function(sku){
+  if(!iapAvailable())return;
+  const g=localGrantOf(sku); if(!g)return;
+  const p=productBySku(sku);
+  PROG.iap.push({sku:sku,ts:Date.now(),verified:false});
+  applyGrant(g,p.n);
+};
 function applySkin(){
   ['skin-emerald','skin-crimson','skin-royal','skin-night'].forEach(c=>document.body.classList.remove(c));
   const s=BACK_SKINS.find(x=>x.id===PROG.activeBack);
@@ -2922,56 +3251,74 @@ function openShop(){
     };
     g.appendChild(item);
   });
-  const pk=$('#shopPacks'); pk.innerHTML='';
-  IAP_PACKS.forEach(x=>{
+  renderIapList('#shopPacks','coins');
+  renderIapList('#shopVipPacks','vip');
+  const hint=$('#shopIapHint');
+  if(hint)hint.textContent=iapAvailable()
+    ? 'پرداخت از طریق درگاه مایکت انجام می‌شود.'
+    : 'خرید فقط در نسخهٔ نصب‌شده از مایکت فعال است؛ اینجا فقط لیست محصولات را می‌بینی.';
+  const tk=$('#shopTickets');
+  if(tk)tk.innerHTML=
+     '<div class="mission-row"><div class="mi"><div class="mt">🎟️ بلیط‌های تو</div>'
+    +'<div class="hint">'+fa(PROG.tickets||0)+' بلیط</div></div></div>'
+    +'<div class="hint" style="line-height:2">بلیط جداگانه فروخته نمی‌شود؛ با هر بستهٔ سکه و هر اشتراک VIP بلیط هدیه می‌گیری، '
+    +'و هر بار جایزهٔ ورود روزانه یا جایزهٔ بزرگ چرخ شانس هم بلیط دارد.</div>';
+  const rh=$('#restoreHint');
+  if(rh&&PROG.pendingIap.length)rh.textContent='⏳ '+fa(PROG.pendingIap.length)+' خرید در انتظار تأیید است؛ با وصل شدن اینترنت خودکار اعمال می‌شود.';
+}
+/* لیست محصولات درون‌برنامه‌ای (سکه یا VIP) */
+function renderIapList(sel,kind){
+  const box=$(sel); if(!box)return;
+  box.innerHTML='';
+  const on=iapAvailable();
+  IAP_PRODUCTS.filter(p=>p.kind===kind).forEach(x=>{
     const row=document.createElement('div'); row.className='mission-row';
-    row.innerHTML='<div class="mi"><div class="mt">💰 '+x.n+'</div></div>';
-    const b=document.createElement('button'); b.className='small-btn claim-ready'; b.style.margin='0'; b.textContent='خرید';
-    b.onclick=()=>{
-      const bridge=window.AndroidBilling||window.MyketBilling;
-      if(bridge&&bridge.buy){
-        try{ bridge.buy(x.sku); }catch(e){ toast('شروع خرید ممکن نشد؛ دوباره امتحان کن'); }
-      } else toast('خرید درون‌برنامه‌ای فقط در نسخهٔ نصب‌شده از مایکت یا گوگل‌پلی فعال است');
-    };
-    row.appendChild(b); pk.appendChild(row);
+    const extra=x.kind==='coins'
+      ? ('🪙 '+fa(x.coins)+' سکه'+(x.tickets?' + 🎟️ '+fa(x.tickets)+' بلیط':''))
+      : ('👑 '+fa(x.days)+' روز'+(x.tickets?' + 🎟️ '+fa(x.tickets)+' بلیط':''));
+    const info=document.createElement('div'); info.className='mi';
+    info.innerHTML='<div class="mt">'+x.ic+' '+esc(x.n)+'</div><div class="hint">'+extra+' — '+toman(x.rial)+'</div>';
+    const b=document.createElement('button');
+    b.className='small-btn'+(on?' claim-ready':''); b.style.margin='0';
+    b.textContent=on?'خرید':'غیرفعال';
+    b.disabled=!on;
+    b.onclick=()=>iapBuy(x.sku);
+    row.appendChild(info); row.appendChild(b); box.appendChild(row);
   });
 }
-/* پل خرید: نسخهٔ اندرویدی بعد از خرید موفق این تابع را صدا می‌زند */
-window.grantPurchase=function(sku){
-  const p=IAP_PACKS.find(x=>x.sku===sku); if(!p)return;
-  PROG.iap.push({sku:sku,ts:Date.now()});
-  addCoins(p.c); progSave();
-  toast('خرید موفق! '+p.n+' اضافه شد 🎉',true);
-  try{ if($('#shop').classList.contains('active'))openShop(); }catch(e){}
-};
 
 /* ----- جدول رتبه‌بندی ----- */
 function boardSubmit(){
-  if(!firebaseConfigured()||!SET.profileUsername)return Promise.resolve();
-  return fetch(FIREBASE_DB_URL+'/leaderboard/'+encodeURIComponent(SET.profileUsername)+'.json',
-    {method:'PUT',body:JSON.stringify({u:SET.profileUsername,n:SET.pName,t:PROG.trophies,l:PROG.level})}).catch(()=>{});
+  if(!serverConfigured()||!SET.profileUsername)return Promise.resolve();
+  return api('/api/leaderboard',{method:'POST',body:{
+    username:SET.profileUsername, name:SET.pName,
+    trophies:PROG.trophies, level:PROG.level, deviceId:deviceId()
+  }},9000).catch(()=>{});
 }
 async function openBoard(){
   const st=$('#boardStatus'), list=$('#boardList'); list.innerHTML='';
   const meU=SET.profileUsername||'';
-  if(!firebaseConfigured()){
-    st.textContent='جدول جهانی وقتی فعال می‌شود که آدرس سرور رایگان (Firebase) در کد تنظیم شود. فعلاً کارنامهٔ خودت:';
-    list.innerHTML='<div class="board-row me"><span>۱. '+esc(SET.pName)+(meU?' (@'+esc(meU)+')':'')+'</span>'
-      +'<span>🏆 '+fa(PROG.trophies)+' | سطح '+fa(PROG.level)+'</span></div>';
+  const localCard='<div class="board-row me"><span>۱. '+esc(SET.pName)+(meU?' (@'+esc(meU)+')':'')+'</span>'
+    +'<span>🏆 '+fa(PROG.trophies)+' | سطح '+fa(PROG.level)+'</span></div>';
+  if(!serverConfigured()){
+    st.textContent='جدول جهانی وقتی فعال می‌شود که آدرس سرور بازی در «تنظیمات» وارد شود. فعلاً کارنامهٔ خودت:';
+    list.innerHTML=localCard;
     return;
   }
   st.textContent='در حال دریافت جدول…';
   try{
     await boardSubmit();
-    const r=await fetch(FIREBASE_DB_URL+'/leaderboard.json');
-    const data=await r.json()||{};
-    const rows=Object.values(data).filter(x=>x&&x.u).sort((a,b)=>(b.t||0)-(a.t||0)).slice(0,50);
+    const data=await api('/api/leaderboard',{method:'GET'},12000);
+    const rows=(data&&Array.isArray(data.rows))?data.rows:[];
     st.textContent='🏆 برترین بازیکنان بر اساس جام';
     list.innerHTML=rows.length?rows.map((x,i)=>
-      '<div class="board-row'+(x.u===meU?' me':'')+'"><span>'+fa(i+1)+'. '+esc(String(x.n||x.u).slice(0,16))+'</span>'
-      +'<span>🏆 '+fa(x.t||0)+' | س '+fa(x.l||1)+'</span></div>').join('')
+      '<div class="board-row'+(x.username===meU?' me':'')+'"><span>'+fa(i+1)+'. '+esc(String(x.name||x.username).slice(0,16))+'</span>'
+      +'<span>🏆 '+fa(x.trophies||0)+' | س '+fa(x.level||1)+'</span></div>').join('')
       :'<div class="hint">هنوز کسی در جدول ثبت نشده — تو اولین نفر باش!</div>';
-  }catch(e){ st.textContent='دریافت جدول ممکن نشد؛ اینترنت را بررسی کن.'; }
+  }catch(e){
+    st.textContent='دریافت جدول ممکن نشد؛ اینترنت یا آدرس سرور را بررسی کن. فعلاً کارنامهٔ خودت:';
+    list.innerHTML=localCard;
+  }
 }
 
 /* ----- یکتایی نام‌کاربری ----- */
@@ -2982,16 +3329,17 @@ function deviceId(){
 }
 async function claimUsername(u){
   if(!u)return{ok:false,msg:'نام‌کاربری خالی است'};
-  if(!firebaseConfigured())return{ok:true,offline:true};
+  if(!serverConfigured())return{ok:true,offline:true};
   try{
-    const r=await fetch(FIREBASE_DB_URL+'/usernames/'+encodeURIComponent(u)+'.json');
-    const owner=await r.json();
-    if(owner&&owner!==deviceId())return{ok:false,msg:'این نام‌کاربری قبلاً گرفته شده؛ یکی دیگر انتخاب کن'};
-    await fetch(FIREBASE_DB_URL+'/usernames/'+encodeURIComponent(u)+'.json',{method:'PUT',body:JSON.stringify(deviceId())});
-    const old=SET.profileUsername;
-    if(old&&old!==u)fetch(FIREBASE_DB_URL+'/usernames/'+encodeURIComponent(old)+'.json',{method:'DELETE'}).catch(()=>{});
+    const r=await api('/api/username/claim',{method:'POST',body:{
+      username:u, deviceId:deviceId(), previous:SET.profileUsername||''
+    }},12000);
+    if(r&&r.ok===false)return{ok:false,msg:r.message||'این نام‌کاربری قبلاً گرفته شده؛ یکی دیگر انتخاب کن'};
     return{ok:true};
-  }catch(e){ return{ok:true,offline:true}; } // بدون اینترنت: پذیرفته می‌شود و با اولین اتصال ثبت می‌شود
+  }catch(e){
+    if(e&&e.status===409)return{ok:false,msg:'این نام‌کاربری قبلاً گرفته شده؛ یکی دیگر انتخاب کن'};
+    return{ok:true,offline:true}; // بدون اینترنت: پذیرفته می‌شود و با اولین اتصال ثبت می‌شود
+  }
 }
 
 /* ----- چت بازی دو نفره ----- */
@@ -3072,33 +3420,61 @@ function renderPresets(containerId,apply){
   });
 }
 
-/* ================= اشتراک VIP ================= */
+/* ================= اشتراک VIP (مدت‌دار) =================
+   VIP دیگر یک کلید روشن/خاموش نیست: هر خرید، روزهای مشخصی به اشتراک اضافه
+   می‌کند و بعد از پایان مدت خودکار غیرفعال می‌شود. PROG.vip فقط خلاصهٔ همین
+   تاریخ است تا بقیهٔ بخش‌های بازی بدون تغییر کار کنند. */
+const DAY_MS=86400000;
+function vipActive(){ return !!PROG.vipUntil&&Date.now()<PROG.vipUntil; }
+function vipDaysLeft(){ return vipActive()?Math.max(1,Math.ceil((PROG.vipUntil-Date.now())/DAY_MS)):0; }
+function refreshVipState(){
+  const on=vipActive();
+  if(PROG.vip!==on){
+    PROG.vip=on; progSave(); applyVipUI(); renderProgChip();
+    if(!on)toast('اشتراک VIP تو به پایان رسید');
+  }
+  return on;
+}
 function applyVipUI(){
   document.body.classList.toggle('is-vip', !!PROG.vip);
-  const b=$('#vipBadge'); if(b)b.style.display=PROG.vip?'inline-block':'none';
+  const b=$('#vipBadge'); if(b)b.title=PROG.vip?'اشتراک VIP فعال است':'فعال‌سازی اشتراک VIP';
+  const t=$('#vipStateTxt'); if(t)t.textContent=PROG.vip?'فعال':'اشتراک';
   const av=$('#menuAvatar'); if(av)av.style.borderColor=PROG.vip?'#ffd75e':'var(--gold)';
 }
 function openVip(){
+  refreshVipState();
   const on=PROG.vip;
-  $('#vipState').textContent=on?'✅ اشتراک VIP تو فعال است — از همهٔ امتیازها بهره‌مندی':'با VIP، بازی را حرفه‌ای‌تر تجربه کن';
-  $('#btnBuyVip').style.display=on?'none':'flex';
-  $('#btnCancelVip').style.display=on?'flex':'none';
+  $('#vipState').textContent=on
+    ? '✅ اشتراک VIP تو فعال است — '+fa(vipDaysLeft())+' روز باقی مانده'
+    : 'با VIP، بازی را حرفه‌ای‌تر تجربه کن';
+  renderIapList('#vipPacks','vip');
+  const h=$('#vipBuyHint');
+  if(h)h.textContent=iapAvailable()
+    ? (on?'با خرید دوباره، روزهای جدید به اشتراک فعلی اضافه می‌شود.':'پرداخت از طریق درگاه مایکت انجام می‌شود.')
+    : 'خرید اشتراک فقط در نسخهٔ نصب‌شده از مایکت فعال است.';
+  const r=$('#btnRestoreVip'); if(r)r.style.display=iapAvailable()?'block':'none';
 }
-function grantVip(){
+function grantVipDays(days){
+  days=Math.max(0,parseInt(days,10)||0); if(!days)return;
+  const base=Math.max(Date.now(),PROG.vipUntil||0);
+  PROG.vipUntil=base+days*DAY_MS;
   PROG.vip=true;
   // باز کردن همهٔ طرح‌های پشت کارت برای VIP
   BACK_SKINS.forEach(s=>{ if(!PROG.owned.includes(s.id))PROG.owned.push(s.id); });
-  progSave(); applyVipUI(); openVip(); renderProgChip();
-  toast('👑 اشتراک VIP فعال شد! از امتیازها لذت ببر',true);
+  progSave(); applyVipUI(); renderProgChip();
 }
-window.grantVip=grantVip; // پل خرید اندروید (مایکت/گوگل‌پلی) بعد از پرداخت موفق
-$('#btnVip').onclick=()=>{ openVip(); show('vip'); };
-$('#btnBuyVip').onclick=()=>{
-  const bridge=window.AndroidBilling||window.MyketBilling;
-  if(bridge&&bridge.buy){ try{ bridge.buy('vip_subscription'); }catch(e){ toast('شروع خرید ممکن نشد'); } }
-  else { grantVip(); } // در مرورگر/دمو مستقیم فعال می‌شود
+/* پل قدیمی اپلیکیشن اندروید: بدون مدت مشخص، یک ماه در نظر گرفته می‌شود */
+window.grantVip=function(days){
+  if(!iapAvailable())return;
+  grantVipDays(days||30); openVip(); toast('👑 اشتراک VIP فعال شد!',true);
 };
-$('#btnCancelVip').onclick=()=>{ PROG.vip=false; progSave(); applyVipUI(); openVip(); renderProgChip(); toast('اشتراک VIP لغو شد'); };
+/* دکمهٔ VIP داخل کادر پروفایل است؛ بدون stopPropagation کلیک به کادر پروفایل
+   می‌رسید و به‌جای صفحهٔ VIP، صفحهٔ پروفایل باز می‌شد. */
+$('#btnVip').onclick=e=>{ e.stopPropagation(); openVip(); show('vip'); };
+$('#btnRestoreVip').onclick=()=>iapRestore();
+$('#btnRestoreIap').onclick=()=>{ iapRestore(); syncPendingPurchases(); };
+refreshVipState();
+setInterval(refreshVipState,60000);   // پایان اشتراک بدون نیاز به باز و بسته کردن بازی
 
 /* ================= تالار افتخارات (دستاوردها و جام‌های خودم) ================= */
 function openHall(){
@@ -3163,8 +3539,7 @@ $('#btnHall').onclick=()=>{ openHall(); show('hall'); };
 $('#btnInvite').onclick=()=>{ openInvite(); show('invite'); };
 $('#btnHub').onclick=()=>{ openHub(); show('hub'); };
 $('#btnShop').onclick=()=>{ openShop(); show('shop'); };
-/* جدول رتبه‌بندی فعلاً از منو حذف شده؛ برای فعال‌سازی دوباره این خط را برگردان:
-   $('#btnBoard').onclick=()=>{ show('board'); openBoard(); }; */
+$('#btnBoard').onclick=()=>{ show('board'); openBoard(); };
 applySkin(); ensureMissions(); renderProgChip(); applyVipUI();
 
 /* ================= پیام ================= */
@@ -3179,30 +3554,48 @@ function toast(msg,big){
 function init(){
   refreshMenu(); applyCardImages();
   probeRepoCards();
-  window.addEventListener('resize',()=>{if(G&&$('#game').classList.contains('active'))render();});
 
   /* ---------- اندازهٔ دقیق صفحه در همهٔ گوشی‌ها (اندروید و آیفون) ----------
-     ارتفاع واقعیِ قابل‌دیدن (بدون نوار آدرس/ناچ) اندازه‌گیری و اعمال می‌شود؛
-     روی آیفون‌های قدیمی‌تر که dvh را نمی‌شناسند هم ابعاد درست می‌ماند. */
-  const setAppVH=()=>{
-    try{
-      const h=(window.visualViewport&&window.visualViewport.height)||window.innerHeight;
-      if(h)document.documentElement.style.setProperty('--app-vh',h+'px');
-    }catch(e){}
+     از window.innerHeight استفاده می‌شود (نه visualViewport.height): مقدار اول با
+     باز شدن کیبورد کوچک نمی‌شود، پس چیدمان بازی هنگام تایپ نمی‌پرد. مقدار روی
+     --app-h می‌نشیند که هم body و هم همهٔ .screen‌ها و هم اندازهٔ کارت‌ها از آن می‌آید. */
+  let lastAppH=0, tgOwnsHeight=false;
+  const applyAppHeight=h=>{
+    h=Math.round(h||0);
+    if(!h||h===lastAppH)return;            // جلوگیری از رندر بی‌مورد و لرزش روی iOS
+    lastAppH=h;
+    document.documentElement.style.setProperty('--app-h',h+'px');
+    if(G&&$('#game').classList.contains('active'))render();
   };
-  setAppVH();
-  window.addEventListener('resize',()=>{ setAppVH(); fitMenu(); });
-  window.addEventListener('orientationchange',()=>setTimeout(()=>{ setAppVH(); fitMenu(); },250));
-  if(window.visualViewport)window.visualViewport.addEventListener('resize',()=>{ setAppVH(); fitMenu(); });
-  fitMenu();
+  const setAppHeight=()=>{
+    if(tgOwnsHeight)return;                // داخل تلگرام، ارتفاع را خود تلگرام می‌دهد
+    try{ applyAppHeight(window.innerHeight||document.documentElement.clientHeight); }catch(e){}
+  };
+  setAppHeight();
+  window.addEventListener('resize',setAppHeight);
+  window.addEventListener('orientationchange',()=>{ setAppHeight(); setTimeout(setAppHeight,250); setTimeout(setAppHeight,600); });
+  window.addEventListener('pageshow',setAppHeight);
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible')setAppHeight(); });
 
   // صفحهٔ لودینگ: کوتاه و جذاب؛ بعد از آن، اگر کاربر هنوز ثبت‌نام نکرده،
-  // مودال ثبت‌نام اجباری نمایش داده می‌شود (مثلاً بعد از نصب از گوگل‌پلی)
+  // مودال ثبت‌نام اجباری نمایش داده می‌شود (مثلاً بعد از نصب از مایکت)
   setTimeout(()=>{
     const sp=$('#splash');
     if(sp){ sp.classList.add('hide'); setTimeout(()=>sp.remove(),650); }
     if(!SET.profileSet)showRegistration(); else maybeDailyLogin();
   },1700);
+
+  /* خریدهای تأییدنشده: در هر بار باز شدن بازی، با برگشت اینترنت و با برگشتن
+     به برنامه دوباره تلاش می‌شود تا هیچ خریدی گم نشود. */
+  setTimeout(()=>{ syncPendingPurchases(true); },2500);
+  window.addEventListener('online',()=>syncPendingPurchases(true));
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible'){ refreshVipState(); syncPendingPurchases(true); }
+  });
+  // اگر اپلیکیشن مایکت بعد از init آماده شد، فروشگاه دوباره رندر می‌شود
+  window.addEventListener('myket-ready',()=>{
+    try{ if($('#shop').classList.contains('active'))openShop(); if($('#vip').classList.contains('active'))openVip(); }catch(e){}
+  });
 
   // تلاش برای قفل جهت عمودی (فقط در حالت نصب‌شده/تمام‌صفحه توسط مرورگر مجاز است)
   try{
@@ -3211,28 +3604,17 @@ function init(){
     }
   }catch(e){}
 
-  /* سازگاری با تلگرام (Telegram Web App): اگر بازی داخل یک بات تلگرام باز شود،
-     ارتفاع واقعی صفحهٔ تلگرام گرفته و اعمال می‌شود. بیرون از تلگرام یا بدون
-     اینترنت، این تلاش بی‌خطر نادیده گرفته می‌شود. */
+  /* سازگاری با تلگرام (Telegram Web App): فقط وقتی بازی واقعاً داخل تلگرام باز شده
+     باشد. اسکریپت telegram.org دیگر از اینترنت گرفته نمی‌شود (در ایران بارگذاری
+     نمی‌شد و فقط شروع بازی را کند می‌کرد)؛ خود تلگرام آن را تزریق می‌کند. */
   try{
-    const tg=document.createElement('script');
-    tg.src='https://telegram.org/js/telegram-web-app.js'; tg.async=true;
-    tg.onload=()=>{
-      try{
-        const T=window.Telegram&&window.Telegram.WebApp;
-        if(!T)return;
-        T.ready(); T.expand();
-        const applyH=()=>{
-          const h=T.viewportStableHeight||T.viewportHeight;
-          if(h)document.documentElement.style.setProperty('--tg-vh',h+'px');
-        };
-        applyH();
-        T.onEvent('viewportChanged',applyH);
-        window.addEventListener('resize',applyH);
-      }catch(e){}
-    };
-    tg.onerror=()=>{}; // بیرون از تلگرام یا آفلاین؛ بازی با ابعاد معمول ادامه می‌دهد
-    document.head.appendChild(tg);
+    const T=window.Telegram&&window.Telegram.WebApp;
+    if(T&&typeof T.expand==='function'){
+      T.ready(); T.expand();
+      const applyH=()=>applyAppHeight(T.viewportStableHeight||T.viewportHeight);
+      if(T.viewportStableHeight||T.viewportHeight){ tgOwnsHeight=true; applyH(); }
+      if(typeof T.onEvent==='function')T.onEvent('viewportChanged',()=>{ tgOwnsHeight=true; applyH(); });
+    }
   }catch(e){}
 
   // مرورگرها پخش صدا را پیش از اولین تعامل کاربر اجازه نمی‌دهند؛
