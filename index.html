@@ -35,6 +35,19 @@
 }
 @supports (height:100dvh){ :root{ --app-h:100dvh; } }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+
+/* ===================== آیکون‌های برداری ===================== */
+.ic{width:1em; height:1em; flex:0 0 auto; display:inline-block; vertical-align:-.14em;
+    color:inherit; pointer-events:none;}
+.ic-gold{color:var(--gold-soft);}
+.ic-coin{color:#f6c85a;}
+.ic-crown{color:#f3d489;}
+.ic-green{color:#7fe0b4;}
+/* رنگ نشان لیگ‌ها */
+.lg-bronze{color:#c98a55;} .lg-silver{color:#cfd8e8; }
+.lg-gold{color:#f3c85a;}   .lg-diamond{color:#7fd8e8;} .lg-master{color:#f3d489;}
+/* آیکون‌های دایره‌ای منو و پایین صفحه */
+.rb-circle .ic,.dk-circle .ic{width:.86em; height:.86em; vertical-align:-.1em;}
 html,body{height:100%;}
 body{
   margin:0; font-family:"Vazirmatn","Segoe UI",Tahoma,Arial,sans-serif;
@@ -288,27 +301,42 @@ body.is-vip .vip-cta{background:linear-gradient(180deg,#2f7d5a,#1f5c40); color:#
 #game::before{content:""; position:absolute; inset:10px; border:2px solid rgba(230,182,76,.28); border-radius:22px; pointer-events:none;}
 .hud{
   flex:0 0 auto; display:flex; align-items:center; justify-content:space-between;
-  padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 6px; gap:8px; z-index:5;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 8px; gap:6px; z-index:5;
 }
-.who{display:flex; flex-direction:column; align-items:center; gap:2px; min-width:86px;}
-.who .nm{font-size:13px; font-weight:800; color:var(--gold-soft); max-width:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.who{position:relative; display:flex; flex-direction:column; align-items:center; gap:2px;
+  flex:0 1 auto; min-width:0; padding:2px 6px 4px; border-radius:13px;
+  border:1px solid transparent; transition:border-color .25s, background .25s;}
+.who .nm{font-size:13px; font-weight:800; color:var(--gold-soft); max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .pile{
-  font-size:11.5px; color:#cfe8dd; background:rgba(0,0,0,.3); border:1px solid rgba(230,182,76,.35);
-  border-radius:20px; padding:3px 10px; cursor:pointer; transition:transform .2s;
+  font-size:11px; color:#cfe8dd; background:rgba(0,0,0,.3); border:1px solid rgba(230,182,76,.35);
+  border-radius:20px; padding:3px 9px; cursor:pointer; transition:transform .2s; white-space:nowrap;
 }
 .pile.capture-pulse{transform:scale(1.2); border-color:var(--gold);}
+/* نوبت هرکس با کادر روشن و نبض ملایم مشخص است — قبلاً فقط یک سایهٔ کم‌رنگ بود */
+.who.active{border-color:rgba(230,182,76,.75); background:rgba(230,182,76,.10);
+  box-shadow:0 0 14px rgba(230,182,76,.22), inset 0 0 12px rgba(230,182,76,.06);}
 .who.active .nm{text-shadow:0 0 12px rgba(230,182,76,.9);}
-.scorebox{text-align:center;}
-.scorebox .sc{font-size:19px; font-weight:800; color:#fff; letter-spacing:1px;}
-.scorebox .tg{font-size:11px; color:#bcd7cd;}
-.deckinfo{position:absolute; top:calc(env(safe-area-inset-top,0px) + 62px); left:16px; z-index:4;
+/* نوار نوبت روی لبهٔ پایین می‌نشیند و هیچ ارتفاعی به نوار بالا اضافه نمی‌کند */
+.who.active::after{content:""; position:absolute; bottom:-2px; left:50%; transform:translateX(-50%);
+  height:3px; width:26px; border-radius:3px;
+  background:linear-gradient(90deg,#c8952e,#f6dd9a,#c8952e); background-size:200% 100%;
+  animation:turnBar 1.8s linear infinite;}
+@keyframes turnBar{to{background-position:-200% 0;}}
+.scorebox{text-align:center; flex:1 1 auto; min-width:0;}
+.scorebox .sc{font-size:19px; font-weight:800; color:#fff; letter-spacing:1px;
+  display:inline-block; transition:transform .18s ease-out, color .18s;}
+.scorebox .sc.bump{transform:scale(1.28); color:var(--gold-soft); text-shadow:0 0 16px rgba(230,182,76,.85);}
+.scorebox .tg{font-size:10.5px; color:#bcd7cd; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.wide-only{display:inline;}
+@media (max-width:389px){ .wide-only{display:none;} .pile{font-size:10px; padding:2px 8px;} }
+.deckinfo{position:absolute; top:calc(env(safe-area-inset-top,0px) + 66px); left:14px; z-index:4;
   display:flex; align-items:center; gap:7px;
   font-size:12px; color:#cfe8dd; background:rgba(0,0,0,.3); border:1px solid rgba(230,182,76,.3); border-radius:12px; padding:4px 10px;}
 .deckpile{position:relative; width:20px; height:28px; flex:0 0 auto;}
 .deckpile i{position:absolute; inset:0; border-radius:4px; background:linear-gradient(160deg,#22345f,#152246);
   border:1px solid rgba(230,182,76,.5);}
 .deckpile i:nth-child(1){transform:translate(-3px,-2px);} .deckpile i:nth-child(2){transform:translate(-1.5px,-1px);}
-.gamebtns{position:absolute; top:calc(env(safe-area-inset-top,0px) + 62px); right:16px; z-index:6; display:flex; gap:8px;}
+.gamebtns{position:absolute; top:calc(env(safe-area-inset-top,0px) + 66px); right:14px; z-index:6; display:flex; gap:8px;}
 .gbtn{
   width:34px; height:34px; border-radius:11px; border:1px solid rgba(230,182,76,.4);
   background:rgba(0,0,0,.35); color:var(--gold-soft); font-size:17px; cursor:pointer;
@@ -317,7 +345,7 @@ body.is-vip .vip-cta{background:linear-gradient(180deg,#2f7d5a,#1f5c40); color:#
 }
 .gbtn:active{transform:scale(.9);}
 .gbtn::after{content:""; position:absolute; inset:-6px;} /* ناحیهٔ لمس ≥44px */
-#surIndicator{position:absolute; top:calc(env(safe-area-inset-top,0px) + 104px); left:16px; z-index:4; display:none;
+#surIndicator{position:absolute; top:calc(env(safe-area-inset-top,0px) + 108px); left:14px; z-index:4; display:none;
   font-size:11.5px; color:#ffe9ad; background:rgba(0,0,0,.35); border:1px solid var(--gold); border-radius:12px; padding:3px 10px;}
 .row{flex:0 0 auto; display:flex; justify-content:center; gap:6px; padding:4px 8px; min-height:calc(var(--ch)*.66); z-index:2;}
 #botRow{min-height:calc(var(--ch)*.5); padding-top:2px;}
@@ -474,9 +502,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
   .dock{padding:5px 6px; margin-top:4px;}
   .hud-profile{padding:4px 8px;}
   .avatar{width:34px; height:34px; font-size:16px;}
-  .hud{padding:calc(env(safe-area-inset-top,0px) + 5px) 14px 3px;}
-  .deckinfo,.gamebtns{top:calc(env(safe-area-inset-top,0px) + 44px);}
-  #surIndicator{top:calc(env(safe-area-inset-top,0px) + 78px);}
+  .hud{padding:calc(env(safe-area-inset-top,0px) + 4px) 12px 3px;}
+  .who{padding:1px 5px 3px;}
+  .who .nm{font-size:11.5px;}
+  .pile{font-size:9.5px; padding:2px 7px;}
+  .scorebox .sc{font-size:16px;}
+  .scorebox .tg{font-size:9.5px;}
+  .deckinfo,.gamebtns{top:calc(env(safe-area-inset-top,0px) + 50px);}
+  #surIndicator{top:calc(env(safe-area-inset-top,0px) + 82px);}
   #selHint{display:none;}
   .scroll{padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 60px);}
   .topbar{padding:calc(env(safe-area-inset-top,0px) + 8px) 16px 8px;}
@@ -538,7 +571,13 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 .prog-chip .lv{color:var(--gold-soft); white-space:nowrap;}
 .prog-chip .co{color:#ffe9ad; white-space:nowrap;}
 .pbar{height:8px; border-radius:6px; background:#131e40; border:1px solid #34477f; overflow:hidden; flex:1;}
-.pbar i{display:block; height:100%; background:linear-gradient(90deg,#c8952e,#f3d489); border-radius:6px; transition:width .4s;}
+.pbar i{display:block; height:100%; border-radius:6px; transition:width .45s cubic-bezier(.2,.8,.3,1);
+  background:linear-gradient(90deg,#c8952e,#f3d489 45%,#fff3cf 55%,#f3d489 65%,#c8952e);
+  background-size:250% 100%; animation:barShine 3.2s linear infinite;}
+@keyframes barShine{to{background-position:-250% 0;}}
+@media (prefers-reduced-motion:reduce){
+  .pbar i,.who.active::after{animation:none;}
+}
 .lvl-badge{width:48px; height:48px; border-radius:50%; background:linear-gradient(180deg,#e9bd57,#c8952e);
   color:#3a2a06; font-weight:800; font-size:19px; display:flex; align-items:center; justify-content:center;
   box-shadow:0 4px 0 #7a5a14; flex:0 0 auto;}
@@ -618,6 +657,60 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 </style>
 </head>
 <body>
+<!-- ===== مجموعهٔ آیکون‌های برداری (Phosphor Icons و Tabler Icons — لایسنس MIT) =====
+     همهٔ آیکون‌ها درون خودِ فایل‌اند: بدون درخواست اینترنتی، کاملاً آفلاین، و روی
+     همهٔ گوشی‌ها یکسان دیده می‌شوند. (ایموجی روی هر اندروید فرق می‌کرد و بعضی‌هایشان
+     روی گوشی‌های قدیمی‌تر مربع خالی نشان داده می‌شد.) -->
+<svg id="iconSprite" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="display:none" aria-hidden="true">
+<symbol id="i-ban" viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm88,104a87.56,87.56,0,0,1-20.41,56.28L71.72,60.4A88,88,0,0,1,216,128ZM40,128A87.56,87.56,0,0,1,60.41,71.72L184.28,195.6A88,88,0,0,1,40,128Z"/></symbol>
+<symbol id="i-bank" viewBox="0 0 256 256" fill="currentColor"><path d="M24,104H48v64H32a8,8,0,0,0,0,16H224a8,8,0,0,0,0-16H208V104h24a8,8,0,0,0,4.19-14.81l-104-64a8,8,0,0,0-8.38,0l-104,64A8,8,0,0,0,24,104Zm40,0H96v64H64Zm80,0v64H112V104Zm48,64H160V104h32ZM128,41.39,203.74,88H52.26ZM248,208a8,8,0,0,1-8,8H16a8,8,0,0,1,0-16H240A8,8,0,0,1,248,208Z"/></symbol>
+<symbol id="i-book" viewBox="0 0 256 256" fill="currentColor"><path d="M232,48H160a40,40,0,0,0-32,16A40,40,0,0,0,96,48H24a8,8,0,0,0-8,8V200a8,8,0,0,0,8,8H96a24,24,0,0,1,24,24,8,8,0,0,0,16,0,24,24,0,0,1,24-24h72a8,8,0,0,0,8-8V56A8,8,0,0,0,232,48ZM96,192H32V64H96a24,24,0,0,1,24,24V200A39.81,39.81,0,0,0,96,192Zm128,0H160a39.81,39.81,0,0,0-24,8V88a24,24,0,0,1,24-24h64ZM160,88h40a8,8,0,0,1,0,16H160a8,8,0,0,1,0-16Zm48,40a8,8,0,0,1-8,8H160a8,8,0,0,1,0-16h40A8,8,0,0,1,208,128Zm0,32a8,8,0,0,1-8,8H160a8,8,0,0,1,0-16h40A8,8,0,0,1,208,160Z"/></symbol>
+<symbol id="i-cards" viewBox="0 0 256 256" fill="currentColor"><path d="M184,72H40A16,16,0,0,0,24,88V200a16,16,0,0,0,16,16H184a16,16,0,0,0,16-16V88A16,16,0,0,0,184,72Zm0,128H40V88H184V200ZM232,56V176a8,8,0,0,1-16,0V56H64a8,8,0,0,1,0-16H216A16,16,0,0,1,232,56Z"/></symbol>
+<symbol id="i-caretdown" viewBox="0 0 256 256" fill="currentColor"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,48,88H208a8,8,0,0,1,5.66,13.66Z"/></symbol>
+<symbol id="i-cart" viewBox="0 0 256 256" fill="currentColor"><path d="M104,216a16,16,0,1,1-16-16A16,16,0,0,1,104,216Zm88-16a16,16,0,1,0,16,16A16,16,0,0,0,192,200ZM239.71,74.14l-25.64,92.28A24.06,24.06,0,0,1,191,184H92.16A24.06,24.06,0,0,1,69,166.42L33.92,40H16a8,8,0,0,1,0-16H40a8,8,0,0,1,7.71,5.86L57.19,64H232a8,8,0,0,1,7.71,10.14ZM221.47,80H61.64l22.81,82.14A8,8,0,0,0,92.16,168H191a8,8,0,0,0,7.71-5.86Z"/></symbol>
+<symbol id="i-chart" viewBox="0 0 256 256" fill="currentColor"><path d="M232,208a8,8,0,0,1-8,8H32a8,8,0,0,1-8-8V48a8,8,0,0,1,16,0V156.69l50.34-50.35a8,8,0,0,1,11.32,0L128,132.69,180.69,80H160a8,8,0,0,1,0-16h40a8,8,0,0,1,8,8v40a8,8,0,0,1-16,0V91.31l-58.34,58.35a8,8,0,0,1-11.32,0L96,123.31l-56,56V200H224A8,8,0,0,1,232,208Z"/></symbol>
+<symbol id="i-chat" viewBox="0 0 256 256" fill="currentColor"><path d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128ZM84,116a12,12,0,1,0,12,12A12,12,0,0,0,84,116Zm88,0a12,12,0,1,0,12,12A12,12,0,0,0,172,116Zm60,12A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Zm-16,0A88,88,0,1,0,51.81,172.06a8,8,0,0,1,.66,6.54L40,216,77.4,203.53a7.85,7.85,0,0,1,2.53-.42,8,8,0,0,1,4,1.08A88,88,0,0,0,216,128Z"/></symbol>
+<symbol id="i-check" viewBox="0 0 256 256" fill="currentColor"><path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"/></symbol>
+<symbol id="i-close" viewBox="0 0 256 256" fill="currentColor"><path d="M205.66,194.34a8,8,0,0,1-11.32,11.32L128,139.31,61.66,205.66a8,8,0,0,1-11.32-11.32L116.69,128,50.34,61.66A8,8,0,0,1,61.66,50.34L128,116.69l66.34-66.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></symbol>
+<symbol id="i-coin" viewBox="0 0 256 256" fill="currentColor"><path d="M184,89.57V84c0-25.08-37.83-44-88-44S8,58.92,8,84v40c0,20.89,26.25,37.49,64,42.46V172c0,25.08,37.83,44,88,44s88-18.92,88-44V132C248,111.3,222.58,94.68,184,89.57ZM56,146.87C36.41,141.4,24,132.39,24,124V109.93c8.16,5.78,19.09,10.44,32,13.57Zm80-23.37c12.91-3.13,23.84-7.79,32-13.57V124c0,8.39-12.41,17.4-32,22.87Zm-16,71.37C100.41,189.4,88,180.39,88,172v-4.17c2.63.1,5.29.17,8,.17,3.88,0,7.67-.13,11.39-.35A121.92,121.92,0,0,0,120,171.41Zm0-44.62A163,163,0,0,1,96,152a163,163,0,0,1-24-1.75V126.46A183.74,183.74,0,0,0,96,128a183.74,183.74,0,0,0,24-1.54Zm64,48a165.45,165.45,0,0,1-48,0V174.4a179.48,179.48,0,0,0,24,1.6,183.74,183.74,0,0,0,24-1.54ZM232,172c0,8.39-12.41,17.4-32,22.87V171.5c12.91-3.13,23.84-7.79,32-13.57Z"/></symbol>
+<symbol id="i-crown" viewBox="0 0 256 256" fill="currentColor"><path d="M248,80a28,28,0,1,0-51.12,15.77l-26.79,33L146,73.4a28,28,0,1,0-36.06,0L85.91,128.74l-26.79-33a28,28,0,1,0-26.6,12L47,194.63A16,16,0,0,0,62.78,208H193.22A16,16,0,0,0,209,194.63l14.47-86.85A28,28,0,0,0,248,80ZM128,40a12,12,0,1,1-12,12A12,12,0,0,1,128,40ZM24,80A12,12,0,1,1,36,92,12,12,0,0,1,24,80ZM220,92a12,12,0,1,1,12-12A12,12,0,0,1,220,92Z"/></symbol>
+<symbol id="i-diamond" viewBox="0 0 256 256" fill="currentColor"><path d="M240,128a15.85,15.85,0,0,1-4.67,11.28l-96.05,96.06a16,16,0,0,1-22.56,0h0l-96-96.06a16,16,0,0,1,0-22.56l96.05-96.06a16,16,0,0,1,22.56,0l96.05,96.06A15.85,15.85,0,0,1,240,128Z"/></symbol>
+<symbol id="i-film" viewBox="0 0 256 256" fill="currentColor"><path d="M216,104H102.09L210,75.51a8,8,0,0,0,5.68-9.84l-8.16-30a15.93,15.93,0,0,0-19.42-11.13L35.81,64.74a15.75,15.75,0,0,0-9.7,7.4,15.51,15.51,0,0,0-1.55,12L32,111.56c0,.14,0,.29,0,.44v88a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V112A8,8,0,0,0,216,104ZM192.16,40l6,22.07-22.62,6L147.42,51.83Zm-66.69,17.6,28.12,16.24-36.94,9.75L88.53,67.37Zm-79.4,44.62-6-22.08,26.5-7L94.69,89.4ZM208,200H48V120H208v80Z"/></symbol>
+<symbol id="i-fire" viewBox="0 0 256 256" fill="currentColor"><path d="M143.38,17.85a8,8,0,0,0-12.63,3.41l-22,60.41L84.59,58.26a8,8,0,0,0-11.93.89C51,87.53,40,116.08,40,144a88,88,0,0,0,176,0C216,84.55,165.21,36,143.38,17.85Zm40.51,135.49a57.6,57.6,0,0,1-46.56,46.55A7.65,7.65,0,0,1,136,200a8,8,0,0,1-1.32-15.89c16.57-2.79,30.63-16.85,33.44-33.45a8,8,0,0,1,15.78,2.68Z"/></symbol>
+<symbol id="i-flag" viewBox="0 0 256 256" fill="currentColor"><path d="M227.32,48.75A8,8,0,0,0,218.76,50c-28,24.22-51.72,12.48-79.21-1.13C111.07,34.76,78.78,18.79,42.76,50A8,8,0,0,0,40,56V224a8,8,0,0,0,16,0V179.77c26.79-21.16,49.87-9.75,76.45,3.41,28.49,14.09,60.77,30.06,96.79-1.13a8,8,0,0,0,2.76-6V56A8,8,0,0,0,227.32,48.75ZM216,71.6v40.65c-14,11.06-27,13.22-40,10.88V79.34A60.05,60.05,0,0,0,216,71.6Zm-56,3.76v43c-6.66-2.67-13.43-6-20.45-9.48-8.82-4.37-18-8.91-27.55-12.18v-43c6.66,2.66,13.43,6,20.45,9.48C141.27,67.55,150.46,72.09,160,75.36ZM96,48.91V92.69a60.06,60.06,0,0,0-40,7.75V59.78C70,48.72,83,46.57,96,48.91ZM86.58,152A60.06,60.06,0,0,0,56,160.43V119.78c14-11.06,27-13.22,40-10.88v43.8A65.61,65.61,0,0,0,86.58,152ZM112,156.67v-43c6.66,2.66,13.43,6,20.45,9.48,8.82,4.37,18,8.9,27.55,12.17v43c-6.66-2.67-13.43-6-20.45-9.48C130.73,164.47,121.54,159.94,112,156.67Zm64,26.45v-43.8a65.61,65.61,0,0,0,9.42.72A60.11,60.11,0,0,0,216,131.57v40.68C202,183.31,189,185.46,176,183.12Z"/></symbol>
+<symbol id="i-gear" viewBox="0 0 256 256" fill="currentColor"><path d="M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Zm109.94-52.79a8,8,0,0,0-3.89-5.4l-29.83-17-.12-33.62a8,8,0,0,0-2.83-6.08,111.91,111.91,0,0,0-36.72-20.67,8,8,0,0,0-6.46.59L128,41.85,97.88,25a8,8,0,0,0-6.47-.6A112.1,112.1,0,0,0,54.73,45.15a8,8,0,0,0-2.83,6.07l-.15,33.65-29.83,17a8,8,0,0,0-3.89,5.4,106.47,106.47,0,0,0,0,41.56,8,8,0,0,0,3.89,5.4l29.83,17,.12,33.62a8,8,0,0,0,2.83,6.08,111.91,111.91,0,0,0,36.72,20.67,8,8,0,0,0,6.46-.59L128,214.15,158.12,231a7.91,7.91,0,0,0,3.9,1,8.09,8.09,0,0,0,2.57-.42,112.1,112.1,0,0,0,36.68-20.73,8,8,0,0,0,2.83-6.07l.15-33.65,29.83-17a8,8,0,0,0,3.89-5.4A106.47,106.47,0,0,0,237.94,107.21Zm-15,34.91-28.57,16.25a8,8,0,0,0-3,3c-.58,1-1.19,2.06-1.81,3.06a7.94,7.94,0,0,0-1.22,4.21l-.15,32.25a95.89,95.89,0,0,1-25.37,14.3L134,199.13a8,8,0,0,0-3.91-1h-.19c-1.21,0-2.43,0-3.64,0a8.08,8.08,0,0,0-4.1,1l-28.84,16.1A96,96,0,0,1,67.88,201l-.11-32.2a8,8,0,0,0-1.22-4.22c-.62-1-1.23-2-1.8-3.06a8.09,8.09,0,0,0-3-3.06l-28.6-16.29a90.49,90.49,0,0,1,0-28.26L61.67,97.63a8,8,0,0,0,3-3c.58-1,1.19-2.06,1.81-3.06a7.94,7.94,0,0,0,1.22-4.21l.15-32.25a95.89,95.89,0,0,1,25.37-14.3L122,56.87a8,8,0,0,0,4.1,1c1.21,0,2.43,0,3.64,0a8.08,8.08,0,0,0,4.1-1l28.84-16.1A96,96,0,0,1,188.12,55l.11,32.2a8,8,0,0,0,1.22,4.22c.62,1,1.23,2,1.8,3.06a8.09,8.09,0,0,0,3,3.06l28.6,16.29A90.49,90.49,0,0,1,222.9,142.12Z"/></symbol>
+<symbol id="i-gift" viewBox="0 0 256 256" fill="currentColor"><path d="M216,72H180.92c.39-.33.79-.65,1.17-1A29.53,29.53,0,0,0,192,49.57,32.62,32.62,0,0,0,158.44,16,29.53,29.53,0,0,0,137,25.91a54.94,54.94,0,0,0-9,14.48,54.94,54.94,0,0,0-9-14.48A29.53,29.53,0,0,0,97.56,16,32.62,32.62,0,0,0,64,49.57,29.53,29.53,0,0,0,73.91,71c.38.33.78.65,1.17,1H40A16,16,0,0,0,24,88v32a16,16,0,0,0,16,16v64a16,16,0,0,0,16,16h60a4,4,0,0,0,4-4V120H40V88h80v32h16V88h80v32H136v92a4,4,0,0,0,4,4h60a16,16,0,0,0,16-16V136a16,16,0,0,0,16-16V88A16,16,0,0,0,216,72ZM84.51,59a13.69,13.69,0,0,1-4.5-10A16.62,16.62,0,0,1,96.59,32h.49a13.69,13.69,0,0,1,10,4.5c8.39,9.48,11.35,25.2,12.39,34.92C109.71,70.39,94,67.43,84.51,59Zm87,0c-9.49,8.4-25.24,11.36-35,12.4C137.7,60.89,141,45.5,149,36.51a13.69,13.69,0,0,1,10-4.5h.49A16.62,16.62,0,0,1,176,49.08,13.69,13.69,0,0,1,171.49,59Z"/></symbol>
+<symbol id="i-globe" viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm88,104a87.62,87.62,0,0,1-6.4,32.94l-44.7-27.49a15.92,15.92,0,0,0-6.24-2.23l-22.82-3.08a16.11,16.11,0,0,0-16,7.86h-8.72l-3.8-7.86a15.91,15.91,0,0,0-11-8.67l-8-1.73L96.14,104h16.71a16.06,16.06,0,0,0,7.73-2l12.25-6.76a16.62,16.62,0,0,0,3-2.14l26.91-24.34A15.93,15.93,0,0,0,166,49.1l-.36-.65A88.11,88.11,0,0,1,216,128ZM143.31,41.34,152,56.9,125.09,81.24,112.85,88H96.14a16,16,0,0,0-13.88,8l-8.73,15.23L63.38,84.19,74.32,58.32a87.87,87.87,0,0,1,69-17ZM40,128a87.53,87.53,0,0,1,8.54-37.8l11.34,30.27a16,16,0,0,0,11.62,10l21.43,4.61L96.74,143a16.09,16.09,0,0,0,14.4,9h1.48l-7.23,16.23a16,16,0,0,0,2.86,17.37l.14.14L128,205.94l-1.94,10A88.11,88.11,0,0,1,40,128Zm102.58,86.78,1.13-5.81a16.09,16.09,0,0,0-4-13.9,1.85,1.85,0,0,1-.14-.14L120,174.74,133.7,144l22.82,3.08,45.72,28.12A88.18,88.18,0,0,1,142.58,214.78Z"/></symbol>
+<symbol id="i-home" viewBox="0 0 256 256" fill="currentColor"><path d="M219.31,108.68l-80-80a16,16,0,0,0-22.62,0l-80,80A15.87,15.87,0,0,0,32,120v96a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V160h32v56a8,8,0,0,0,8,8h64a8,8,0,0,0,8-8V120A15.87,15.87,0,0,0,219.31,108.68ZM208,208H160V152a8,8,0,0,0-8-8H104a8,8,0,0,0-8,8v56H48V120l80-80,80,80Z"/></symbol>
+<symbol id="i-hourglass" viewBox="0 0 256 256" fill="currentColor"><path d="M200,75.64V40a16,16,0,0,0-16-16H72A16,16,0,0,0,56,40V76a16.07,16.07,0,0,0,6.4,12.8L114.67,128,62.4,167.2A16.07,16.07,0,0,0,56,180v36a16,16,0,0,0,16,16H184a16,16,0,0,0,16-16V180.36a16.09,16.09,0,0,0-6.35-12.77L141.27,128l52.38-39.6A16.05,16.05,0,0,0,200,75.64ZM72,40H184V75.64L178.23,80H77.33L72,76Zm56,78L98.67,96h58.4Zm56,98H72V180l48-36v24a8,8,0,0,0,16,0V144.08l48,36.28Z"/></symbol>
+<symbol id="i-info" viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm16-40a8,8,0,0,1-8,8,16,16,0,0,1-16-16V128a8,8,0,0,1,0-16,16,16,0,0,1,16,16v40A8,8,0,0,1,144,176ZM112,84a12,12,0,1,1,12,12A12,12,0,0,1,112,84Z"/></symbol>
+<symbol id="i-link" viewBox="0 0 256 256" fill="currentColor"><path d="M165.66,90.34a8,8,0,0,1,0,11.32l-64,64a8,8,0,0,1-11.32-11.32l64-64A8,8,0,0,1,165.66,90.34ZM215.6,40.4a56,56,0,0,0-79.2,0L106.34,70.45a8,8,0,0,0,11.32,11.32l30.06-30a40,40,0,0,1,56.57,56.56l-30.07,30.06a8,8,0,0,0,11.31,11.32L215.6,119.6a56,56,0,0,0,0-79.2ZM138.34,174.22l-30.06,30.06a40,40,0,1,1-56.56-56.57l30.05-30.05a8,8,0,0,0-11.32-11.32L40.4,136.4a56,56,0,0,0,79.2,79.2l30.06-30.07a8,8,0,0,0-11.32-11.31Z"/></symbol>
+<symbol id="i-lock" viewBox="0 0 256 256" fill="currentColor"><path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80ZM96,56a32,32,0,0,1,64,0V80H96ZM208,208H48V96H208V208Z"/></symbol>
+<symbol id="i-medal" viewBox="0 0 256 256" fill="currentColor"><path d="M216,96A88,88,0,1,0,72,163.83V240a8,8,0,0,0,11.58,7.16L128,225l44.43,22.21A8.07,8.07,0,0,0,176,248a8,8,0,0,0,8-8V163.83A87.85,87.85,0,0,0,216,96ZM56,96a72,72,0,1,1,72,72A72.08,72.08,0,0,1,56,96Zm16,0a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"/></symbol>
+<symbol id="i-menu" viewBox="0 0 256 256" fill="currentColor"><path d="M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM40,72H216a8,8,0,0,0,0-16H40a8,8,0,0,0,0,16ZM216,184H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z"/></symbol>
+<symbol id="i-music" viewBox="0 0 256 256" fill="currentColor"><path d="M212.92,17.69a8,8,0,0,0-6.86-1.45l-128,32A8,8,0,0,0,72,56V166.08A36,36,0,1,0,88,196V110.25l112-28v51.83A36,36,0,1,0,216,164V24A8,8,0,0,0,212.92,17.69ZM52,216a20,20,0,1,1,20-20A20,20,0,0,1,52,216ZM88,93.75V62.25l112-28v31.5ZM180,184a20,20,0,1,1,20-20A20,20,0,0,1,180,184Z"/></symbol>
+<symbol id="i-play" viewBox="0 0 256 256" fill="currentColor"><path d="M232.4,114.49,88.32,26.35a16,16,0,0,0-16.2-.3A15.86,15.86,0,0,0,64,39.87V216.13A15.94,15.94,0,0,0,80,232a16.07,16.07,0,0,0,8.36-2.35L232.4,141.51a15.81,15.81,0,0,0,0-27ZM80,215.94V40l143.83,88Z"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 256 256" fill="currentColor"><path d="M224,128a96,96,0,0,1-94.71,96H128A95.38,95.38,0,0,1,62.1,197.8a8,8,0,0,1,11-11.63A80,80,0,1,0,71.43,71.39a3.07,3.07,0,0,1-.26.25L44.59,96H72a8,8,0,0,1,0,16H24a8,8,0,0,1-8-8V56a8,8,0,0,1,16,0V85.8L60.25,60A96,96,0,0,1,224,128Z"/></symbol>
+<symbol id="i-rocket" viewBox="0 0 256 256" fill="currentColor"><path d="M223.85,47.12a16,16,0,0,0-15-15c-12.58-.75-44.73.4-71.41,27.07L132.69,64H74.36A15.91,15.91,0,0,0,63,68.68L28.7,103a16,16,0,0,0,9.07,27.16l38.47,5.37,44.21,44.21,5.37,38.49a15.94,15.94,0,0,0,10.78,12.92,16.11,16.11,0,0,0,5.1.83A15.91,15.91,0,0,0,153,227.3L187.32,193A15.91,15.91,0,0,0,192,181.64V123.31l4.77-4.77C223.45,91.86,224.6,59.71,223.85,47.12ZM74.36,80h42.33L77.16,119.52,40,114.34Zm74.41-9.45a76.65,76.65,0,0,1,59.11-22.47,76.46,76.46,0,0,1-22.42,59.16L128,164.68,91.32,128ZM176,181.64,141.67,216l-5.19-37.17L176,139.31Zm-74.16,9.5C97.34,201,82.29,224,40,224a8,8,0,0,1-8-8c0-42.29,23-57.34,32.86-61.85a8,8,0,0,1,6.64,14.56c-6.43,2.93-20.62,12.36-23.12,38.91,26.55-2.5,36-16.69,38.91-23.12a8,8,0,1,1,14.56,6.64Z"/></symbol>
+<symbol id="i-save" viewBox="0 0 256 256" fill="currentColor"><path d="M219.31,72,184,36.69A15.86,15.86,0,0,0,172.69,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V83.31A15.86,15.86,0,0,0,219.31,72ZM168,208H88V152h80Zm40,0H184V152a16,16,0,0,0-16-16H88a16,16,0,0,0-16,16v56H48V48H172.69L208,83.31ZM160,72a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h56A8,8,0,0,1,160,72Z"/></symbol>
+<symbol id="i-sort" viewBox="0 0 256 256" fill="currentColor"><path d="M128,128a8,8,0,0,1-8,8H48a8,8,0,0,1,0-16h72A8,8,0,0,1,128,128ZM48,72H184a8,8,0,0,0,0-16H48a8,8,0,0,0,0,16Zm56,112H48a8,8,0,0,0,0,16h56a8,8,0,0,0,0-16Zm125.66-21.66a8,8,0,0,0-11.32,0L192,188.69V112a8,8,0,0,0-16,0v76.69l-26.34-26.35a8,8,0,0,0-11.32,11.32l40,40a8,8,0,0,0,11.32,0l40-40A8,8,0,0,0,229.66,162.34Z"/></symbol>
+<symbol id="i-sparkle" viewBox="0 0 256 256" fill="currentColor"><path d="M208,144a15.78,15.78,0,0,1-10.42,14.94L146,178l-19,51.62a15.92,15.92,0,0,1-29.88,0L78,178l-51.62-19a15.92,15.92,0,0,1,0-29.88L78,110l19-51.62a15.92,15.92,0,0,1,29.88,0L146,110l51.62,19A15.78,15.78,0,0,1,208,144ZM152,48h16V64a8,8,0,0,0,16,0V48h16a8,8,0,0,0,0-16H184V16a8,8,0,0,0-16,0V32H152a8,8,0,0,0,0,16Zm88,32h-8V72a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16h8v8a8,8,0,0,0,16,0V96h8a8,8,0,0,0,0-16Z"/></symbol>
+<symbol id="i-star" viewBox="0 0 256 256" fill="currentColor"><path d="M234.29,114.85l-45,38.83L203,211.75a16.4,16.4,0,0,1-24.5,17.82L128,198.49,77.47,229.57A16.4,16.4,0,0,1,53,211.75l13.76-58.07-45-38.83A16.46,16.46,0,0,1,31.08,86l59-4.76,22.76-55.08a16.36,16.36,0,0,1,30.27,0l22.75,55.08,59,4.76a16.46,16.46,0,0,1,9.37,28.86Z"/></symbol>
+<symbol id="i-target" viewBox="0 0 256 256" fill="currentColor"><path d="M221.87,83.16A104.1,104.1,0,1,1,195.67,49l22.67-22.68a8,8,0,0,1,11.32,11.32l-96,96a8,8,0,0,1-11.32-11.32l27.72-27.72a40,40,0,1,0,17.87,31.09,8,8,0,1,1,16-.9,56,56,0,1,1-22.38-41.65L184.3,60.39a87.88,87.88,0,1,0,23.13,29.67,8,8,0,0,1,14.44-6.9Z"/></symbol>
+<symbol id="i-ticket" viewBox="0 0 256 256" fill="currentColor"><path d="M232,104a8,8,0,0,0,8-8V64a16,16,0,0,0-16-16H32A16,16,0,0,0,16,64V96a8,8,0,0,0,8,8,24,24,0,0,1,0,48,8,8,0,0,0-8,8v32a16,16,0,0,0,16,16H224a16,16,0,0,0,16-16V160a8,8,0,0,0-8-8,24,24,0,0,1,0-48ZM32,167.2a40,40,0,0,0,0-78.4V64H88V192H32Z"/></symbol>
+<symbol id="i-trophy" viewBox="0 0 256 256" fill="currentColor"><path d="M232,64H208V48a8,8,0,0,0-8-8H56a8,8,0,0,0-8,8V64H24A16,16,0,0,0,8,80V96a40,40,0,0,0,40,40h3.65A80.13,80.13,0,0,0,120,191.61V216H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16H136V191.58c31.94-3.23,58.44-25.64,68.08-55.58H208a40,40,0,0,0,40-40V80A16,16,0,0,0,232,64ZM48,120A24,24,0,0,1,24,96V80H48v32q0,4,.39,8ZM232,96a24,24,0,0,1-24,24h-.5a81.81,81.81,0,0,0,.5-8.9V80h24Z"/></symbol>
+<symbol id="i-user" viewBox="0 0 256 256" fill="currentColor"><path d="M230.92,212c-15.23-26.33-38.7-45.21-66.09-54.16a72,72,0,1,0-73.66,0C63.78,166.78,40.31,185.66,25.08,212a8,8,0,1,0,13.85,8c18.84-32.56,52.14-52,89.07-52s70.23,19.44,89.07,52a8,8,0,1,0,13.85-8ZM72,96a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"/></symbol>
+<symbol id="i-users" viewBox="0 0 256 256" fill="currentColor"><path d="M244.8,150.4a8,8,0,0,1-11.2-1.6A51.6,51.6,0,0,0,192,128a8,8,0,0,1-7.37-4.89,8,8,0,0,1,0-6.22A8,8,0,0,1,192,112a24,24,0,1,0-23.24-30,8,8,0,1,1-15.5-4A40,40,0,1,1,219,117.51a67.94,67.94,0,0,1,27.43,21.68A8,8,0,0,1,244.8,150.4ZM190.92,212a8,8,0,1,1-13.84,8,57,57,0,0,0-98.16,0,8,8,0,1,1-13.84-8,72.06,72.06,0,0,1,33.74-29.92,48,48,0,1,1,58.36,0A72.06,72.06,0,0,1,190.92,212ZM128,176a32,32,0,1,0-32-32A32,32,0,0,0,128,176ZM72,120a8,8,0,0,0-8-8A24,24,0,1,1,87.24,82a8,8,0,1,0,15.5-4A40,40,0,1,0,37,117.51,67.94,67.94,0,0,0,9.6,139.19a8,8,0,1,0,12.8,9.61A51.6,51.6,0,0,1,64,128,8,8,0,0,0,72,120Z"/></symbol>
+<symbol id="i-vibrate" viewBox="0 0 256 256" fill="currentColor"><path d="M160,32H96A24,24,0,0,0,72,56V200a24,24,0,0,0,24,24h64a24,24,0,0,0,24-24V56A24,24,0,0,0,160,32Zm8,168a8,8,0,0,1-8,8H96a8,8,0,0,1-8-8V56a8,8,0,0,1,8-8h64a8,8,0,0,1,8,8ZM216,88v80a8,8,0,0,1-16,0V88a8,8,0,0,1,16,0Zm32,16v48a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0ZM56,88v80a8,8,0,0,1-16,0V88a8,8,0,0,1,16,0ZM24,104v48a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"/></symbol>
+<symbol id="i-volume" viewBox="0 0 256 256" fill="currentColor"><path d="M155.51,24.81a8,8,0,0,0-8.42.88L77.25,80H32A16,16,0,0,0,16,96v64a16,16,0,0,0,16,16H77.25l69.84,54.31A8,8,0,0,0,160,224V32A8,8,0,0,0,155.51,24.81ZM32,96H72v64H32ZM144,207.64,88,164.09V91.91l56-43.55Zm54-106.08a40,40,0,0,1,0,52.88,8,8,0,0,1-12-10.58,24,24,0,0,0,0-31.72,8,8,0,0,1,12-10.58ZM248,128a79.9,79.9,0,0,1-20.37,53.34,8,8,0,0,1-11.92-10.67,64,64,0,0,0,0-85.33,8,8,0,1,1,11.92-10.67A79.83,79.83,0,0,1,248,128Z"/></symbol>
+<symbol id="i-wheel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /> <path d="M9 12a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /> <path d="M3 12h6" /> <path d="M15 12h6" /> <path d="M13.6 9.4l3.4 -4.8" /> <path d="M10.4 14.6l-3.4 4.8" /> <path d="M7 4.6l3.4 4.8" /> <path d="M13.6 14.6l3.4 4.8" /></symbol>
+<symbol id="i-wifi" viewBox="0 0 256 256" fill="currentColor"><path d="M140,204a12,12,0,1,1-12-12A12,12,0,0,1,140,204ZM237.08,87A172,172,0,0,0,18.92,87,8,8,0,0,0,29.08,99.37a156,156,0,0,1,197.84,0A8,8,0,0,0,237.08,87ZM205,122.77a124,124,0,0,0-153.94,0A8,8,0,0,0,61,135.31a108,108,0,0,1,134.06,0,8,8,0,0,0,11.24-1.3A8,8,0,0,0,205,122.77Zm-32.26,35.76a76.05,76.05,0,0,0-89.42,0,8,8,0,0,0,9.42,12.94,60,60,0,0,1,70.58,0,8,8,0,1,0,9.42-12.94Z"/></symbol>
+<symbol id="i-bulb" viewBox="0 0 256 256" fill="currentColor"><path d="M176,232a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,232Zm40-128a87.55,87.55,0,0,1-33.64,69.21A16.24,16.24,0,0,0,176,186v6a16,16,0,0,1-16,16H96a16,16,0,0,1-16-16v-6a16,16,0,0,0-6.23-12.66A87.59,87.59,0,0,1,40,104.49C39.74,56.83,78.26,17.14,125.88,16A88,88,0,0,1,216,104Zm-16,0a72,72,0,0,0-73.74-72c-39,.92-70.47,33.39-70.26,72.39a71.65,71.65,0,0,0,27.64,56.3A32,32,0,0,1,96,186v6h64v-6a32.15,32.15,0,0,1,12.47-25.35A71.65,71.65,0,0,0,200,104Zm-16.11-9.34a57.6,57.6,0,0,0-46.56-46.55,8,8,0,0,0-2.66,15.78c16.57,2.79,30.63,16.85,33.44,33.45A8,8,0,0,0,176,104a9,9,0,0,0,1.35-.11A8,8,0,0,0,183.89,94.66Z"/></symbol>
+<symbol id="i-clipboard" viewBox="0 0 256 256" fill="currentColor"><path d="M168,152a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,152Zm-8-40H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16Zm56-64V216a16,16,0,0,1-16,16H56a16,16,0,0,1-16-16V48A16,16,0,0,1,56,32H92.26a47.92,47.92,0,0,1,71.48,0H200A16,16,0,0,1,216,48ZM96,64h64a32,32,0,0,0-64,0ZM200,48H173.25A47.93,47.93,0,0,1,176,64v8a8,8,0,0,1-8,8H88a8,8,0,0,1-8-8V64a47.93,47.93,0,0,1,2.75-16H56V216H200Z"/></symbol>
+<symbol id="i-share" viewBox="0 0 256 256" fill="currentColor"><path d="M176,160a39.89,39.89,0,0,0-28.62,12.09l-46.1-29.63a39.8,39.8,0,0,0,0-28.92l46.1-29.63a40,40,0,1,0-8.66-13.45l-46.1,29.63a40,40,0,1,0,0,55.82l46.1,29.63A40,40,0,1,0,176,160Zm0-128a24,24,0,1,1-24,24A24,24,0,0,1,176,32ZM64,152a24,24,0,1,1,24-24A24,24,0,0,1,64,152Zm112,72a24,24,0,1,1,24-24A24,24,0,0,1,176,224Z"/></symbol>
+<symbol id="i-hand" viewBox="0 0 256 256" fill="currentColor"><path d="M196,88a27.86,27.86,0,0,0-13.35,3.39A28,28,0,0,0,144,74.7V44a28,28,0,0,0-56,0v80l-3.82-6.13A28,28,0,0,0,35.73,146l4.67,8.23C74.81,214.89,89.05,240,136,240a88.1,88.1,0,0,0,88-88V116A28,28,0,0,0,196,88Zm12,64a72.08,72.08,0,0,1-72,72c-37.63,0-47.84-18-81.68-77.68l-4.69-8.27,0-.05A12,12,0,0,1,54,121.61a11.88,11.88,0,0,1,6-1.6,12,12,0,0,1,10.41,6,1.76,1.76,0,0,0,.14.23l18.67,30A8,8,0,0,0,104,152V44a12,12,0,0,1,24,0v68a8,8,0,0,0,16,0V100a12,12,0,0,1,24,0v20a8,8,0,0,0,16,0v-4a12,12,0,0,1,24,0Z"/></symbol>
+</svg>
+
 
 <!-- ============ صفحهٔ لودینگ (بر اساس لوگوی بازی) ============ -->
 <div id="splash">
@@ -639,22 +732,22 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
   <!-- نوار بالای صفحه: پروفایل/سطح/VIP  +  سکه و بلیط -->
   <div class="topbar-hud">
     <div class="hud-profile" id="profileChip">
-      <div class="avatar" id="menuAvatar">👤</div>
+      <div class="avatar" id="menuAvatar"><svg class="ic" aria-hidden="true"><use href="#i-user" xlink:href="#i-user"/></svg></div>
       <div class="hud-pinfo">
         <div class="pc-name-row">
           <div class="pc-name" id="menuProfName">مهمان</div>
           <div class="pc-user" id="menuProfUser"></div>
         </div>
         <div class="hud-levelrow">
-          <span class="hud-star" id="hudLevel">★ ۱</span>
+          <span class="hud-star" id="hudLevel"><svg class="ic" aria-hidden="true"><use href="#i-star" xlink:href="#i-star"/></svg> ۱</span>
           <div class="pbar hud-xpbar"><i id="hudXp" style="width:0%"></i></div>
         </div>
       </div>
       <button class="hud-vip" id="btnVip"><span class="hud-vip-badge" id="vipBadge">VIP</span><span class="hud-vip-txt" id="vipStateTxt">اشتراک</span></button>
     </div>
     <div class="hud-wallets">
-      <div class="wallet"><span class="w-ic">🪙</span><span class="w-val" id="hudCoins">۱۰۰</span><button class="w-plus" id="btnAddCoins">＋</button></div>
-      <div class="wallet"><span class="w-ic">🎟️</span><span class="w-val" id="hudTickets">۰</span><button class="w-plus" id="btnAddTickets">＋</button></div>
+      <div class="wallet"><span class="w-ic"><svg class="ic ic-coin" aria-hidden="true"><use href="#i-coin" xlink:href="#i-coin"/></svg></span><span class="w-val" id="hudCoins">۱۰۰</span><button class="w-plus" id="btnAddCoins">＋</button></div>
+      <div class="wallet"><span class="w-ic"><svg class="ic ic-gold" aria-hidden="true"><use href="#i-ticket" xlink:href="#i-ticket"/></svg></span><span class="w-val" id="hudTickets">۰</span><button class="w-plus" id="btnAddTickets">＋</button></div>
     </div>
   </div>
 
@@ -666,26 +759,26 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 
   <!-- سه دکمهٔ اصلی -->
   <div class="main-actions">
-    <button class="big-btn ba-play" id="btnContinue"><span class="ba-ic">🂡</span><span class="ba-tx">ادامه بازی قبلی</span></button>
-    <button class="big-btn ba-new" id="btnNew"><span class="ba-ic">✦</span><span class="ba-tx">بازی جدید</span></button>
-    <button class="big-btn ba-mp" id="btnMp"><span class="ba-ic">📶</span><span class="ba-tx">بازی دو نفره (وای‌فای)</span></button>
+    <button class="big-btn ba-play" id="btnContinue"><span class="ba-ic"><svg class="ic" aria-hidden="true"><use href="#i-cards" xlink:href="#i-cards"/></svg></span><span class="ba-tx">ادامه بازی قبلی</span></button>
+    <button class="big-btn ba-new" id="btnNew"><span class="ba-ic"><svg class="ic" aria-hidden="true"><use href="#i-sparkle" xlink:href="#i-sparkle"/></svg></span><span class="ba-tx">بازی جدید</span></button>
+    <button class="big-btn ba-mp" id="btnMp"><span class="ba-ic"><svg class="ic" aria-hidden="true"><use href="#i-wifi" xlink:href="#i-wifi"/></svg></span><span class="ba-tx">بازی دو نفره (وای‌فای)</span></button>
   </div>
 
   <!-- چهار دکمهٔ گرد -->
   <div class="round-row">
-    <button class="round-btn" id="btnHall"><span class="rb-circle">🏆</span><span class="rb-tx">تالار افتخار</span></button>
-    <button class="round-btn" id="btnFriends"><span class="rb-circle">👥</span><span class="rb-tx">دوستان من</span></button>
-    <button class="round-btn" id="btnInvite"><span class="rb-circle vip-free">🎁</span><span class="rb-tx">دعوت دوستان</span></button>
-    <button class="round-btn" id="btnSettings2"><span class="rb-circle">⚙️</span><span class="rb-tx">تنظیمات</span></button>
+    <button class="round-btn" id="btnHall"><span class="rb-circle"><svg class="ic ic-gold" aria-hidden="true"><use href="#i-trophy" xlink:href="#i-trophy"/></svg></span><span class="rb-tx">تالار افتخار</span></button>
+    <button class="round-btn" id="btnFriends"><span class="rb-circle"><svg class="ic" aria-hidden="true"><use href="#i-users" xlink:href="#i-users"/></svg></span><span class="rb-tx">دوستان من</span></button>
+    <button class="round-btn" id="btnInvite"><span class="rb-circle vip-free"><svg class="ic ic-gold" aria-hidden="true"><use href="#i-gift" xlink:href="#i-gift"/></svg></span><span class="rb-tx">دعوت دوستان</span></button>
+    <button class="round-btn" id="btnSettings2"><span class="rb-circle"><svg class="ic" aria-hidden="true"><use href="#i-gear" xlink:href="#i-gear"/></svg></span><span class="rb-tx">تنظیمات</span></button>
   </div>
  </div>
 
   <!-- کادر پایین -->
   <div class="dock">
-    <button class="dock-btn" id="btnShop"><span class="dk-circle">🛒</span><span class="dk-tx">فروشگاه</span></button>
-    <button class="dock-btn" id="btnHub"><span class="dk-circle">🏅</span><span class="dk-tx">پیشرفت</span></button>
-    <button class="dock-btn" id="btnGuide"><span class="dk-circle">📖</span><span class="dk-tx">راهنما</span></button>
-    <button class="dock-btn" id="btnAbout"><span class="dk-circle">ℹ️</span><span class="dk-tx">درباره</span></button>
+    <button class="dock-btn" id="btnShop"><span class="dk-circle"><svg class="ic" aria-hidden="true"><use href="#i-cart" xlink:href="#i-cart"/></svg></span><span class="dk-tx">فروشگاه</span></button>
+    <button class="dock-btn" id="btnHub"><span class="dk-circle"><svg class="ic ic-gold" aria-hidden="true"><use href="#i-medal" xlink:href="#i-medal"/></svg></span><span class="dk-tx">پیشرفت</span></button>
+    <button class="dock-btn" id="btnGuide"><span class="dk-circle"><svg class="ic" aria-hidden="true"><use href="#i-book" xlink:href="#i-book"/></svg></span><span class="dk-tx">راهنما</span></button>
+    <button class="dock-btn" id="btnAbout"><span class="dk-circle"><svg class="ic" aria-hidden="true"><use href="#i-info" xlink:href="#i-info"/></svg></span><span class="dk-tx">درباره</span></button>
   </div>
 
   <!-- دکمه‌های مخفی برای سازگاری کد (تنظیمات و خروج از مسیرهای دیگر صدا زده می‌شوند) -->
@@ -697,10 +790,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 <div class="screen" id="guide">
   <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>راهنمای کامل پاسور ۱۱</h2></div>
   <div class="scroll">
-    <div class="card-box"><h3>🎴 آشنایی با بازی</h3>
+    <div class="card-box"><h3><svg class="ic" aria-hidden="true"><use href="#i-cards" xlink:href="#i-cards"/></svg> آشنایی با بازی</h3>
       <p>پاسور ۱۱ (چهاربرگ) یکی از محبوب‌ترین بازی‌های ورق ایرانی است که با یک دسته کارت ۵۲‌تایی و بین دو بازیکن انجام می‌شود. هدف بازی، جمع کردن کارت‌های ارزشمند از روی زمین و رسیدن به <span class="tag">امتیاز نهایی</span> است.</p>
     </div>
-    <div class="card-box"><h3>🃏 شروع و پخش کارت</h3>
+    <div class="card-box"><h3><svg class="ic" aria-hidden="true"><use href="#i-cards" xlink:href="#i-cards"/></svg> شروع و پخش کارت</h3>
       <p>در ابتدای هر دور، به هر بازیکن <span class="tag">۴ کارت</span> داده می‌شود و <span class="tag">۴ کارت</span> نیز رو به بالا روی زمین قرار می‌گیرد. اگر در پخش اول، سرباز (J) روی زمین بیفتد، به دسته برگردانده شده و کارت دیگری جایگزین می‌شود.</p>
       <p>هر بار که کارت‌های دست دو بازیکن تمام شود، دوباره به هر نفر ۴ کارت داده می‌شود تا دسته تمام شود (در مجموع ۶ دست در هر دور).</p>
     </div>
@@ -710,13 +803,13 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
       <p>مثال: با کارت ۴ می‌توانید ۷ را بردارید (۴+۷=۱۱) یا ترکیب ۵ و ۲ را (۴+۵+۲=۱۱).</p>
       <p>• اگر ترکیبی وجود نداشته باشد، کارت شما روی زمین می‌ماند.</p>
     </div>
-    <div class="card-box"><h3>👆 نحوهٔ بازی کردن کارت</h3>
+    <div class="card-box"><h3><svg class="ic" aria-hidden="true"><use href="#i-hand" xlink:href="#i-hand"/></svg> نحوهٔ بازی کردن کارت</h3>
       <p>• اگر کارت شما هیچ برداشتی نداشته باشد، با یک لمس مستقیم روی زمین گذاشته می‌شود.</p>
       <p>• اگر فقط یک راه برداشتن معتبر وجود داشته باشد، خودکار و فوری انجام می‌شود.</p>
       <p>• اگر چند ترکیب مختلف ممکن باشد، کارت در حالت انتخاب می‌ماند؛ کارت‌های زمین موردنظر را لمس کنید — به‌محض کامل شدن ترکیب درست، خودکار بازی می‌شود.</p>
       <p>• در حالت انتخاب: نگه‌داشتن کارت = گذاشتن ساده روی زمین، لمس دوباره = انصراف.</p>
     </div>
-    <div class="card-box"><h3>👑 کارت‌های تصویری</h3>
+    <div class="card-box"><h3><svg class="ic ic-crown" aria-hidden="true"><use href="#i-crown" xlink:href="#i-crown"/></svg> کارت‌های تصویری</h3>
       <p>• <span class="tag">سرباز (J):</span> همهٔ کارت‌های روی زمین را جمع می‌کند به‌جز شاه و بی‌بی. اگر چیزی برای برداشتن نباشد، سرباز روی زمین می‌ماند. برداشتن با سرباز هرگز «سور» حساب نمی‌شود.</p>
       <p>• <span class="tag">بی‌بی (Q):</span> بی‌بی‌های روی زمین را برمی‌دارد.</p>
       <p>• <span class="tag">شاه (K):</span> شاه‌های روی زمین را برمی‌دارد.</p>
@@ -725,14 +818,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
       <p>اگر با کارت خود (به‌جز سرباز) تمام کارت‌های روی زمین را جمع کنید و زمین خالی شود، یک <span class="tag">سور</span> زده‌اید که <span class="tag">۵ امتیاز</span> ارزش دارد.</p>
       <p>در تنظیمات می‌توانید مشخص کنید که سور در «دست آخرِ» دور یا با «برگ آخر» مجاز باشد یا نه، و اینکه سور زدن، سورِ حریف را برگرداند (خنثی کند) یا مستقیم برای شما حساب شود.</p>
     </div>
-    <div class="card-box"><h3>🏁 پایان دور و امتیازشماری</h3>
+    <div class="card-box"><h3><svg class="ic" aria-hidden="true"><use href="#i-flag" xlink:href="#i-flag"/></svg> پایان دور و امتیازشماری</h3>
       <p>وقتی دسته و دست‌ها تمام شود، کارت‌های باقی‌مانده روی زمین به آخرین بازیکنی می‌رسد که کارت جمع کرده است. سپس امتیازها شمرده می‌شود:</p>
       <p>• بیشترین تعداد خاج (گشنیز ♣): <span class="tag">۷ امتیاز</span></p>
       <p>• دو خاج (۲♣): <span class="tag">۲ امتیاز</span> — ده خشت (۱۰♦): <span class="tag">۳ امتیاز</span></p>
       <p>• هر آس: <span class="tag">۱ امتیاز</span> — هر سرباز: <span class="tag">۱ امتیاز</span> — هر سور: <span class="tag">۵ امتیاز</span></p>
       <p>دورها ادامه پیدا می‌کند تا یکی از بازیکنان به امتیاز نهایی برسد و برنده شود.</p>
     </div>
-    <div class="card-box"><h3>📶 بازی دو نفره روی وای‌فای</h3>
+    <div class="card-box"><h3><svg class="ic" aria-hidden="true"><use href="#i-wifi" xlink:href="#i-wifi"/></svg> بازی دو نفره روی وای‌فای</h3>
       <p>می‌توانید با یک دوست، روی <span class="tag">یک وای‌فای مشترک</span> و بدون نیاز به اینترنت واقعی یا سرور بازی کنید:</p>
       <p>۱. یک نفر «میزبانی بازی» را می‌زند؛ یک کد ساخته می‌شود.</p>
       <p>۲. کد را (مثلاً از راه پیام‌رسان یا بلوتوث) برای دوستتان بفرستید.</p>
@@ -740,7 +833,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
       <p>۴. کد پاسخ را در صفحهٔ میزبان بچسبانید — بدون هیچ دکمه‌ای، اتصال خودکار برقرار می‌شود!</p>
       <p>نکته: چون هیچ سروری در کار نیست، کدها کمی طولانی هستند؛ این بهای کاملاً آفلاین بودن است.</p>
     </div>
-    <div class="card-box"><h3>💡 نکته‌های حرفه‌ای</h3>
+    <div class="card-box"><h3><svg class="ic ic-gold" aria-hidden="true"><use href="#i-bulb" xlink:href="#i-bulb"/></svg> نکته‌های حرفه‌ای</h3>
       <p>• سربازها را برای زمین‌های پُر و ارزشمند نگه دارید.</p>
       <p>• حواستان به ۲ خاج و ۱۰ خشت باشد؛ آن‌ها را راحت از دست ندهید.</p>
       <p>• کارتی روی زمین نیندازید که با آن به‌راحتی جمع ۱۱ ساخته شود.</p>
@@ -755,7 +848,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
   <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>درباره برنامه</h2></div>
   <div class="scroll">
     <div class="card-box">
-      <h3>پاسور ۱۱ 🎴</h3>
+      <h3>پاسور ۱۱ <svg class="ic ic-gold" aria-hidden="true"><use href="#i-cards" xlink:href="#i-cards"/></svg></h3>
       <p>این برنامه ادای احترامی است به یکی از قدیمی‌ترین سرگرمی‌های خانه‌های ایرانی؛ همان شب‌هایی که دور هم جمع می‌شدیم و صدای بُر خوردن کارت‌ها با چای تازه‌دم قاطی می‌شد.</p>
       <p>پاسور ۱۱ کاملاً <span class="tag">آفلاین</span> است، به هیچ سروری وصل نمی‌شود، تبلیغ ندارد و همهٔ بازی در همین یک فایل کوچک جا شده است. حریف شما یک هوش مصنوعی با پنج سطح مهارت است؛ از یک تازه‌کار مهربان تا استادی که تقریباً شکست‌ناپذیر است — یا یک دوست واقعی روی همان وای‌فای!</p>
       <p>پیشرفت بازی به‌صورت خودکار ذخیره می‌شود؛ هر وقت خارج شدید، از همان‌جا ادامه دهید. از تنظیمات می‌توانید صدا، موزیک، لرزش و انیمیشن را مدیریت کنید و عکس کارت‌های دلخواهتان را در پوشهٔ cards قرار دهید تا خودکار نمایش داده شوند.</p>
@@ -770,7 +863,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
   <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>پروفایل</h2></div>
   <div class="scroll">
     <div class="set-item" style="text-align:center">
-      <div class="preview-wrap"><div class="avatar" id="profAvatarEdit" style="width:88px;height:88px;font-size:38px">👤</div></div>
+      <div class="preview-wrap"><div class="avatar" id="profAvatarEdit" style="width:88px;height:88px;font-size:38px"><svg class="ic" aria-hidden="true"><use href="#i-user" xlink:href="#i-user"/></svg></div></div>
       <input type="file" id="profAvatarFile" accept="image/*" style="margin-top:10px">
       <div class="hint" style="text-align:center;margin-top:8px">یا یکی از عکس‌های پیش‌فرض را انتخاب کن:</div>
       <div class="preset-row" id="profPresets"></div>
@@ -798,7 +891,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
         <button class="small-btn warn" id="btnGoogleSignout" style="margin:0">خروج</button>
       </div>
     </div>
-    <button class="btn primary" id="btnSaveProfile" style="width:100%"><span class="ic">💾</span> ذخیره پروفایل</button>
+    <button class="btn primary" id="btnSaveProfile" style="width:100%"><svg class="ic" aria-hidden="true"><use href="#i-save" xlink:href="#i-save"/></svg> ذخیره پروفایل</button>
   </div>
 </div>
 
@@ -843,32 +936,26 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
       <label class="sw"><input type="checkbox" id="setSurReturn"><span></span></label>
     </div>
     <div class="set-item switch-row">
-      <span class="txt">🔊 جلوه‌های صوتی</span>
+      <span class="txt"><svg class="ic" aria-hidden="true"><use href="#i-volume" xlink:href="#i-volume"/></svg> جلوه‌های صوتی</span>
       <label class="sw"><input type="checkbox" id="setSound"><span></span></label>
     </div>
     <div class="set-item switch-row">
-      <span class="txt">🎵 موزیک ملایم پس‌زمینه</span>
+      <span class="txt"><svg class="ic" aria-hidden="true"><use href="#i-music" xlink:href="#i-music"/></svg> موزیک ملایم پس‌زمینه</span>
       <label class="sw"><input type="checkbox" id="setMusic"><span></span></label>
     </div>
     <div class="set-item switch-row">
-      <span class="txt">📳 لرزش گوشی هنگام بازی کارت</span>
+      <span class="txt"><svg class="ic" aria-hidden="true"><use href="#i-vibrate" xlink:href="#i-vibrate"/></svg> لرزش گوشی هنگام بازی کارت</span>
       <label class="sw"><input type="checkbox" id="setHaptic"><span></span></label>
     </div>
     <div class="set-item switch-row">
-      <span class="txt">🎬 انیمیشن پرواز کارت‌ها</span>
+      <span class="txt"><svg class="ic" aria-hidden="true"><use href="#i-film" xlink:href="#i-film"/></svg> انیمیشن پرواز کارت‌ها</span>
       <label class="sw"><input type="checkbox" id="setAnims"><span></span></label>
     </div>
     <div class="set-item switch-row">
-      <span class="txt">🗂 مرتب‌سازی خودکار کارت‌های دست</span>
+      <span class="txt"><svg class="ic" aria-hidden="true"><use href="#i-sort" xlink:href="#i-sort"/></svg> مرتب‌سازی خودکار کارت‌های دست</span>
       <label class="sw"><input type="checkbox" id="setAutoSort"><span></span></label>
     </div>
-    <div class="set-item">
-      <label class="title">🌐 آدرس سرور بازی</label>
-      <input type="text" id="setApiBase" placeholder="https://api.example.ir" dir="ltr" style="text-align:left" autocomplete="off" autocapitalize="off" spellcheck="false">
-      <button class="small-btn" id="btnTestApi">تست اتصال به سرور</button>
-      <div class="hint" id="apiStatus">با وارد کردن آدرس سرور، کد کوتاه ۷ رقمی بازی دو نفره، جدول رتبه‌بندی جهانی و تأیید خریدها فعال می‌شود. اگر خالی بماند بازی کاملاً آفلاین کار می‌کند.</div>
-    </div>
-    <button class="btn primary" id="btnSaveSettings" style="width:100%"><span class="ic">💾</span> ذخیره تنظیمات</button>
+    <button class="btn primary" id="btnSaveSettings" style="width:100%"><svg class="ic" aria-hidden="true"><use href="#i-save" xlink:href="#i-save"/></svg> ذخیره تنظیمات</button>
     <div class="hint" style="padding:6px 6px 0">تنظیمات همزمان با تغییر هم به‌صورت خودکار ذخیره می‌شوند.</div>
   </div>
 </div>
@@ -881,9 +968,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
       <p>با یک دوست بازی کنید — یک نفر <span class="tag">میزبان</span> می‌شود و دیگری با کد به او می‌پیوندد.</p>
       <p class="hint" id="mpHubMode" style="margin-top:6px"></p>
     </div>
-    <button class="btn primary" id="btnMpHost" style="width:100%"><span class="ic">🏠</span> میزبانی بازی</button>
+    <button class="btn primary" id="btnMpHost" style="width:100%"><svg class="ic" aria-hidden="true"><use href="#i-home" xlink:href="#i-home"/></svg> میزبانی بازی</button>
     <div style="height:12px"></div>
-    <button class="btn" id="btnMpJoin" style="width:100%"><span class="ic">🔗</span> پیوستن به بازی</button>
+    <button class="btn" id="btnMpJoin" style="width:100%"><svg class="ic" aria-hidden="true"><use href="#i-link" xlink:href="#i-link"/></svg> پیوستن به بازی</button>
   </div>
 </div>
 
@@ -909,7 +996,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
       </div>
     </div>
     <div class="mp-status" id="mpHostStatus"></div>
-    <button class="btn primary" id="btnMpStartGame" style="width:100%; display:none"><span class="ic">▶</span> شروع بازی</button>
+    <button class="btn primary" id="btnMpStartGame" style="width:100%; display:none"><svg class="ic" aria-hidden="true"><use href="#i-play" xlink:href="#i-play"/></svg> شروع بازی</button>
   </div>
 </div>
 
@@ -950,9 +1037,9 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
   </div>
   <div class="deckinfo" id="deckInfo"><span class="deckpile"><i></i><i></i><i></i></span><span id="deckCount">دسته: ۴۰</span></div>
   <div class="gamebtns">
-    <button class="gbtn" id="btnChat" style="display:none" title="گفتگو">💬<i class="chat-dot" id="chatDot"></i></button>
-    <button class="gbtn" id="btnQuitGame" title="بازگشت به منو">☰</button>
-    <button class="gbtn" id="btnEmergency" title="ریست اضطراری">♺</button>
+    <button class="gbtn" id="btnChat" style="display:none" title="گفتگو"><svg class="ic" aria-hidden="true"><use href="#i-chat" xlink:href="#i-chat"/></svg><i class="chat-dot" id="chatDot"></i></button>
+    <button class="gbtn" id="btnQuitGame" title="بازگشت به منو"><svg class="ic" aria-hidden="true"><use href="#i-menu" xlink:href="#i-menu"/></svg></button>
+    <button class="gbtn" id="btnEmergency" title="ریست اضطراری"><svg class="ic" aria-hidden="true"><use href="#i-refresh" xlink:href="#i-refresh"/></svg></button>
   </div>
   <div id="surIndicator"></div>
   <div class="row" id="botRow"></div>
@@ -960,7 +1047,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
   <div id="selHint"></div>
   <div class="row" id="handRow"></div>
   <div id="chatPanel">
-    <div class="chat-head"><span>💬 گفتگو</span><button class="gbtn" id="chatClose" style="width:30px;height:30px;font-size:13px">✕</button></div>
+    <div class="chat-head"><span><svg class="ic" aria-hidden="true"><use href="#i-chat" xlink:href="#i-chat"/></svg> گفتگو</span><button class="gbtn" id="chatClose" style="width:30px;height:30px;font-size:13px"><svg class="ic" aria-hidden="true"><use href="#i-close" xlink:href="#i-close"/></svg></button></div>
     <div id="chatLog"></div>
     <div class="chat-quick" id="chatQuick"></div>
     <div class="chat-inrow"><input id="chatInput" maxlength="120" placeholder="پیام بنویس…"><button class="small-btn" id="chatSend" style="margin:0">ارسال</button></div>
@@ -972,16 +1059,16 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
   <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>پیشرفت و جوایز</h2></div>
   <div class="scroll">
     <div class="card-box" id="hubTop"></div>
-    <div class="card-box"><h3>🎯 مأموریت‌های روزانه</h3><div id="missionList"></div>
+    <div class="card-box"><h3><svg class="ic" aria-hidden="true"><use href="#i-target" xlink:href="#i-target"/></svg> مأموریت‌های روزانه</h3><div id="missionList"></div>
       <div class="hint">هر روز ۳ مأموریت جدید؛ نیمه‌شب عوض می‌شوند.</div></div>
-    <div class="card-box"><h3>🎡 چرخ شانس</h3>
-      <div class="wheel-wrap"><div class="wheel-pointer">▼</div><div class="wheel" id="wheel"></div><div class="wheel-cap">۱۱</div></div>
+    <div class="card-box"><h3><svg class="ic ic-gold" aria-hidden="true"><use href="#i-wheel" xlink:href="#i-wheel"/></svg> چرخ شانس</h3>
+      <div class="wheel-wrap"><div class="wheel-pointer"><svg class="ic" aria-hidden="true"><use href="#i-caretdown" xlink:href="#i-caretdown"/></svg></div><div class="wheel" id="wheel"></div><div class="wheel-cap">۱۱</div></div>
       <button class="btn primary" id="wheelBtn" style="width:100%">چرخاندن</button>
       <div class="hint" id="wheelHint" style="text-align:center;margin-top:8px"></div>
     </div>
-    <div class="card-box"><h3>🏆 لیگ شما</h3><div id="leagueBox"></div></div>
-    <div class="card-box"><h3>📈 آمار بازی</h3><div id="statsBox"></div></div>
-    <div class="card-box"><h3>🏅 دستاوردها</h3><div id="achList"></div></div>
+    <div class="card-box"><h3><svg class="ic ic-gold" aria-hidden="true"><use href="#i-trophy" xlink:href="#i-trophy"/></svg> لیگ شما</h3><div id="leagueBox"></div></div>
+    <div class="card-box"><h3><svg class="ic" aria-hidden="true"><use href="#i-chart" xlink:href="#i-chart"/></svg> آمار بازی</h3><div id="statsBox"></div></div>
+    <div class="card-box"><h3><svg class="ic ic-gold" aria-hidden="true"><use href="#i-medal" xlink:href="#i-medal"/></svg> دستاوردها</h3><div id="achList"></div></div>
   </div>
 </div>
 
@@ -990,14 +1077,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
   <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>فروشگاه</h2></div>
   <div class="scroll">
     <div class="card-box" id="shopTop"></div>
-    <div class="card-box"><h3>🪙 بستهٔ سکه</h3><div id="shopPacks"></div>
+    <div class="card-box"><h3><svg class="ic ic-coin" aria-hidden="true"><use href="#i-coin" xlink:href="#i-coin"/></svg> بستهٔ سکه</h3><div id="shopPacks"></div>
       <div class="hint" id="shopIapHint"></div></div>
-    <div class="card-box"><h3>👑 اشتراک VIP</h3><div id="shopVipPacks"></div>
+    <div class="card-box"><h3><svg class="ic ic-crown" aria-hidden="true"><use href="#i-crown" xlink:href="#i-crown"/></svg> اشتراک VIP</h3><div id="shopVipPacks"></div>
       <div class="hint">با VIP: تجربهٔ دوبرابر، جایزهٔ ورود دوبرابر، چرخ شانس رایگان و همهٔ طرح‌های پشت کارت.</div></div>
-    <div class="card-box"><h3>🂠 طرح پشت کارت</h3><div class="shop-grid" id="shopBacks"></div>
+    <div class="card-box"><h3><svg class="ic" aria-hidden="true"><use href="#i-cards" xlink:href="#i-cards"/></svg> طرح پشت کارت</h3><div class="shop-grid" id="shopBacks"></div>
       <div class="hint">طرح‌ها با سکهٔ داخل بازی خریداری می‌شوند و برای کاربران VIP همه باز است.</div></div>
-    <div class="card-box"><h3>🎟️ بلیط مسابقه</h3><div id="shopTickets"></div></div>
-    <div class="card-box"><button class="small-btn" id="btnRestoreIap" style="margin:0">♻️ بازیابی خریدهای قبلی</button>
+    <div class="card-box"><h3><svg class="ic ic-gold" aria-hidden="true"><use href="#i-ticket" xlink:href="#i-ticket"/></svg> بلیط مسابقه</h3><div id="shopTickets"></div></div>
+    <div class="card-box"><button class="small-btn" id="btnRestoreIap" style="margin:0"><svg class="ic" aria-hidden="true"><use href="#i-refresh" xlink:href="#i-refresh"/></svg> بازیابی خریدهای قبلی</button>
       <div class="hint" id="restoreHint">اگر برنامه را دوباره نصب کردی یا گوشی عوض کردی، خریدهایت را از اینجا برگردان.</div></div>
   </div>
 </div>
@@ -1012,70 +1099,70 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
 
 <!-- ============ اشتراک VIP ============ -->
 <div class="screen" id="vip">
-  <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>👑 اشتراک VIP</h2></div>
+  <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2><svg class="ic ic-crown" aria-hidden="true"><use href="#i-crown" xlink:href="#i-crown"/></svg> اشتراک VIP</h2></div>
   <div class="scroll">
     <div class="card-box vip-hero">
-      <div class="vip-hero-crown">👑</div>
+      <div class="vip-hero-crown"><svg class="ic ic-crown" aria-hidden="true"><use href="#i-crown" xlink:href="#i-crown"/></svg></div>
       <div class="vip-hero-title">پاسور ۱۱ — نسخهٔ ویژه</div>
       <div class="vip-hero-sub" id="vipState">با VIP، بازی را حرفه‌ای‌تر تجربه کن</div>
     </div>
     <div class="card-box">
       <h3>امتیازهای VIP</h3>
-      <div class="vip-perk"><span>✨</span><div><b>ضریب تجربهٔ دوبرابر</b><br><span class="hint">هر XP که می‌گیری ×۲ حساب می‌شود و سریع‌تر سطح بالا می‌روی</span></div></div>
-      <div class="vip-perk"><span>🪙</span><div><b>جایزهٔ ورود روزانهٔ دوبرابر</b><br><span class="hint">سکه‌های ورود روزانه دو برابر واریز می‌شود</span></div></div>
-      <div class="vip-perk"><span>🎡</span><div><b>چرخ شانس رایگان نامحدود</b><br><span class="hint">هر بار چرخاندن رایگان است، بدون هزینهٔ سکه</span></div></div>
-      <div class="vip-perk"><span>🎁</span><div><b>پاداش پایان مسابقهٔ بیشتر</b><br><span class="hint">سکه و XP پایان هر مسابقه ۵۰٪ بیشتر</span></div></div>
-      <div class="vip-perk"><span>🚫</span><div><b>بدون تبلیغات</b><br><span class="hint">تجربهٔ کاملاً بدون مزاحمت (در نسخه‌های آینده)</span></div></div>
-      <div class="vip-perk"><span>🂠</span><div><b>طرح‌های پشت کارت ویژه</b><br><span class="hint">همهٔ طرح‌های فروشگاه برای تو باز می‌شود</span></div></div>
-      <div class="vip-perk"><span>👑</span><div><b>نشان و آواتار طلایی VIP</b><br><span class="hint">نام تو با نشان VIP کنار پروفایلت می‌درخشد</span></div></div>
+      <div class="vip-perk"><span><svg class="ic ic-gold" aria-hidden="true"><use href="#i-sparkle" xlink:href="#i-sparkle"/></svg></span><div><b>ضریب تجربهٔ دوبرابر</b><br><span class="hint">هر XP که می‌گیری ×۲ حساب می‌شود و سریع‌تر سطح بالا می‌روی</span></div></div>
+      <div class="vip-perk"><span><svg class="ic ic-coin" aria-hidden="true"><use href="#i-coin" xlink:href="#i-coin"/></svg></span><div><b>جایزهٔ ورود روزانهٔ دوبرابر</b><br><span class="hint">سکه‌های ورود روزانه دو برابر واریز می‌شود</span></div></div>
+      <div class="vip-perk"><span><svg class="ic ic-gold" aria-hidden="true"><use href="#i-wheel" xlink:href="#i-wheel"/></svg></span><div><b>چرخ شانس رایگان نامحدود</b><br><span class="hint">هر بار چرخاندن رایگان است، بدون هزینهٔ سکه</span></div></div>
+      <div class="vip-perk"><span><svg class="ic ic-gold" aria-hidden="true"><use href="#i-gift" xlink:href="#i-gift"/></svg></span><div><b>پاداش پایان مسابقهٔ بیشتر</b><br><span class="hint">سکه و XP پایان هر مسابقه ۵۰٪ بیشتر</span></div></div>
+      <div class="vip-perk"><span><svg class="ic" aria-hidden="true"><use href="#i-ban" xlink:href="#i-ban"/></svg></span><div><b>بدون تبلیغات</b><br><span class="hint">تجربهٔ کاملاً بدون مزاحمت (در نسخه‌های آینده)</span></div></div>
+      <div class="vip-perk"><span><svg class="ic" aria-hidden="true"><use href="#i-cards" xlink:href="#i-cards"/></svg></span><div><b>طرح‌های پشت کارت ویژه</b><br><span class="hint">همهٔ طرح‌های فروشگاه برای تو باز می‌شود</span></div></div>
+      <div class="vip-perk"><span><svg class="ic ic-crown" aria-hidden="true"><use href="#i-crown" xlink:href="#i-crown"/></svg></span><div><b>نشان و آواتار طلایی VIP</b><br><span class="hint">نام تو با نشان VIP کنار پروفایلت می‌درخشد</span></div></div>
     </div>
     <div class="card-box">
       <h3>انتخاب مدت اشتراک</h3>
       <div id="vipPacks"></div>
       <div class="hint" id="vipBuyHint" style="text-align:center;margin-top:10px"></div>
-      <button class="small-btn" id="btnRestoreVip" style="width:100%;text-align:center">♻️ بازیابی اشتراک قبلی</button>
+      <button class="small-btn" id="btnRestoreVip" style="width:100%;text-align:center"><svg class="ic" aria-hidden="true"><use href="#i-refresh" xlink:href="#i-refresh"/></svg> بازیابی اشتراک قبلی</button>
     </div>
   </div>
 </div>
 
 <!-- ============ تالار افتخارات (دستاوردها و جام‌های خودم) ============ -->
 <div class="screen" id="hall">
-  <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>🏛️ تالار افتخارات</h2></div>
+  <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2><svg class="ic ic-gold" aria-hidden="true"><use href="#i-bank" xlink:href="#i-bank"/></svg> تالار افتخارات</h2></div>
   <div class="scroll">
     <div class="card-box" id="hallTop"></div>
-    <button class="btn primary" id="btnBoard" style="width:100%;margin-bottom:14px"><span class="ic">🌍</span> جدول رتبه‌بندی جهانی</button>
-    <div class="card-box"><h3>🏅 مدال‌های من</h3><div id="hallAch"></div></div>
+    <button class="btn primary" id="btnBoard" style="width:100%;margin-bottom:14px"><svg class="ic ic-gold" aria-hidden="true"><use href="#i-globe" xlink:href="#i-globe"/></svg> جدول رتبه‌بندی جهانی</button>
+    <div class="card-box"><h3><svg class="ic ic-gold" aria-hidden="true"><use href="#i-medal" xlink:href="#i-medal"/></svg> مدال‌های من</h3><div id="hallAch"></div></div>
   </div>
 </div>
 
 <!-- ============ دعوت از دوستان ============ -->
 <div class="screen" id="invite">
-  <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>🎁 دعوت از دوستان</h2></div>
+  <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2><svg class="ic ic-gold" aria-hidden="true"><use href="#i-gift" xlink:href="#i-gift"/></svg> دعوت از دوستان</h2></div>
   <div class="scroll">
     <div class="card-box" style="text-align:center">
-      <div style="font-size:44px">🎉</div>
+      <div style="font-size:44px"><svg class="ic ic-gold" aria-hidden="true"><use href="#i-gift" xlink:href="#i-gift"/></svg></div>
       <h3>دوستانت را دعوت کن</h3>
       <p class="hint">کد دعوت خودت را برای دوستانت بفرست. وقتی بازی را با کد تو نصب کنند، هر دو سکه هدیه می‌گیرید!</p>
       <div class="invite-code" id="inviteCode">—</div>
-      <button class="btn primary" id="btnCopyInvite" style="width:100%">📋 کپی متن دعوت</button>
-      <button class="btn" id="btnShareInvite" style="width:100%">📤 ارسال به دوستان</button>
+      <button class="btn primary" id="btnCopyInvite" style="width:100%"><svg class="ic" aria-hidden="true"><use href="#i-clipboard" xlink:href="#i-clipboard"/></svg> کپی متن دعوت</button>
+      <button class="btn" id="btnShareInvite" style="width:100%"><svg class="ic" aria-hidden="true"><use href="#i-share" xlink:href="#i-share"/></svg> ارسال به دوستان</button>
     </div>
     <div class="card-box">
       <h3>وارد کردن کد دعوت</h3>
       <p class="hint">اگر دوستی تو را دعوت کرده، کدش را اینجا وارد کن تا هدیه بگیری (یک‌بار).</p>
       <input type="text" id="inviteInput" maxlength="12" placeholder="کد دعوت دوستت"
         style="width:100%;font-family:inherit;font-size:16px;padding:12px;border-radius:10px;border:1px solid #3a4f8e;background:#131e40;color:var(--ivory);direction:ltr;text-align:center;text-transform:uppercase">
-      <button class="btn primary" id="btnRedeemInvite" style="width:100%;margin-top:10px">دریافت هدیه 🎁</button>
+      <button class="btn primary" id="btnRedeemInvite" style="width:100%;margin-top:10px"><svg class="ic" aria-hidden="true"><use href="#i-gift" xlink:href="#i-gift"/></svg> دریافت هدیه</button>
     </div>
   </div>
 </div>
 
 <!-- ============ دوستان من (به‌زودی) ============ -->
 <div class="screen" id="friends">
-  <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2>👥 دوستان من</h2></div>
+  <div class="topbar"><button class="back" data-to="menu">→ بازگشت</button><h2><svg class="ic" aria-hidden="true"><use href="#i-users" xlink:href="#i-users"/></svg> دوستان من</h2></div>
   <div class="scroll">
     <div class="card-box" style="text-align:center;padding:40px 20px">
-      <div style="font-size:52px;margin-bottom:12px">👥</div>
+      <div style="font-size:52px;margin-bottom:12px"><svg class="ic ic-gold" aria-hidden="true"><use href="#i-users" xlink:href="#i-users"/></svg></div>
       <h3>این بخش به‌زودی اضافه می‌شود</h3>
       <p class="hint">لیست دوستان، بازی مستقیم با آن‌ها و رقابت دوستانه در آپدیت‌های بعدی می‌آید. منتظر باش!</p>
     </div>
@@ -1136,7 +1223,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
   <div class="modal">
     <h3>به پاسور ۱۱ خوش آمدی 🎴</h3>
     <p style="text-align:center">برای شروع، ثبت‌نام کن و پروفایلت را کامل کن. این نام در بازی و در بازی دو نفره نمایش داده می‌شود.</p>
-    <div class="preview-wrap"><div class="avatar" id="regAvatar" style="width:76px;height:76px;font-size:32px">👤</div></div>
+    <div class="preview-wrap"><div class="avatar" id="regAvatar" style="width:76px;height:76px;font-size:32px"><svg class="ic" aria-hidden="true"><use href="#i-user" xlink:href="#i-user"/></svg></div></div>
     <input type="file" id="regAvatarFile" accept="image/*" style="width:100%;color:#c6d2f2;font-family:inherit;font-size:13px;margin-top:6px">
     <div class="hint" style="text-align:center;margin-top:8px">یا یکی از عکس‌های پیش‌فرض:</div>
     <div class="preset-row" id="regPresets"></div>
@@ -1147,7 +1234,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible{
     <input type="text" id="regUser" maxlength="20" placeholder="username (اجباری - انگلیسی)"
       style="width:100%;font-family:inherit;font-size:16px;padding:12px;border-radius:10px;border:1px solid #3a4f8e;background:#131e40;color:var(--ivory);direction:ltr;text-align:center">
     <div class="hint" id="regError" style="color:#ff9d9d;display:none;text-align:center;margin-top:8px"></div>
-    <button class="btn primary" id="regConfirm"><span class="ic">🚀</span> ثبت‌نام و شروع</button>
+    <button class="btn primary" id="regConfirm"><svg class="ic" aria-hidden="true"><use href="#i-rocket" xlink:href="#i-rocket"/></svg> ثبت‌نام و شروع</button>
   </div>
 </div>
 
@@ -1186,6 +1273,11 @@ if(CARD_IMG_FIT==='ratio' && CARD_IMG_W>0 && CARD_IMG_H>0){
 /* ================================================================ */
 /* ================= ابزارها ================= */
 const $=q=>document.querySelector(q);
+/* آیکون برداری از مجموعهٔ درون فایل (بدون ایموجی، یکسان روی همهٔ گوشی‌ها) */
+function ICON(name,cls){
+  return '<svg class="ic'+(cls?' '+cls:'')+'" aria-hidden="true">'
+       + '<use href="#i-'+name+'" xlink:href="#i-'+name+'"/></svg>';
+}
 const SUIT=['♠','♥','♦','♣'];
 const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
 const rankLabel=r=>({1:'A',11:'J',12:'Q',13:'K'})[r]||String(r);
@@ -1355,7 +1447,7 @@ function refreshProfileWidget(){
   const us=document.getElementById('menuProfUser'); if(us)us.textContent=SET.profileUsername?('@'+SET.profileUsername):'پروفایل خودت را بساز';
   const av=$('#menuAvatar');
   if(SET.profileAvatar){ av.style.backgroundImage='url("'+SET.profileAvatar+'")'; av.textContent=''; }
-  else{ av.style.backgroundImage='none'; av.textContent='👤'; }
+  else{ av.style.backgroundImage='none'; av.innerHTML=ICON('user'); }
   try{ applyVipUI(); }catch(e){}
 }
 function openProfileForm(){
@@ -1365,7 +1457,7 @@ function openProfileForm(){
   const av=$('#profAvatarEdit');
   delete av.dataset.pending;
   if(SET.profileAvatar){ av.style.backgroundImage='url("'+SET.profileAvatar+'")'; av.textContent=''; }
-  else{ av.style.backgroundImage='none'; av.textContent='👤'; }
+  else{ av.style.backgroundImage='none'; av.innerHTML=ICON('user'); }
   initGoogleSignIn();
   refreshGoogleSignedInUI();
   renderPresets('profPresets',uri=>{
@@ -1385,7 +1477,7 @@ $('#profAvatarFile').addEventListener('change',e=>{
 });
 $('#btnAvatarRemove').onclick=()=>{
   SET.profileAvatar=null; persistSettings();
-  const av=$('#profAvatarEdit'); av.style.backgroundImage='none'; av.textContent='👤';
+  const av=$('#profAvatarEdit'); av.style.backgroundImage='none'; av.innerHTML=ICON('user');
   delete av.dataset.pending;
   refreshProfileWidget(); toast('عکس پروفایل حذف شد');
 };
@@ -1397,7 +1489,7 @@ $('#btnSaveProfile').onclick=async()=>{
   if(u&&u!==SET.profileUsername){
     btn.disabled=true; btn.textContent='در حال بررسی نام‌کاربری…';
     const chk=await claimUsername(u);
-    btn.disabled=false; btn.innerHTML='<span class="ic">💾</span> ذخیره پروفایل';
+    btn.disabled=false; btn.innerHTML=ICON('save')+' ذخیره پروفایل';
     if(!chk.ok){ const e2=$('#profNameError'); e2.textContent=chk.msg; e2.style.display='block'; return; }
     SET.profileUsername=u;
   } else if(u) SET.profileUsername=u;
@@ -1463,7 +1555,7 @@ $('#regConfirm').onclick=async()=>{
   if(!u){ err('نام‌کاربری نمی‌تواند خالی باشد (حروف انگلیسی، عدد، نقطه یا _)'); return; }
   btn.disabled=true; btn.textContent='در حال بررسی نام‌کاربری…';
   const chk=await claimUsername(u);
-  btn.disabled=false; btn.innerHTML='<span class="ic">🚀</span> ثبت‌نام و شروع';
+  btn.disabled=false; btn.innerHTML=ICON('rocket')+' ثبت‌نام و شروع';
   if(!chk.ok){ err(chk.msg); return; }
   SET.pName=n.slice(0,14);
   SET.profileUsername=u;
@@ -1560,10 +1652,6 @@ function openSettingsForm(){
   $('#setSound').checked=SET.sound; $('#setMusic').checked=SET.music;
   $('#setHaptic').checked=SET.haptic; $('#setAnims').checked=SET.anims;
   $('#setAutoSort').checked=SET.autoSort;
-  $('#setApiBase').value=SET.apiBase||'';
-  $('#apiStatus').textContent=serverConfigured()
-    ? 'سرور تنظیم شده است: '+apiBase()+' — برای اطمینان «تست اتصال» را بزن.'
-    : 'با وارد کردن آدرس سرور، کد کوتاه ۷ رقمی بازی دو نفره، جدول رتبه‌بندی جهانی و تأیید خریدها فعال می‌شود. اگر خالی بماند بازی کاملاً آفلاین کار می‌کند.';
 }
 function updSettings(){
   SET.pName=$('#setPName').value.trim()||DEFS.pName;
@@ -1580,27 +1668,14 @@ function updSettings(){
   if(music!==SET.music){ SET.music=music; SoundEngine.toggleMusic(music); }
   const sort=$('#setAutoSort').checked;
   if(sort!==SET.autoSort){ SET.autoSort=sort; if(G&&sort){G.p=sortHand(G.p);} }
-  SET.apiBase=normalizeBase($('#setApiBase').value);
   persistSettings();
   if(G)render();
 }
 ['setPName','setBName','setTarget','setDiff','setSurLastHand','setSurLastCard','setSurReturn',
- 'setSound','setMusic','setHaptic','setAnims','setAutoSort','setApiBase'
+ 'setSound','setMusic','setHaptic','setAnims','setAutoSort'
 ].forEach(id=>document.getElementById(id).addEventListener('change',updSettings));
 $('#btnSaveSettings').onclick=()=>{ updSettings(); toast('تنظیمات ذخیره شد ✔'); };
-$('#btnTestApi').onclick=async()=>{
-  updSettings();
-  const st=$('#apiStatus');
-  if(!serverConfigured()){ st.textContent='آدرس سرور خالی است؛ اول آدرس را وارد کن.'; return; }
-  st.textContent='در حال تست اتصال به '+apiBase()+' …';
-  try{
-    const r=await apiPing();
-    st.textContent=r.ok?('✅ سرور در دسترس است ('+fa(r.ms)+' میلی‌ثانیه)'+(r.name?' — '+r.name:'')):'❌ پاسخ سرور معتبر نبود.';
-    if(r.ok){ toast('اتصال به سرور برقرار است ✔',true); syncPendingPurchases(); }
-  }catch(e){
-    st.textContent='❌ اتصال برقرار نشد؛ آدرس، HTTPS و روشن بودن سرور را بررسی کن.';
-  }
-};
+
 
 /* ================= منطق کارت ================= */
 function makeDeck(){const d=[];for(let s=0;s<4;s++)for(let r=1;r<=13;r++)d.push({r,s,id:s*13+r});return d}
@@ -1900,25 +1975,51 @@ function onTableCardClick(c){
   }
   render();
 }
-// نگه‌داشتن کارت انتخاب‌شده = گذاشتن ساده روی زمین
-function bindLongPressPlace(el,card){
+/* ---------- رویدادها به‌صورت واگذارشده (delegation) ----------
+   به‌جای اینکه به هر کارت جداگانه شنونده وصل شود، فقط دو شنونده روی ردیف دست
+   و ردیف زمین بسته می‌شود. با این کار کارت‌ها می‌توانند بازاستفاده شوند و
+   شنوندهٔ کهنه‌ای هم روی کارت‌های حذف‌شده باقی نمی‌ماند. */
+function cardIdFromEvent(e){
+  const el=e.target&&e.target.closest?e.target.closest('.card[data-id]'):null;
+  if(!el)return null;
+  const id=parseInt(el.dataset.id,10);
+  return Number.isFinite(id)?id:null;
+}
+function bindBoardEvents(){
+  const hand=$('#handRow'), tbl=$('#tableArea');
+  if(!hand||!tbl)return;
+
+  hand.addEventListener('click',e=>{
+    const id=cardIdFromEvent(e); if(id==null||!G)return;
+    const c=G.p.find(x=>x.id===id); if(c)onHandCardClick(c);
+  });
+  tbl.addEventListener('click',e=>{
+    const id=cardIdFromEvent(e); if(id==null||!G)return;
+    const c=G.t.find(x=>x.id===id); if(c)onTableCardClick(c);
+  });
+
+  // نگه‌داشتن کارت انتخاب‌شده = گذاشتن ساده روی زمین
   let timer=null, sx=0, sy=0;
-  el.addEventListener('pointerdown',e=>{
-    if(!selectedHandCard||selectedHandCard.id!==card.id)return;
+  const clear=()=>{ if(timer){clearTimeout(timer);timer=null;} };
+  hand.addEventListener('pointerdown',e=>{
+    const id=cardIdFromEvent(e);
+    if(id==null||!selectedHandCard||selectedHandCard.id!==id)return;
     sx=e.clientX; sy=e.clientY;
+    clear();
     timer=setTimeout(()=>{
       timer=null;
-      if(anim||!G||G.turn!=='p')return;
+      if(anim||!G||G.turn!=='p'||!selectedHandCard)return;
       const c=selectedHandCard;
       selectedHandCard=null; selectedTableIds.clear();
       playAs(c,[],'place');
     },480);
   });
-  const cancel=e=>{ if(timer&&e&&e.type==='pointermove'&&Math.hypot(e.clientX-sx,e.clientY-sy)<10)return;
-    if(timer){clearTimeout(timer);timer=null;} };
-  el.addEventListener('pointerup',cancel);
-  el.addEventListener('pointerleave',cancel);
-  el.addEventListener('pointermove',cancel);
+  hand.addEventListener('pointermove',e=>{
+    if(timer&&Math.hypot(e.clientX-sx,e.clientY-sy)>=10)clear();
+  });
+  hand.addEventListener('pointerup',clear);
+  hand.addEventListener('pointercancel',clear);
+  hand.addEventListener('pointerleave',clear);
 }
 
 /* ================= هوش مصنوعی ================= */
@@ -2072,7 +2173,7 @@ function endRound(){
 }
 function showRoundSummary(res){
   const done=G.finished;
-  let html=`<h3>${done?'پایان بازی 🏆':'پایان دور '+fa(G.round)}</h3>
+  let html=`<h3>${done?('پایان بازی '+ICON('trophy','ic-gold')):('پایان دور '+fa(G.round))}</h3>
     <div class="srow" style="font-weight:800"><span></span><span>${SET.pName} | ${getBotDisplayName()}</span></div>`;
   res.detail.forEach(r=>html+=`<div class="srow"><span>${r[0]}</span><span>${fa(r[1])} | ${fa(r[2])}</span></div>`);
   html+=`<div class="srow total"><span>امتیاز این دور</span><span>${fa(res.p)} | ${fa(res.b)}</span></div>
@@ -2105,7 +2206,7 @@ function showRoundSummary(res){
   if(mR)mR.onclick=()=>{ $('#modalWrap').classList.remove('show'); newMatch(); };
 }
 function confettiRain(){
-  const em=['🎉','✨','🎊','⭐','🃏'];
+  const em=['🎉','✨','🎊','⭐','🎯'];
   for(let i=0;i<26;i++){
     const s=document.createElement('div'); s.className='confetti';
     s.textContent=em[i%em.length];
@@ -2142,9 +2243,9 @@ function probeRepoCards(){
      و شروع بازی را کند می‌کرد). */
   probeSrc('cards/back',0,src=>{
     if(!src)return;                       // پوشهٔ cards موجود نیست → طراحی داخلی کارت‌ها
-    REPO_CARDS.back=src; if(G)render();
+    REPO_CARDS.back=src; bumpCardVer(); if(G)render();
     makeDeck().forEach(c=>{
-      probeSrc(repoBase(c),0,s2=>{ if(s2){REPO_CARDS.src.set(c.id,s2); if(G)render();} });
+      probeSrc(repoBase(c),0,s2=>{ if(s2){REPO_CARDS.src.set(c.id,s2); bumpCardVer(); if(G)render();} });
     });
   });
 }
@@ -2178,53 +2279,119 @@ function cardEl(c,back){
   }
   return el;
 }
+/* کارت‌ها به‌جای ساخته‌شدن دوبارهٔ کامل، بازاستفاده می‌شوند: در هر حرکت فقط
+   همان چند کارتی که واقعاً عوض شده‌اند دست می‌خورند. نتیجه: انیمیشن روان‌تر،
+   بدون پرش، و فشار به‌مراتب کمتر روی گوشی‌های ضعیف.
+   CARD_VER وقتی بالا می‌رود که ظاهر خود کارت‌ها عوض شود (رسیدن عکس‌های پوشهٔ
+   cards)؛ آن وقت همهٔ کارت‌ها یک‌بار از نو ساخته می‌شوند. */
+let CARD_VER=0;
+function bumpCardVer(){ CARD_VER++; }
+
+/* هم‌گام‌سازی یک ردیف کارت با وضعیت بازی، با کمترین دست‌کاری DOM */
+function syncCards(container,list,back){
+  const pool=new Map();
+  for(let i=container.children.length-1;i>=0;i--){
+    const el=container.children[i];
+    const k=el.dataset&&el.dataset.key;
+    if(k)pool.set(k,el); else container.removeChild(el);
+  }
+  const out=[];
+  for(let i=0;i<list.length;i++){
+    const c=list[i];
+    const key=(back?('b'+i):('c'+c.id))+'|'+CARD_VER;
+    let el=pool.get(key);
+    if(el){
+      pool.delete(key);
+      el.classList.remove('deal-in');
+      // کلاس‌های انیمیشن فقط وقتی پاک می‌شوند که انیمیشنی در جریان نباشد
+      if(!anim)el.classList.remove('ghost','capturing');
+    }else{
+      el=cardEl(back?null:c,back);      // کارت‌های حریف بدون data-id تا دستش لو نرود
+      el.dataset.key=key; el.dataset.fresh='1';
+    }
+    out.push(el);
+  }
+  pool.forEach(el=>{ if(el.parentNode===container)container.removeChild(el); });
+  for(let i=0;i<out.length;i++){
+    if(container.children[i]!==out[i])container.insertBefore(out[i],container.children[i]||null);
+  }
+  return out;
+}
+/* نوشتن متن فقط وقتی واقعاً عوض شده (از رنگ‌آمیزی و layout بی‌مورد جلوگیری می‌کند) */
+function setTxt(el,txt){ if(el&&el.textContent!==txt)el.textContent=txt; }
+function setHtml(el,html){ if(el&&el.innerHTML!==html)el.innerHTML=html; }
+
+const RF={};   // نگه‌داشتن ارجاع عنصرها تا هر بار جستجو نشوند
 function render(){
   if(!G)return;
-  $('#hudPName').textContent=SET.pName; $('#hudBName').textContent=getBotDisplayName();
-  $('#hudScore').textContent=fa(G.bScore)+' — '+fa(G.pScore);
-  $('#hudTarget').textContent='تا '+fa(SET.target)+' امتیاز | دور '+fa(G.round)+' | دست '+fa(G.dealNo);
-  $('#hudPPile').textContent=fa(G.pPile.length)+' کارت | '+fa(G.pSur)+' سور';
-  $('#hudBPile').textContent=fa(G.bPile.length)+' کارت | '+fa(G.bSur)+' سور';
-  $('#deckCount').textContent='دسته: '+fa(G.deck.length);
-  $('#hudPWho').classList.toggle('active',G.turn==='p');
-  $('#hudBWho').classList.toggle('active',G.turn==='b');
-  const surT=G.pSur+G.bSur, surEl=$('#surIndicator');
-  if(surT>0){ surEl.style.display='block'; surEl.textContent='سور: '+SET.pName+' '+fa(G.pSur)+' — '+getBotDisplayName()+' '+fa(G.bSur); }
-  else surEl.style.display='none';
-
-  const bot=$('#botRow'); bot.innerHTML='';
-  G.b.forEach(()=>bot.appendChild(cardEl(null,true)));
-
-  const tbl=$('#tableArea'); tbl.innerHTML='';
-  if(G.t.length===0){
-    const h=document.createElement('div'); h.className='table-empty-hint'; h.textContent='زمین خالی است';
-    tbl.appendChild(h);
+  if(!RF.pName){
+    RF.pName=$('#hudPName'); RF.bName=$('#hudBName'); RF.score=$('#hudScore');
+    RF.target=$('#hudTarget'); RF.pPile=$('#hudPPile'); RF.bPile=$('#hudBPile');
+    RF.deck=$('#deckCount'); RF.pWho=$('#hudPWho'); RF.bWho=$('#hudBWho');
+    RF.sur=$('#surIndicator'); RF.bot=$('#botRow'); RF.tbl=$('#tableArea');
+    RF.hand=$('#handRow'); RF.hint=$('#selHint'); RF.chat=$('#btnChat');
   }
-  G.t.forEach(c=>{
-    const el=cardEl(c,false);
-    if(selectedTableIds.has(c.id))el.classList.add('selected');
-    el.addEventListener('click',()=>onTableCardClick(c));
-    tbl.appendChild(el);
-  });
+  setTxt(RF.pName,SET.pName); setTxt(RF.bName,getBotDisplayName());
+  const scoreTxt=fa(G.bScore)+' — '+fa(G.pScore);
+  if(RF.score.textContent!==scoreTxt){
+    RF.score.textContent=scoreTxt;
+    // نبض کوتاه روی امتیاز تا تغییرش به چشم بیاید
+    if(RF.scoreSeen){
+      RF.score.classList.add('bump');
+      clearTimeout(RF.scoreT);
+      RF.scoreT=setTimeout(()=>RF.score.classList.remove('bump'),240);
+    }
+    RF.scoreSeen=true;
+  }
+  /* جداکنندهٔ «|» به‌جای «·»: صفر فارسی («۰») خودش نقطه است و با نقطهٔ جداکننده اشتباه می‌شد.
+     شمارهٔ «دست» روی گوشی‌های خیلی باریک با CSS پنهان می‌شود تا متن بریده نشود. */
+  setHtml(RF.target,ICON('target')+' '+fa(SET.target)+' | دور '+fa(G.round)
+    +'<span class="wide-only"> | دست '+fa(G.dealNo)+'</span>');
+  setTxt(RF.pPile,fa(G.pPile.length)+' کارت | '+fa(G.pSur)+' سور');
+  setTxt(RF.bPile,fa(G.bPile.length)+' کارت | '+fa(G.bSur)+' سور');
+  setTxt(RF.deck,'دسته: '+fa(G.deck.length));
+  RF.pWho.classList.toggle('active',G.turn==='p');
+  RF.bWho.classList.toggle('active',G.turn==='b');
+  if(G.pSur+G.bSur>0){
+    RF.sur.style.display='block';
+    setTxt(RF.sur,'سور: '+SET.pName+' '+fa(G.pSur)+' — '+getBotDisplayName()+' '+fa(G.bSur));
+  } else if(RF.sur.style.display!=='none')RF.sur.style.display='none';
 
-  const hand=$('#handRow'); hand.innerHTML='';
-  G.p.forEach(c=>{
-    const el=cardEl(c,false);
-    if(G.turn==='p'&&!anim)el.classList.add('playable');
-    if(selectedHandCard&&selectedHandCard.id===c.id)el.classList.add('selected');
-    if(SET.anims&&!prevHandIds.has(c.id))el.classList.add('deal-in');
-    el.addEventListener('click',()=>onHandCardClick(c));
-    bindLongPressPlace(el,c);
-    hand.appendChild(el);
-  });
+  syncCards(RF.bot,G.b,true);
+
+  const tEls=syncCards(RF.tbl,G.t,false);
+  for(let i=0;i<tEls.length;i++){
+    const el=tEls[i];
+    el.classList.toggle('selected',selectedTableIds.has(G.t[i].id));
+    if(el.dataset.fresh)delete el.dataset.fresh;
+  }
+  if(!G.t.length&&!RF.tbl.querySelector('.table-empty-hint')){
+    const h=document.createElement('div'); h.className='table-empty-hint';
+    h.textContent='زمین خالی است'; RF.tbl.appendChild(h);
+  }
+
+  const hEls=syncCards(RF.hand,G.p,false);
+  const playable=G.turn==='p'&&!anim;
+  for(let i=0;i<hEls.length;i++){
+    const el=hEls[i], c=G.p[i];
+    el.classList.toggle('playable',playable);
+    el.classList.toggle('selected',!!selectedHandCard&&selectedHandCard.id===c.id);
+    if(el.dataset.fresh){
+      delete el.dataset.fresh;
+      if(SET.anims&&!prevHandIds.has(c.id))el.classList.add('deal-in');
+    }
+  }
   prevHandIds=new Set(G.p.map(c=>c.id));
-  hand.style.filter=G.turn==='p'?'none':'brightness(.75)';
-  bot.style.filter=G.turn==='b'?'none':'brightness(.8)';
-  const cbtn=$('#btnChat'); if(cbtn)cbtn.style.display=mpActive()?'flex':'none';
 
-  $('#selHint').textContent=selectedHandCard
+  const hf=G.turn==='p'?'none':'brightness(.75)';
+  if(RF.hand.style.filter!==hf)RF.hand.style.filter=hf;
+  const bf=G.turn==='b'?'none':'brightness(.8)';
+  if(RF.bot.style.filter!==bf)RF.bot.style.filter=bf;
+  if(RF.chat){ const d=mpActive()?'flex':'none'; if(RF.chat.style.display!==d)RF.chat.style.display=d; }
+
+  setTxt(RF.hint,selectedHandCard
     ?'کارت‌های زمین موردنظر را لمس کن (با تکمیل ترکیب درست، خودکار بازی می‌شود) — برای گذاشتن ساده، کارت را کمی نگه‌دار — برای انصراف، دوباره لمسش کن'
-    :'';
+    :'');
 }
 
 /* ================= کارت‌های جمع‌شده ================= */
@@ -2421,7 +2588,7 @@ function mpBindChannel(channel){
   };
   channel.onclose=()=>{
     MP.connected=false;
-    if(mpActive())toast('اتصال با بازیکن دیگر قطع شد. با دکمهٔ ☰ به منو برگرد.');
+    if(mpActive())toast('اتصال با بازیکن دیگر قطع شد. با دکمهٔ منو به صفحهٔ اصلی برگرد.');
   };
   channel.onmessage=ev=>{
     try{ mpHandleMessage(JSON.parse(ev.data)); }catch(e){}
@@ -2451,7 +2618,9 @@ function normalizeBase(v){
   if(!/^https?:\/\//i.test(v))v='https://'+v;
   return v;
 }
-function apiBase(){ return normalizeBase(SET.apiBase)||normalizeBase(DEFAULT_API_BASE); }
+/* آدرس سرور فقط از همان ثابت بالا خوانده می‌شود؛ چیزی در تنظیمات به کاربر
+   نشان داده نمی‌شود. (SET.apiBase فقط برای آزمایش داخلی باقی مانده است.) */
+function apiBase(){ return normalizeBase(DEFAULT_API_BASE)||normalizeBase(SET.apiBase); }
 function serverConfigured(){ return !!apiBase(); }
 /* درخواست به سرور با مهلت زمانی و مدیریت کامل خطا (هیچ‌وقت بازی را قفل نمی‌کند) */
 async function api(path,opts,timeoutMs){
@@ -2471,13 +2640,6 @@ async function api(path,opts,timeoutMs){
     return data;
   } finally { clearTimeout(t); }
 }
-/* وضعیت سرور برای نمایش در تنظیمات */
-async function apiPing(){
-  const t0=Date.now();
-  const d=await api('/api/health',{method:'GET'},7000);
-  return {ok:!!(d&&d.ok), ms:Date.now()-t0, name:(d&&d.name)||''};
-}
-
 let mpPollTimer=null;
 function stopMpPoll(){ if(mpPollTimer){clearInterval(mpPollTimer);mpPollTimer=null;} }
 async function mpStartHostOnline(){
@@ -2517,7 +2679,7 @@ async function mpStartHostOnline(){
   }catch(e){
     codeEl.textContent='-------';
     statusEl.textContent=(e&&e.message==='no-server')
-      ?'آدرس سرور تنظیم نشده است؛ از «تنظیمات ← آدرس سرور بازی» آن را وارد کن.'
+      ?'ارتباط با سرور بازی برقرار نشد؛ اینترنت خود را بررسی کن.'
       :'خطا در ارتباط با سرور کد. اینترنت را بررسی کن.';
   }
 }
@@ -2544,7 +2706,7 @@ async function mpJoinOnline(){
   }catch(e){
     statusEl.textContent=(e&&e.status===404)
       ?'این کد پیدا نشد یا منقضی شده؛ از میزبان کد جدید بگیر.'
-      :((e&&e.message==='no-server')?'آدرس سرور تنظیم نشده است؛ از «تنظیمات ← آدرس سرور بازی» آن را وارد کن.'
+      :((e&&e.message==='no-server')?'ارتباط با سرور بازی برقرار نشد؛ اینترنت خود را بررسی کن.'
                                     :'اتصال با خطا مواجه شد. دوباره امتحان کن.');
   }
 }
@@ -2696,8 +2858,8 @@ function mpTeardown(){
 $('#btnMp').onclick=()=>{
   const m=$('#mpHubMode');
   if(m)m.textContent=serverConfigured()
-    ? '🌐 حالت آنلاین فعال است: میزبان یک کد ۷ رقمی می‌گیرد و دوستت همان را وارد می‌کند — از هر جایی با اینترنت.'
-    : '📶 حالت بدون سرور: کد طولانی بین دو گوشی رد و بدل می‌شود و هر دو باید روی یک وای‌فای باشند. برای کد کوتاه ۷ رقمی، آدرس سرور را در «تنظیمات» وارد کن.';
+    ? 'حالت آنلاین فعال است: میزبان یک کد ۷ رقمی می‌گیرد و دوستت همان را وارد می‌کند — از هر جایی با اینترنت.'
+    : 'حالت بدون سرور: کد طولانی بین دو گوشی رد و بدل می‌شود و هر دو باید روی یک وای‌فای باشند.';
   show('mpHub');
 };
 $('#btnMpHost').onclick=()=>{
@@ -2792,7 +2954,7 @@ function addCoins(n){ PROG.coins=Math.max(0,PROG.coins+n); progSave(); renderPro
 function addTickets(n){ PROG.tickets=Math.max(0,(PROG.tickets||0)+n); progSave(); renderProgChip(); }
 function renderProgChip(){
   const need=xpNeed(PROG.level), pct=Math.min(100,Math.round(PROG.xp/need*100));
-  const lv=document.getElementById('hudLevel'); if(lv)lv.textContent='★ '+fa(PROG.level);
+  const lv=document.getElementById('hudLevel'); if(lv)lv.innerHTML=ICON('star')+' '+fa(PROG.level);
   const xp=document.getElementById('hudXp'); if(xp)xp.style.width=pct+'%';
   const co=document.getElementById('hudCoins'); if(co)co.textContent=fa(PROG.coins);
   const tk=document.getElementById('hudTickets'); if(tk)tk.textContent=fa(PROG.tickets||0);
@@ -2811,10 +2973,10 @@ function maybeDailyLogin(){
   let coins=rewards[Math.min(PROG.streak,7)-1];
   if(PROG.vip)coins*=2;        // امتیاز VIP: جایزهٔ ورود دوبرابر
   const tickets=(PROG.streak%7===0)?2:(PROG.streak>=3?1:0);   // بلیط جایزهٔ پیوستگی
-  $('#dailyBox').innerHTML='<h3>🎁 جایزهٔ ورود روزانه</h3>'
-    +'<p style="text-align:center">روز '+fa(PROG.streak)+' ورود پیاپی! 🔥</p>'
-    +'<div style="text-align:center;font-size:32px;margin:10px 0">🪙 '+fa(coins)+' <span style="font-size:15px;color:#96a5cf">+ '+fa(10)+' XP</span></div>'
-    +(tickets?'<div style="text-align:center;font-size:18px;color:#ffe9ad;margin-bottom:6px">🎟️ '+fa(tickets)+' بلیط مسابقه</div>':'')
+  $('#dailyBox').innerHTML='<h3>'+ICON('gift','ic-gold')+' جایزهٔ ورود روزانه</h3>'
+    +'<p style="text-align:center">روز '+fa(PROG.streak)+' ورود پیاپی '+ICON('fire')+'</p>'
+    +'<div style="text-align:center;font-size:32px;margin:10px 0">'+ICON('coin','ic-coin')+' '+fa(coins)+' <span style="font-size:15px;color:#96a5cf">+ '+fa(10)+' XP</span></div>'
+    +(tickets?'<div style="text-align:center;font-size:18px;color:#ffe9ad;margin-bottom:6px">'+ICON('ticket','ic-gold')+' '+fa(tickets)+' بلیط مسابقه</div>':'')
     +'<div class="hint" style="text-align:center">هر روز که بیایی جایزه بزرگ‌تر می‌شود (تا روز ۷)</div>'
     +'<button class="btn primary" id="dailyClaim">دریافت جایزه 🎉</button>';
   $('#dailyWrap').classList.add('show');
@@ -2865,7 +3027,7 @@ function progRoundRewards(done){
     progMission('m_round',1);
     progMission('m_collect',(G.pPile||[]).length);
     addCoins(5); addXP(10);
-    html+='<div class="srow"><span>جایزهٔ دور</span><span>🪙 '+fa(5)+' | ✨ '+fa(10)+' XP</span></div>';
+    html+='<div class="srow"><span>جایزهٔ دور</span><span>'+ICON('coin','ic-coin')+' '+fa(5)+' | '+ICON('sparkle','ic-gold')+' '+fa(10)+' XP</span></div>';
   }
   if(done&&!G.matchRewarded){
     G.matchRewarded=true;
@@ -2878,7 +3040,7 @@ function progRoundRewards(done){
     let c=win?40:10, x=win?60:20;
     if(PROG.vip){ c=Math.round(c*1.5); x=Math.round(x*1.5); }  // امتیاز VIP: پاداش بیشتر
     addCoins(c); addXP(x); boardSubmit();
-    html+='<div class="srow total"><span>جایزهٔ مسابقه</span><span>🪙 '+fa(c)+' | ✨ '+fa(x)+' XP | 🏆 '+(dT>0?'+':'−')+fa(Math.abs(dT))+'</span></div>';
+    html+='<div class="srow total"><span>جایزهٔ مسابقه</span><span>'+ICON('coin','ic-coin')+' '+fa(c)+' | '+ICON('sparkle','ic-gold')+' '+fa(x)+' XP | '+ICON('trophy','ic-gold')+' '+(dT>0?'+':'−')+fa(Math.abs(dT))+'</span></div>';
   }
   save();
   return html;
@@ -2900,11 +3062,11 @@ const ACHS=[
 
 /* ----- لیگ ----- */
 const LEAGUES=[
-  {n:'برنز', min:0,    ic:'🥉'},
-  {n:'نقره', min:100,  ic:'🥈'},
-  {n:'طلا',  min:250,  ic:'🥇'},
-  {n:'الماس',min:500,  ic:'💎'},
-  {n:'استاد',min:1000, ic:'👑'},
+  {n:'برنز', min:0,    ic:ICON('medal','lg-bronze')},
+  {n:'نقره', min:100,  ic:ICON('medal','lg-silver')},
+  {n:'طلا',  min:250,  ic:ICON('medal','lg-gold')},
+  {n:'الماس',min:500,  ic:ICON('diamond','lg-diamond')},
+  {n:'استاد',min:1000, ic:ICON('crown','lg-master')},
 ];
 function curLeague(){ let l=LEAGUES[0]; LEAGUES.forEach(x=>{ if(PROG.trophies>=x.min)l=x; }); return l; }
 
@@ -2918,9 +3080,9 @@ function openHub(){
     +'<div style="flex:1;min-width:0"><div style="font-weight:800;color:var(--gold-soft)">سطح '+fa(PROG.level)+'</div>'
     +'<div class="pbar" style="margin-top:5px"><i style="width:'+pct+'%"></i></div>'
     +'<div class="hint" style="margin-top:4px">'+fa(PROG.xp)+' / '+fa(need)+' تجربه (XP)</div></div>'
-    +'<div style="text-align:center"><div style="font-size:24px">🪙</div><div style="font-weight:800;color:#ffe9ad">'+fa(PROG.coins)+'</div></div>'
+    +'<div style="text-align:center"><div style="font-size:24px">'+ICON('coin','ic-coin')+'</div><div style="font-weight:800;color:#ffe9ad">'+fa(PROG.coins)+'</div></div>'
     +'</div>'
-    +'<div class="hint" style="margin-top:10px">🔥 ورود پیاپی: '+fa(PROG.streak)+' روز</div>';
+    +'<div class="hint" style="margin-top:10px">'+ICON('fire')+' ورود پیاپی: '+fa(PROG.streak)+' روز</div>';
   // مأموریت‌ها
   const ml=$('#missionList'); ml.innerHTML='';
   PROG.missions.list.forEach(m=>{
@@ -2928,13 +3090,13 @@ function openHub(){
     const row=document.createElement('div'); row.className='mission-row';
     row.innerHTML='<div class="mi"><div class="mt">'+d.t+'</div>'
       +'<div class="pbar" style="margin-top:5px"><i style="width:'+Math.min(100,Math.round(m.cur/d.goal*100))+'%"></i></div>'
-      +'<div class="hint" style="margin-top:3px">'+fa(m.cur)+' / '+fa(d.goal)+' — 🪙 '+fa(d.c)+' | ✨ '+fa(d.x)+' XP</div></div>';
+      +'<div class="hint" style="margin-top:3px">'+fa(m.cur)+' / '+fa(d.goal)+' — '+ICON('coin','ic-coin')+' '+fa(d.c)+' | '+ICON('sparkle','ic-gold')+' '+fa(d.x)+' XP</div></div>';
     const b=document.createElement('button'); b.className='small-btn'; b.style.margin='0';
-    if(m.claimed){ b.textContent='✔'; b.disabled=true; b.style.opacity=.5; }
+    if(m.claimed){ b.innerHTML=ICON('check'); b.disabled=true; b.style.opacity=.5; }
     else if(ready){
       b.textContent='دریافت'; b.classList.add('claim-ready');
       b.onclick=()=>{ m.claimed=true; addCoins(d.c); addXP(d.x); progSave(); openHub(); toast('جایزهٔ مأموریت دریافت شد 🎁'); };
-    } else { b.textContent='⏳'; b.title='در حال انجام'; b.disabled=true; b.style.opacity=.55; }
+    } else { b.innerHTML=ICON('hourglass'); b.title='در حال انجام'; b.disabled=true; b.style.opacity=.55; }
     row.appendChild(b); ml.appendChild(row);
   });
   buildWheel(); refreshWheelBtn();
@@ -2943,7 +3105,7 @@ function openHub(){
   $('#leagueBox').innerHTML=
     '<div style="text-align:center;font-size:44px">'+L.ic+'</div>'
     +'<div style="text-align:center;font-weight:800;color:var(--gold-soft);font-size:18px">لیگ '+L.n+'</div>'
-    +'<div style="text-align:center" class="hint">🏆 '+fa(PROG.trophies)+' جام'+(next?' — تا لیگ '+next.n+': '+fa(next.min-PROG.trophies)+' جام دیگر':' — بالاترین لیگ!')+'</div>'
+    +'<div style="text-align:center" class="hint">'+ICON('trophy','ic-gold')+' '+fa(PROG.trophies)+' جام'+(next?' — تا لیگ '+next.n+': '+fa(next.min-PROG.trophies)+' جام دیگر':' — بالاترین لیگ!')+'</div>'
     +(next?'<div class="pbar" style="margin-top:8px"><i style="width:'+Math.min(100,Math.round((PROG.trophies-L.min)/(next.min-L.min)*100))+'%"></i></div>':'')
     +'<div class="hint" style="margin-top:6px;text-align:center">هر برد +۲۰ جام | هر باخت −۱۰ جام</div>';
   // آمار
@@ -2958,22 +3120,24 @@ function openHub(){
   ACHS.forEach(a=>{
     const done=a.f(), claimed=PROG.achClaimed.includes(a.id);
     const row=document.createElement('div'); row.className='mission-row';
-    row.innerHTML='<div class="mi"><div class="mt">'+(claimed?'🏅':(done?'✨':'🔒'))+' '+a.t+'</div>'
-      +'<div class="hint">'+a.d+' — 🪙 '+fa(a.c)+(a.x?' | ✨ '+fa(a.x)+' XP':'')+'</div></div>';
+    row.innerHTML='<div class="mi"><div class="mt">'+(claimed?ICON('medal','ic-gold'):(done?ICON('sparkle','ic-gold'):ICON('lock')))+' '+a.t+'</div>'
+      +'<div class="hint">'+a.d+' — '+ICON('coin','ic-coin')+' '+fa(a.c)+(a.x?' | '+ICON('sparkle','ic-gold')+' '+fa(a.x)+' XP':'')+'</div></div>';
     const b=document.createElement('button'); b.className='small-btn'; b.style.margin='0';
-    if(claimed){ b.textContent='✔'; b.disabled=true; b.style.opacity=.5; }
+    if(claimed){ b.innerHTML=ICON('check'); b.disabled=true; b.style.opacity=.5; }
     else if(done){
       b.textContent='دریافت'; b.classList.add('claim-ready');
       b.onclick=()=>{ PROG.achClaimed.push(a.id); addCoins(a.c); addXP(a.x); progSave(); openHub(); toast('دستاورد باز شد 🏅'); };
-    } else { b.textContent='🔒'; b.title='هنوز باز نشده'; b.disabled=true; b.style.opacity=.55; }
+    } else { b.innerHTML=ICON('lock'); b.title='هنوز باز نشده'; b.disabled=true; b.style.opacity=.55; }
     row.appendChild(b); al.appendChild(row);
   });
 }
 
 /* ----- چرخ شانس ----- */
 const WHEEL_SEG=[
-  {t:'🪙 ۱۰',c:10},{t:'🎟️ ۱',k:1},{t:'🪙 ۵۰',c:50},{t:'✨ ۲۰',x:20},
-  {t:'🪙 ۲۰',c:20},{t:'🪙 ۱۰۰',c:100},{t:'✨ ۵۰',x:50},{t:'🪙 ۵',c:5}
+  {t:ICON('coin','ic-coin')+' ۱۰',c:10},{t:ICON('ticket','ic-gold')+' ۱',k:1},
+  {t:ICON('coin','ic-coin')+' ۵۰',c:50},{t:ICON('sparkle','ic-gold')+' ۲۰',x:20},
+  {t:ICON('coin','ic-coin')+' ۲۰',c:20},{t:ICON('coin','ic-coin')+' ۱۰۰',c:100},
+  {t:ICON('sparkle','ic-gold')+' ۵۰',x:50},{t:ICON('coin','ic-coin')+' ۵',c:5}
 ];
 let wheelRot=0, wheelSpinning=false, wheelBuilt=false;
 function buildWheel(){
@@ -2981,7 +3145,7 @@ function buildWheel(){
   const w=$('#wheel');
   WHEEL_SEG.forEach((s,i)=>{
     const l=document.createElement('span');
-    l.textContent=s.t;
+    l.innerHTML=s.t;
     l.style.transform='translate(-50%,-50%) rotate('+(i*45+22.5)+'deg) translateY(-68px)';
     w.appendChild(l);
   });
@@ -2989,7 +3153,7 @@ function buildWheel(){
 function refreshWheelBtn(){
   const free=PROG.vip||PROG.lastSpin!==todayStr();
   const b=$('#wheelBtn'); if(!b)return;
-  b.textContent=free?'🎡 چرخاندن رایگان امروز':'چرخاندن دوباره (🪙 ۴۰)';
+  b.innerHTML=free?(ICON('wheel','ic-gold')+' چرخاندن رایگان امروز'):('چرخاندن دوباره ('+ICON('coin','ic-coin')+' ۴۰)');
   $('#wheelHint').textContent=free?'هر روز یک چرخش رایگان داری!':'چرخش رایگان بعدی: فردا';
 }
 $('#wheelBtn').onclick=()=>{
@@ -3029,12 +3193,12 @@ const BACK_SKINS=[
    قیمت‌ها فقط برای نمایش‌اند؛ مبلغ واقعی را خود مایکت از پنل می‌خواند.
    ================================================================ */
 const IAP_PRODUCTS=[
-  {sku:'coins_500',        kind:'coins', ic:'🪙', n:'۵۰۰ سکه',            coins:500,  tickets:1,  rial:100000},
-  {sku:'coins_1500',       kind:'coins', ic:'🪙', n:'۱٬۵۰۰ سکه',          coins:1500, tickets:3,  rial:250000},
-  {sku:'coins_4000',       kind:'coins', ic:'🪙', n:'۴٬۰۰۰ سکه',          coins:4000, tickets:10, rial:500000},
-  {sku:'vip_subscription',   kind:'vip', ic:'👑', n:'اشتراک VIP — ۱ ماهه', days:30, tickets:3,  rial:500000},
-  {sku:'vip_subscription_2', kind:'vip', ic:'👑', n:'اشتراک VIP — ۲ ماهه', days:60, tickets:7,  rial:550000},
-  {sku:'vip_subscription_3', kind:'vip', ic:'👑', n:'اشتراک VIP — ۳ ماهه', days:90, tickets:12, rial:600000},
+  {sku:'coins_500',        kind:'coins', ic:ICON('coin','ic-coin'), n:'۵۰۰ سکه',            coins:500,  tickets:1,  rial:100000},
+  {sku:'coins_1500',       kind:'coins', ic:ICON('coin','ic-coin'), n:'۱٬۵۰۰ سکه',          coins:1500, tickets:3,  rial:250000},
+  {sku:'coins_4000',       kind:'coins', ic:ICON('coin','ic-coin'), n:'۴٬۰۰۰ سکه',          coins:4000, tickets:10, rial:500000},
+  {sku:'vip_subscription',   kind:'vip', ic:ICON('crown','ic-crown'), n:'اشتراک VIP — ۱ ماهه', days:30, tickets:3,  rial:500000},
+  {sku:'vip_subscription_2', kind:'vip', ic:ICON('crown','ic-crown'), n:'اشتراک VIP — ۲ ماهه', days:60, tickets:7,  rial:550000},
+  {sku:'vip_subscription_3', kind:'vip', ic:ICON('crown','ic-crown'), n:'اشتراک VIP — ۳ ماهه', days:90, tickets:12, rial:600000},
 ];
 function productBySku(sku){ return IAP_PRODUCTS.find(p=>p.sku===sku)||null; }
 function toman(rial){ return fa(Math.round(rial/10).toLocaleString('en-US'))+' تومان'; }
@@ -3085,9 +3249,9 @@ function parseToken(purchaseData){
 function applyGrant(g,label){
   if(!g)return;
   let parts=[];
-  if(g.coins>0){ addCoins(g.coins); parts.push('🪙 '+fa(g.coins)+' سکه'); }
-  if(g.tickets>0){ PROG.tickets=(PROG.tickets||0)+g.tickets; parts.push('🎟️ '+fa(g.tickets)+' بلیط'); }
-  if(g.vipDays>0){ grantVipDays(g.vipDays); parts.push('👑 '+fa(g.vipDays)+' روز VIP'); }
+  if(g.coins>0){ addCoins(g.coins); parts.push(fa(g.coins)+' سکه'); }
+  if(g.tickets>0){ PROG.tickets=(PROG.tickets||0)+g.tickets; parts.push(fa(g.tickets)+' بلیط'); }
+  if(g.vipDays>0){ grantVipDays(g.vipDays); parts.push(fa(g.vipDays)+' روز VIP'); }
   progSave(); renderProgChip(); applyVipUI();
   try{ if($('#shop').classList.contains('active'))openShop(); }catch(e){}
   try{ if($('#vip').classList.contains('active'))openVip(); }catch(e){}
@@ -3226,7 +3390,7 @@ function applySkin(){
 function openShop(){
   $('#shopTop').innerHTML='<div style="display:flex;justify-content:space-between;align-items:center">'
     +'<span style="font-weight:800;color:var(--gold-soft)">موجودی شما</span>'
-    +'<span style="font-weight:800;color:#ffe9ad;font-size:18px">🪙 '+fa(PROG.coins)+'</span></div>';
+    +'<span style="font-weight:800;color:#ffe9ad;font-size:18px">'+ICON('coin','ic-coin')+' '+fa(PROG.coins)+'</span></div>';
   const g=$('#shopBacks'); g.innerHTML='';
   BACK_SKINS.forEach(s=>{
     const owned=PROG.owned.includes(s.id), active=PROG.activeBack===s.id;
@@ -3234,7 +3398,7 @@ function openShop(){
     const cardDiv=document.createElement('div'); cardDiv.className='card back '+s.cls;
     cardDiv.innerHTML='<div class="frame"></div>';
     const pr=document.createElement('span'); pr.className='pr';
-    pr.textContent=active?'فعال ✔':(owned?'انتخاب':(s.price===0?'رایگان':'🪙 '+fa(s.price)));
+    pr.innerHTML=active?('فعال '+ICON('check','ic-green')):(owned?'انتخاب':(s.price===0?'رایگان':ICON('coin','ic-coin')+' '+fa(s.price)));
     const nm=document.createElement('span'); nm.style.fontSize='12.5px'; nm.style.fontWeight='700'; nm.textContent=s.n;
     item.appendChild(cardDiv); item.appendChild(nm); item.appendChild(pr);
     item.onclick=()=>{
@@ -3259,12 +3423,12 @@ function openShop(){
     : 'خرید فقط در نسخهٔ نصب‌شده از مایکت فعال است؛ اینجا فقط لیست محصولات را می‌بینی.';
   const tk=$('#shopTickets');
   if(tk)tk.innerHTML=
-     '<div class="mission-row"><div class="mi"><div class="mt">🎟️ بلیط‌های تو</div>'
+     '<div class="mission-row"><div class="mi"><div class="mt">'+ICON('ticket','ic-gold')+' بلیط‌های تو</div>'
     +'<div class="hint">'+fa(PROG.tickets||0)+' بلیط</div></div></div>'
     +'<div class="hint" style="line-height:2">بلیط جداگانه فروخته نمی‌شود؛ با هر بستهٔ سکه و هر اشتراک VIP بلیط هدیه می‌گیری، '
     +'و هر بار جایزهٔ ورود روزانه یا جایزهٔ بزرگ چرخ شانس هم بلیط دارد.</div>';
   const rh=$('#restoreHint');
-  if(rh&&PROG.pendingIap.length)rh.textContent='⏳ '+fa(PROG.pendingIap.length)+' خرید در انتظار تأیید است؛ با وصل شدن اینترنت خودکار اعمال می‌شود.';
+  if(rh&&PROG.pendingIap.length)rh.innerHTML=ICON('hourglass')+' '+fa(PROG.pendingIap.length)+' خرید در انتظار تأیید است؛ با وصل شدن اینترنت خودکار اعمال می‌شود.';
 }
 /* لیست محصولات درون‌برنامه‌ای (سکه یا VIP) */
 function renderIapList(sel,kind){
@@ -3274,8 +3438,8 @@ function renderIapList(sel,kind){
   IAP_PRODUCTS.filter(p=>p.kind===kind).forEach(x=>{
     const row=document.createElement('div'); row.className='mission-row';
     const extra=x.kind==='coins'
-      ? ('🪙 '+fa(x.coins)+' سکه'+(x.tickets?' + 🎟️ '+fa(x.tickets)+' بلیط':''))
-      : ('👑 '+fa(x.days)+' روز'+(x.tickets?' + 🎟️ '+fa(x.tickets)+' بلیط':''));
+      ? (ICON('coin','ic-coin')+' '+fa(x.coins)+' سکه'+(x.tickets?' + '+ICON('ticket','ic-gold')+' '+fa(x.tickets)+' بلیط':''))
+      : (ICON('crown','ic-crown')+' '+fa(x.days)+' روز'+(x.tickets?' + '+ICON('ticket','ic-gold')+' '+fa(x.tickets)+' بلیط':''));
     const info=document.createElement('div'); info.className='mi';
     info.innerHTML='<div class="mt">'+x.ic+' '+esc(x.n)+'</div><div class="hint">'+extra+' — '+toman(x.rial)+'</div>';
     const b=document.createElement('button');
@@ -3299,9 +3463,9 @@ async function openBoard(){
   const st=$('#boardStatus'), list=$('#boardList'); list.innerHTML='';
   const meU=SET.profileUsername||'';
   const localCard='<div class="board-row me"><span>۱. '+esc(SET.pName)+(meU?' (@'+esc(meU)+')':'')+'</span>'
-    +'<span>🏆 '+fa(PROG.trophies)+' | سطح '+fa(PROG.level)+'</span></div>';
+    +'<span>'+ICON('trophy','ic-gold')+' '+fa(PROG.trophies)+' | سطح '+fa(PROG.level)+'</span></div>';
   if(!serverConfigured()){
-    st.textContent='جدول جهانی وقتی فعال می‌شود که آدرس سرور بازی در «تنظیمات» وارد شود. فعلاً کارنامهٔ خودت:';
+    st.textContent='جدول جهانی فعلاً در دسترس نیست. کارنامهٔ خودت:';
     list.innerHTML=localCard;
     return;
   }
@@ -3310,10 +3474,10 @@ async function openBoard(){
     await boardSubmit();
     const data=await api('/api/leaderboard',{method:'GET'},12000);
     const rows=(data&&Array.isArray(data.rows))?data.rows:[];
-    st.textContent='🏆 برترین بازیکنان بر اساس جام';
+    st.innerHTML=ICON('trophy','ic-gold')+' برترین بازیکنان بر اساس جام';
     list.innerHTML=rows.length?rows.map((x,i)=>
       '<div class="board-row'+(x.username===meU?' me':'')+'"><span>'+fa(i+1)+'. '+esc(String(x.name||x.username).slice(0,16))+'</span>'
-      +'<span>🏆 '+fa(x.trophies||0)+' | س '+fa(x.level||1)+'</span></div>').join('')
+      +'<span>'+ICON('trophy','ic-gold')+' '+fa(x.trophies||0)+' | س '+fa(x.level||1)+'</span></div>').join('')
       :'<div class="hint">هنوز کسی در جدول ثبت نشده — تو اولین نفر باش!</div>';
   }catch(e){
     st.textContent='دریافت جدول ممکن نشد؛ اینترنت یا آدرس سرور را بررسی کن. فعلاً کارنامهٔ خودت:';
@@ -3445,7 +3609,7 @@ function openVip(){
   refreshVipState();
   const on=PROG.vip;
   $('#vipState').textContent=on
-    ? '✅ اشتراک VIP تو فعال است — '+fa(vipDaysLeft())+' روز باقی مانده'
+    ? 'اشتراک VIP تو فعال است — '+fa(vipDaysLeft())+' روز باقی مانده'
     : 'با VIP، بازی را حرفه‌ای‌تر تجربه کن';
   renderIapList('#vipPacks','vip');
   const h=$('#vipBuyHint');
@@ -3484,15 +3648,15 @@ function openHall(){
     '<div style="text-align:center">'
     +'<div style="font-size:50px">'+L.ic+'</div>'
     +'<div style="font-weight:800;color:var(--gold-soft);font-size:19px">لیگ '+L.n+'</div>'
-    +'<div class="hint">🏆 '+fa(PROG.trophies)+' جام</div></div>'
-    +'<div class="srow" style="margin-top:8px"><span>🏅 مدال‌های باز شده</span><span>'+fa(unlocked)+' از '+fa(ACHS.length)+'</span></div>'
-    +'<div class="srow"><span>🏆 بیشترین امتیاز</span><span>'+fa(PROG.highScore)+'</span></div>'
-    +'<div class="srow"><span>🥇 کل بردها</span><span>'+fa(PROG.wins)+'</span></div>';
+    +'<div class="hint">'+ICON('trophy','ic-gold')+' '+fa(PROG.trophies)+' جام</div></div>'
+    +'<div class="srow" style="margin-top:8px"><span>'+ICON('medal','ic-gold')+' مدال‌های باز شده</span><span>'+fa(unlocked)+' از '+fa(ACHS.length)+'</span></div>'
+    +'<div class="srow"><span>'+ICON('trophy','ic-gold')+' بیشترین امتیاز</span><span>'+fa(PROG.highScore)+'</span></div>'
+    +'<div class="srow"><span>'+ICON('flag')+' کل بردها</span><span>'+fa(PROG.wins)+'</span></div>';
   const box=$('#hallAch'); box.innerHTML='';
   ACHS.forEach(a=>{
     const done=a.f(), claimed=PROG.achClaimed.includes(a.id);
     const row=document.createElement('div'); row.className='mission-row';
-    row.innerHTML='<div class="mi"><div class="mt">'+(claimed?'🏅':(done?'✨':'🔒'))+' '+a.t+'</div>'
+    row.innerHTML='<div class="mi"><div class="mt">'+(claimed?ICON('medal','ic-gold'):(done?ICON('sparkle','ic-gold'):ICON('lock')))+' '+a.t+'</div>'
       +'<div class="hint">'+a.d+'</div></div>'
       +'<span class="hint" style="white-space:nowrap">'+(claimed?'گرفته شد':(done?'آمادهٔ دریافت':'قفل'))+'</span>';
     box.appendChild(row);
@@ -3553,6 +3717,7 @@ function toast(msg,big){
 /* ================= شروع برنامه ================= */
 function init(){
   refreshMenu(); applyCardImages();
+  bindBoardEvents();
   probeRepoCards();
 
   /* ---------- اندازهٔ دقیق صفحه در همهٔ گوشی‌ها (اندروید و آیفون) ----------
