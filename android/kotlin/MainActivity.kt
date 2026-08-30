@@ -35,10 +35,15 @@ class MainActivity : AppCompatActivity() {
     companion object {
         /**
          * آدرس اینترنتی فایل index.html بازی، برای به‌روزرسانی خودکار.
-         * اگر خالی بگذارید، به‌روزرسانی خودکار خاموش می‌شود و بازی فقط از
-         * نسخهٔ داخل برنامه اجرا می‌شود (که کاملاً هم درست کار می‌کند).
+         *
+         * تا وقتی نسخهٔ جدید بازی را روی همان آدرس نگذاشته‌اید، این را
+         * خالی ("") بگذارید. وگرنه برنامه نسخهٔ قدیمی اینترنتی را دانلود
+         * می‌کند و می‌خواهد بازیِ داخل برنامه را با آن عوض کند.
+         *
+         * (کد پایین محافظ هم دارد: نسخه‌ای با شمارهٔ کوچک‌تر هرگز جایگزین
+         * نمی‌شود. ولی خالی گذاشتن، مطمئن‌ترین کار است.)
          */
-        private const val UPDATE_URL = "https://smahdi2razavi-code.github.io/Pasur11/index.html"
+        private const val UPDATE_URL = ""
 
         private const val DOMAIN = "appassets.androidplatform.net"
         private const val START_URL = "https://$DOMAIN/game/index.html"
@@ -167,13 +172,20 @@ class MainActivity : AppCompatActivity() {
                 }
                 if (conn.responseCode != 200) return@Thread
                 val body = conn.inputStream.bufferedReader().use { it.readText() }
+
                 // بررسی سلامت: باید یک صفحهٔ کامل بازی باشد، نه صفحهٔ خطا
                 if (body.length < 20000 || !body.contains("پاسور")) return@Thread
 
+                val dest = File(gameDir, "index.html")
+                val current = if (dest.exists()) dest.readText() else ""
+                if (current == body) return@Thread
+
+                // فقط نسخهٔ جدیدتر پذیرفته می‌شود؛ اگر روی سایت هنوز نسخهٔ
+                // قدیمی مانده باشد، بازیِ داخل برنامه دست‌نخورده می‌ماند.
+                if (versionOf(body) < versionOf(current)) return@Thread
+
                 val tmp = File(gameDir, "index.html.tmp")
                 tmp.writeText(body)
-                val dest = File(gameDir, "index.html")
-                if (dest.exists() && dest.readText() == body) { tmp.delete(); return@Thread }
                 if (!tmp.renameTo(dest)) { tmp.copyTo(dest, overwrite = true); tmp.delete() }
             } catch (e: Exception) {
                 // بدون اینترنت یا خطای شبکه: نادیده گرفته می‌شود
@@ -181,5 +193,27 @@ class MainActivity : AppCompatActivity() {
                 try { conn?.disconnect() } catch (e: Exception) { }
             }
         }.start()
+    }
+
+    /**
+     * شمارهٔ نسخه را از تگ  <meta name="game-version" content="N">  می‌خواند.
+     * اگر تگ نبود (نسخه‌های قدیمی بازی) عدد صفر برمی‌گردد.
+     */
+    private fun versionOf(html: String): Int {
+        if (html.isEmpty()) return 0
+        val key = html.indexOf("game-version")
+        if (key < 0) return 0
+        val at = html.indexOf("content", key)
+        if (at < 0 || at - key > 80) return 0
+        val digits = StringBuilder()
+        var i = at
+        while (i < html.length && i < at + 40) {
+            val ch = html[i]
+            if (ch.isDigit()) digits.append(ch)
+            else if (digits.isNotEmpty()) break
+            else if (ch == '>') break
+            i++
+        }
+        return digits.toString().toIntOrNull() ?: 0
     }
 }
