@@ -3275,7 +3275,7 @@ async function syncPendingPurchases(silent){
       PROG.iap.push({sku:e.sku,ts:Date.now(),orderId:e.orderId,verified:false});
       const g=localGrantOf(e.sku);
       if(g)applyGrant(g,productBySku(e.sku).n);
-      if(e.token&&productBySku(e.sku)&&productBySku(e.sku).kind==='coins')bridgeCall('consume',e.token);
+      if(e.token)bridgeCall('consume',e.token);
     });
     progSave();
     return;
@@ -3311,7 +3311,10 @@ async function syncPendingPurchases(silent){
          داده می‌شود. این همان حالتی است که کاربر برنامه را دوباره نصب کرده و
          «بازیابی خریدهای قبلی» را می‌زند؛ وگرنه خریدش را از دست می‌داد. */
       if(res&&res.ok&&res.grant)applyGrant(res.grant,(productBySku(e.sku)||{}).n);
-      if(e.token&&(productBySku(e.sku)||{}).kind==='coins')bridgeCall('consume',e.token);
+      /* همهٔ شش محصول پنل مایکت «محصول درون‌برنامه‌ای» یک‌بارمصرف‌اند (نه اشتراک
+         واقعی)، پس بعد از تأیید سرور مصرف می‌شوند تا کاربر بتواند دوباره
+         بخرد — اشتراک VIP هم باید قابل تمدید باشد. */
+      if(e.token)bridgeCall('consume',e.token);
     }
   } finally { iapSyncing=false; progSave(); }
 }
