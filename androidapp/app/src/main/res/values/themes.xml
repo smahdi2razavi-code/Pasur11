@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- تم تیره و بدون نوار عنوان تا بازی تمام صفحه دیده شود -->
+    <style name="Theme.Pasur11" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:windowBackground">@color/pasur_night</item>
+        <item name="android:statusBarColor">@color/pasur_night</item>
+        <item name="android:navigationBarColor">@color/pasur_night</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
+    </style>
+</resources>
