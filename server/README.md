@@ -26,10 +26,15 @@
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/smahdi2razavi-code/Pasur11/claude/screen-server-gateway-issues-0jyp6m/server/install.sh -o install.sh
-sudo bash install.sh دامنهٔ-شما
+sudo bash install.sh 94-184-36-13.sslip.io
 ```
 
-مثلاً:
+**همین دستور بالا برای سرور شما آماده است** — کپی کنید و در ترمینال سرور بزنید.
+
+`94-184-36-13.sslip.io` یک نام رایگان است که خودکار به آی‌پی `94.184.36.13`
+می‌رسد. با آن می‌شود گواهی SSL رایگان گرفت، بدون اینکه دامنه بخرید.
+اگر بعداً دامنهٔ خودتان را گرفتید، به‌جایش آن را بنویسید:
+
 ```bash
 sudo bash install.sh api.pasur11.ir
 ```

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- همه‌چیز فقط از راه HTTPS. اگر روزی مجبور شدید موقتاً از آدرس http
+         استفاده کنید، بخش کامنت‌شدهٔ پایین را فعال کنید — ولی برای انتشار
+         واقعی حتماً HTTPS بگذارید، چون رسید خریدها از این مسیر رد می‌شود. -->
+    <base-config cleartextTrafficPermitted="false" />
+
+    <!--
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">94.184.36.13</domain>
+    </domain-config>
+    -->
+</network-security-config>
