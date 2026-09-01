@@ -11,6 +11,8 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.webkit.WebViewAssetLoader
 import java.io.File
 import java.io.FileOutputStream
@@ -99,6 +101,10 @@ class MainActivity : AppCompatActivity() {
                 view: WebView, request: WebResourceRequest
             ): WebResourceResponse? = loader.shouldInterceptRequest(request.url)
 
+            override fun onPageFinished(view: WebView, url: String) {
+                ViewCompat.requestApplyInsets(view)
+            }
+
             override fun shouldOverrideUrlLoading(
                 view: WebView, request: WebResourceRequest
             ): Boolean {
@@ -115,6 +121,26 @@ class MainActivity : AppCompatActivity() {
         // پل خرید مایکت — نام MyketBilling باید دقیقاً همین باشد
         bridge = MyketBridge(this, web, activityResultRegistry)
         web.addJavascriptInterface(bridge!!, "MyketBilling")
+        // پل عمومی اپ (خروج، باز کردن مایکت). وجودش به بازی می‌فهماند داخل اپ است.
+        web.addJavascriptInterface(AppBridge(this), "AndroidApp")
+
+        // اندازهٔ نوار وضعیت و نوار پایین گوشی را به بازی می‌دهیم تا چیدمانش
+        // زیر ناچ یا دکمه‌های ناوبری نرود.
+        ViewCompat.setOnApplyWindowInsetsListener(web) { _, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            val d = resources.displayMetrics.density
+            fun px(v: Int) = (v / d).toInt()
+            web.evaluateJavascript(
+                "(function(){var r=document.documentElement.style;" +
+                "r.setProperty('--sat','" + px(bars.top) + "px');" +
+                "r.setProperty('--sab','" + px(bars.bottom) + "px');" +
+                "r.setProperty('--sal','" + px(bars.left) + "px');" +
+                "r.setProperty('--sar','" + px(bars.right) + "px');" +
+                "window.__insetsOK=true;" +
+                "document.body&&document.body.classList.remove('no-insets');})()", null
+            )
+            insets
+        }
 
         web.loadUrl(START_URL)
 

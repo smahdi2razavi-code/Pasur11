@@ -11,8 +11,8 @@ android {
         applicationId = "ir.smrx.pasur11"
         minSdk = 21
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 5  // باید با APP_VERSION_CODE در index.html یکی باشد
+        versionName = "1.1"  // باید با APP_VERSION_NAME در index.html یکی باشد
 
         // ---------- تنظیمات درگاه مایکت ----------
         // این سه خط را دست نزنید؛ کتابخانهٔ خرید از روی همین‌ها مجوزها را
@@ -49,6 +49,7 @@ android {
 
 dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
+    implementation("androidx.core:core-ktx:1.15.0")
     implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("androidx.webkit:webkit:1.12.1")
 
